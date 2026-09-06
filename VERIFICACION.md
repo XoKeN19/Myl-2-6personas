@@ -13,3 +13,7 @@
 Se añadieron pruebas de privacidad del espectador y consultas, consentimiento para efectos ajenos, rechazo de solicitudes obsoletas, selección múltiple y barajado, orden del tope/fondo, fuerza y estados temporales, transformación, control y propiedad de cartas, y límites de usos. El flujo HTTP prueba también entrada del espectador con sala llena y rechazo de escritura/exportación privada.
 
 No se ha realizado QA visual/interactiva en navegador. Las cartas dictadas se validan como datos JSON; sus textos no se han cotejado contra un catálogo oficial. Los mazos personales se entregan fuera del repositorio público.
+
+## Modo de mesa libre
+
+Se comprobó el movimiento directo entre todas las zonas, el robo libre sin consumir el robo normal, la elección de fases fuera de orden y la toma de control de una carta rival visible. La privacidad de Mano y Castillo rival se mantiene: para usar una carta oculta de esas zonas primero debe existir una consulta autorizada. La disposición compacta, las ventanas flotantes y sus animaciones se verificaron mediante compilación; no se realizó inspección visual automatizada del navegador.

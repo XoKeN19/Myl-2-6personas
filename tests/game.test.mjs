@@ -84,7 +84,7 @@ test('Excepcional rechaza manos con dos Oros sin consumirlo', () => {
   assert.throws(() => action(r, p.token, { type: 'freeMulligan' }));
   assert.equal(p.freeMulligan, false);
 });
-test('Robo normal sólo al final, no en primer turno ni más de una vez', () => {
+test('Robo normal conserva su guía y el turno puede cerrarse libremente', () => {
   const [r, p, q] = setup();
   start(r);
   assert.throws(() => action(r, p.token, { type: 'draw' }));
@@ -94,22 +94,55 @@ test('Robo normal sólo al final, no en primer turno ni más de una vez', () => 
   phase(r, q, 'Vigilia');
   assert.throws(() => action(r, q.token, { type: 'draw' }));
   phase(r, q, 'Final');
-  assert.throws(() => action(r, q.token, { type: 'next' }));
-  action(r, q.token, { type: 'draw' });
-  assert.throws(() => action(r, q.token, { type: 'draw' }));
-  assert.throws(() => action(r, p.token, { type: 'draw' }));
-  assert.throws(() => action(r, q.token, { type: 'next' }));
-  const c = q.cards.find((c) => c.zone === 'mano');
-  action(r, q.token, { type: 'move', cardId: c.id, zone: 'cementerio' });
   action(r, q.token, { type: 'next' });
   assert.equal(r.active, p.id);
 });
-test('No permite retroceder fases ni saltar el daño', () => {
+test('Robo libre funciona en cualquier fase sin consumir el robo normal', () => {
   const [r, p] = setup();
   start(r);
-  assert.throws(() => phase(r, p, 'Bloqueo'));
-  phase(r, p, 'Ataque');
-  assert.throws(() => phase(r, p, 'Vigilia'));
+  const before = p.cards.filter((c) => c.zone === 'mano').length;
+  action(r, p.token, { type: 'freeDraw', count: 2 });
+  assert.equal(p.cards.filter((c) => c.zone === 'mano').length, before + 2);
+  assert.equal(r.drawn, false);
+});
+test('Las fases se pueden elegir libremente', () => {
+  const [r, p, q] = setup();
+  start(r);
+  phase(r, p, 'Bloqueo');
+  assert.equal(r.phase, 'Bloqueo');
+  phase(r, q, 'Vigilia');
+  assert.equal(r.phase, 'Vigilia');
+});
+test('Movimiento libre permite cualquier zona y tomar una carta visible', () => {
+  const [r, p, q] = setup();
+  start(r);
+  const ownCard = p.cards.find((c) => c.zone === 'mano');
+  action(r, p.token, {
+    type: 'freeMove',
+    cardId: ownCard.id,
+    sourcePlayerId: p.id,
+    zone: 'ataque',
+  });
+  assert.equal(ownCard.zone, 'ataque');
+  const hiddenCard = q.cards.find((c) => c.zone === 'castillo');
+  assert.throws(() =>
+    action(r, p.token, {
+      type: 'freeMove',
+      cardId: hiddenCard.id,
+      sourcePlayerId: q.id,
+      zone: 'mano',
+    }),
+  );
+  const rivalCard = q.cards.find((c) => c.zone === 'cementerio') || q.cards[0];
+  rivalCard.zone = 'cementerio';
+  action(r, p.token, {
+    type: 'freeMove',
+    cardId: rivalCard.id,
+    sourcePlayerId: q.id,
+    zone: 'mano',
+  });
+  assert.ok(p.cards.includes(rivalCard));
+  assert.ok(!q.cards.includes(rivalCard));
 });
 test('Robo por efecto requiere motivo y no consume el robo normal', () => {
   const [r, p] = setup();
@@ -123,15 +156,15 @@ test('Robo por efecto requiere motivo y no consume el robo normal', () => {
   assert.equal(r.drawn, false);
   assert.ok(r.log[0].message.includes('Talismán de prueba'));
 });
-test('Oro es primero y sólo uno en Vigilia', () => {
+test('El modo libre permite mover varios Oros a Reserva', () => {
   const [r, p] = setup();
   start(r);
   const [a, b] = p.cards.filter((c) => c.zone === 'mano');
   a.type = b.type = 'Oro';
   action(r, p.token, { type: 'move', cardId: a.id, zone: 'reserva' });
-  assert.throws(() =>
-    action(r, p.token, { type: 'move', cardId: b.id, zone: 'reserva' }),
-  );
+  action(r, p.token, { type: 'move', cardId: b.id, zone: 'reserva' });
+  assert.equal(a.zone, 'reserva');
+  assert.equal(b.zone, 'reserva');
 });
 test('Ataque necesita fase y Agrupación o excepción explícita', () => {
   const [r, p, q] = setup();
@@ -182,7 +215,8 @@ test('Combate directo: confirma ambos, destruye, bota y no duplica daño', () =>
   assert.equal(combat(r, q.id)[0].damage, 2);
   phase(r, p, 'Guerra de Talismanes');
   phase(r, p, 'Asignación de daño');
-  assert.throws(() => phase(r, p, 'Final'));
+  phase(r, p, 'Final');
+  phase(r, p, 'Asignación de daño');
   assert.throws(() => action(r, p.token, { type: 'resolve', defender: q.id }));
   action(r, p.token, { type: 'battleReady' });
   action(r, q.token, { type: 'battleReady' });

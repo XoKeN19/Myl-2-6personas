@@ -189,12 +189,15 @@ export default function Effects({
   act,
 
   busy,
+  selectedCard,
 }: {
   room: R;
 
   act: (a: Record<string, unknown>) => Promise<unknown>;
 
   busy: boolean;
+
+  selectedCard?: C;
 }) {
   const [open, setOpen] = useState(false),
     [reason, setReason] = useState(''),
@@ -255,6 +258,30 @@ export default function Effects({
 
   if (room.role === 'spectator') return null;
 
+  const selectedText = selectedCard?.effect.toLocaleLowerCase('es') || '';
+
+  const openSelected = (preset?: string) => {
+    if (!selectedCard) return;
+
+    setReason(selectedCard.name);
+
+    if (preset === 'castillo') {
+      setPlayerId(room.me || '');
+      setZone('castillo');
+    }
+
+    if (preset === 'cementerio') {
+      setPlayerId(room.me || '');
+      setZone('cementerio');
+    }
+
+    if (preset === 'desterrar') setOperation('banish');
+
+    if (preset === 'barajar') setOperation('shuffle');
+
+    setOpen(true);
+  };
+
   return (
     <section className="panel">
       <h3>Habilidades y efectos</h3>
@@ -262,6 +289,51 @@ export default function Effects({
       <button className="primary wide" onClick={() => setOpen(true)}>
         Resolver un efecto
       </button>
+
+      {selectedCard && (
+        <div className="effect-shortcuts">
+          <strong>{selectedCard.name}</strong>
+          <div className="actions">
+            <button onClick={() => openSelected()}>Resolver esta carta</button>
+            {selectedText.includes('roba') &&
+              [1, 2, 3].map((amount) => (
+                <button
+                  key={amount}
+                  disabled={busy}
+                  onClick={() =>
+                    act({
+                      type: 'effectDraw',
+                      count: amount,
+                      reason: selectedCard.name,
+                    })
+                  }
+                >
+                  Robar {amount}
+                </button>
+              ))}
+            {selectedText.includes('castillo') && (
+              <button onClick={() => openSelected('castillo')}>
+                Buscar / mirar Castillo
+              </button>
+            )}
+            {selectedText.includes('cementerio') && (
+              <button onClick={() => openSelected('cementerio')}>
+                Elegir del Cementerio
+              </button>
+            )}
+            {selectedText.includes('destierra') && (
+              <button onClick={() => openSelected('desterrar')}>
+                Elegir para Destierro
+              </button>
+            )}
+            {selectedText.includes('baraja') && (
+              <button onClick={() => openSelected('barajar')}>
+                Elegir para barajar
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {room.requests.length > 0 && (
         <p className="hint">

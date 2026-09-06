@@ -34,15 +34,15 @@ Formato compatible: una lista de cartas, o `{ "version": 1, "name": "Mi mazo", "
 - Mulligan normal: devuelve la mano, baraja y roba una carta menos.
 - Mulligan excepcional oficial: una vez, si hay uno o ningún Oro; publica los nombres de la mano y conserva su cantidad.
 - **Volver a ocho**: regla de la casa solicitada para esta mesa. Devuelve y baraja la mano, roba 8 y sólo puede usarse una vez antes de comenzar. No es el mulligan oficial.
-- Las fases avanzan en orden. Desde Vigilia se puede pasar a Final sin atacar.
+- Las fases son una guía visible y cualquier jugador puede elegirlas libremente. La mesa no bloquea una jugada por la fase actual.
 - El robo normal sólo se permite al final del turno del jugador activo, una vez; no se roba en el primer turno de la partida. No se puede terminar con más de 8 cartas en mano.
 - **Robar por efecto** requiere escribir el motivo en la casilla de efecto excepcional; queda en la bitácora y no consume el robo normal.
-- Al terminar el turno se agrupan automáticamente los aliados y oros del siguiente jugador. El Oro de Vigilia se limita a uno y debe colocarse antes de otro permanente.
-- Ataques y bloqueos se declaran en sus fases. Los aliados deben haber pasado por Agrupación; para Furia u otra excepción escribe su motivo.
+- Al terminar el turno se agrupan automáticamente los aliados y oros del siguiente jugador. También puedes mover libremente las cartas y resolver la agrupación a mano.
+- Arrastra cualquier carta visible que controles hacia Mano, Ataque, Defensa, Apoyo, Reserva, Oro pagado, Cementerio o Destierro. Los botones de ataque y bloqueo se conservan como ayuda opcional.
 - En Asignación de daño, ambos jugadores confirman los efectos y fuerzas. El atacante pulsa **Aplicar daño y destrucciones**: mueve las bajas y sus armas al Cementerio y bota del Castillo defensor el daño calculado, una sola vez por defensor y turno. Modificar cartas invalida las confirmaciones.
-- Usa **Todas las mesas** o el nombre del rival para ver sus zonas públicas, cartas y efectos. Las manos rivales y el contenido del Castillo permanecen ocultos.
+- Las mesas se acomodan dentro de la ventana y cada zona tiene desplazamiento propio. Haz clic en el nombre de una zona para abrir todas sus cartas en una ventana flotante. Las manos rivales y el contenido del Castillo permanecen ocultos.
 
-La aplicación no interpreta el texto de habilidades. Costes y pagos, prioridades de Talismanes, prevención, inmunidades, restricciones de agrupación, transferencia de control y otras excepciones siguen siendo manuales. Para efectos que modifiquen la fuerza, escribe el total actual antes de confirmar. El daño automático es opcional; no lo confirmes si una excepción cambia su resultado. Las salas de más de dos jugadores son una variante de la casa con turnos por orden de entrada y objetivo por atacante.
+La aplicación detecta palabras frecuentes del texto —Robar, Castillo, Cementerio, Desterrar y Barajar— y ofrece atajos al abrir una carta. No decide si se cumplen sus condiciones. Costes, pagos, prioridades, prevención y otras excepciones siguen bajo control de los jugadores. El daño automático es opcional. Las salas de más de dos jugadores son una variante de la casa con turnos por orden de entrada y objetivo por atacante.
 
 Documentos oficiales consultados el 6 de septiembre de 2026:
 

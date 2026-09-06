@@ -25,6 +25,8 @@ import {
   Copy,
   ArrowRight,
   ScrollText,
+  LogOut,
+  Sparkles,
 } from 'lucide-react';
 type Card = {
   id: string;
@@ -158,6 +160,12 @@ export default function Home() {
     [editing, setEditing] = useState<string | null>(null),
     [rules, setRules] = useState(false),
     [deck, setDeck] = useState(false),
+    [toolsOpen, setToolsOpen] = useState(false),
+    [zoneOpen, setZoneOpen] = useState<{
+      playerId: string;
+      zone: string;
+    } | null>(null),
+    [motion, setMotion] = useState<{ key: number; text: string } | null>(null),
     [reason, setReason] = useState(''),
     [target, setTarget] = useState(''),
     [host, setHost] = useState(''),
@@ -291,6 +299,20 @@ export default function Home() {
     try {
       const r = await request(`/api/${room.code}/action`, a, token);
       setRoom(r);
+      const kind = typeof a.type === 'string' ? a.type : '';
+      const destination =
+        typeof a.zone === 'string' ? zones[a.zone] || a.zone : 'la zona';
+      const text = ['draw', 'effectDraw', 'freeDraw'].includes(kind)
+        ? 'Carta robada'
+        : kind === 'shuffle'
+          ? 'Castillo barajado'
+          : kind === 'damage'
+            ? 'Cartas enviadas al Cementerio'
+            : kind === 'freeMove'
+              ? `Carta movida a ${destination}`
+              : '';
+      if (text)
+        setMotion((previous) => ({ key: (previous?.key || 0) + 1, text }));
       return r;
     } catch (e) {
       setError((e as Error).message);
@@ -352,6 +374,15 @@ export default function Home() {
     });
     setEditor(true);
   }
+  function leaveRoom() {
+    sessionStorage.removeItem('imperio-session');
+    setRoom(null);
+    setToken('');
+    setSelected(null);
+    setToolsOpen(false);
+    setZoneOpen(null);
+    history.replaceState(null, '', location.pathname);
+  }
   async function copy(watch = false) {
     try {
       await navigator.clipboard.writeText(
@@ -367,11 +398,21 @@ export default function Home() {
       <button
         key={c.id}
         className={`card type-${c.type} ${attached ? 'weapon' : ''} ${selected === c.id ? 'chosen' : ''}`}
+        draggable={room?.role !== 'spectator' && !c.hidden}
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData(
+            'application/x-imperio-card',
+            JSON.stringify({ cardId: c.id, sourcePlayerId: p.id }),
+          );
+        }}
         onClick={() => {
           setSelected(c.id);
           setTarget('');
           setHost('');
           setBlock('');
+          setZoneOpen(null);
+          setToolsOpen(true);
         }}
       >
         <div className="card-top">
@@ -421,9 +462,36 @@ export default function Home() {
   function zone(p: Player, z: string) {
     const cards = p.cards.filter((c) => c.zone === z && !c.attachedTo);
     return (
-      <section className={`zone z-${z}`} key={z}>
+      <section
+        className={`zone z-${z} ${p.id === me?.id ? 'drop-zone' : ''}`}
+        key={z}
+        onDragOver={(e) => {
+          if (p.id === me?.id && room?.role !== 'spectator') e.preventDefault();
+        }}
+        onDrop={(e) => {
+          if (p.id !== me?.id || room?.role === 'spectator') return;
+          e.preventDefault();
+          try {
+            const dragged = JSON.parse(
+              e.dataTransfer.getData('application/x-imperio-card'),
+            );
+            if (dragged.cardId)
+              void act({
+                type: 'freeMove',
+                cardId: dragged.cardId,
+                sourcePlayerId: dragged.sourcePlayerId,
+                zone: z,
+              });
+          } catch {}
+        }}
+      >
         <div className="zone-title">
-          <span>{zones[z]}</span>
+          <button
+            className="zone-open"
+            onClick={() => setZoneOpen({ playerId: p.id, zone: z })}
+          >
+            {zones[z]}
+          </button>
           <b>{cards.length}</b>
         </div>
         <div className="cards">
@@ -481,6 +549,11 @@ export default function Home() {
         <button onClick={() => setRules(true)}>
           <BookOpen size={16} /> Reglas y ayuda
         </button>
+        {room && (
+          <button onClick={leaveRoom}>
+            <LogOut size={16} /> Volver al menú
+          </button>
+        )}
       </header>
       {error && (
         <div className="banner error" role="alert">
@@ -593,7 +666,12 @@ export default function Home() {
           </div>
         </main>
       ) : (
-        <main className="game">
+        <main className="game compact-table">
+          {motion && (
+            <div key={motion.key} className="table-fx" aria-live="polite">
+              <Sparkles size={22} /> {motion.text}
+            </div>
+          )}
           <section className="room-bar">
             <div>
               <div className="eyebrow">
@@ -618,42 +696,14 @@ export default function Home() {
                 {room.players.find((p) => p.id === room.active)?.name}
               </strong>
             </div>
-            <div className="phase-now">
-              <small>Fase actual</small>
-              <strong>{room.phase}</strong>
-            </div>
+            <Choice
+              label="Fase libre"
+              value={room.phase}
+              onChange={(phase) => act({ type: 'phase', phase })}
+              items={options(phases)}
+            />
             <button
-              disabled={
-                busy ||
-                room.active !== me?.id ||
-                !room.started ||
-                room.phase === 'Final'
-              }
-              onClick={() =>
-                act({
-                  type: 'phase',
-                  phase: phases[phases.indexOf(room.phase) + 1],
-                })
-              }
-            >
-              Siguiente fase →
-            </button>
-            {room.phase === 'Vigilia' && (
-              <button
-                disabled={busy || room.active !== me?.id || !room.started}
-                onClick={() => act({ type: 'phase', phase: 'Final' })}
-              >
-                Finalizar sin atacar
-              </button>
-            )}
-            <button
-              disabled={
-                busy ||
-                room.active !== me?.id ||
-                !room.started ||
-                room.phase !== 'Final' ||
-                (room.turn > 1 && !room.drawn)
-              }
+              disabled={busy || room.active !== me?.id || !room.started}
               onClick={() => act({ type: 'next' })}
             >
               Terminar turno →
@@ -728,8 +778,29 @@ export default function Home() {
               </button>
             ))}
           </nav>
+          <div className="table-tools">
+            <button className="primary" onClick={() => setToolsOpen(true)}>
+              <Sparkles size={16} /> Herramientas y efectos
+            </button>
+            <button
+              disabled={busy || room.role === 'spectator'}
+              onClick={() => act({ type: 'freeDraw', count: 1 })}
+            >
+              Robar una carta
+            </button>
+            <button
+              disabled={busy || room.role === 'spectator'}
+              onClick={() => act({ type: 'shuffle' })}
+            >
+              Barajar Castillo
+            </button>
+            <small>
+              Arrastra tus cartas a cualquier zona. Haz clic en una zona para
+              abrirla.
+            </small>
+          </div>
           <div className="workspace">
-            <div className="tables">
+            <div className={`tables table-count-${room.players.length}`}>
               {room.players
                 .filter((p) => boardView === 'all' || boardView === p.id)
                 .map((p) => (
@@ -771,373 +842,432 @@ export default function Home() {
                   </article>
                 ))}
             </div>
-            <aside className="inspector">
-              <Effects room={room} act={act} busy={busy} />
-              <fieldset disabled={room.role === 'spectator'}>
-                <section className="panel">
-                  <h3>Tu mesa</h3>
-                  <div className="actions">
-                    <button
-                      className="primary"
-                      disabled={busy}
-                      onClick={newCard}
-                    >
-                      <Plus size={16} /> Crear carta
-                    </button>
-                    <button onClick={() => setDeck(true)}>Mazo</button>
-                    <button
-                      disabled={
-                        busy ||
-                        !room.started ||
-                        room.active !== me?.id ||
-                        room.phase !== 'Final' ||
-                        room.turn === 1 ||
-                        room.drawn
-                      }
-                      onClick={() => act({ type: 'draw' })}
-                    >
-                      {room.drawn
-                        ? 'Robo del turno realizado'
-                        : 'Robar carta de fin de turno'}
-                    </button>
-                    <button
-                      disabled={busy}
-                      onClick={() => act({ type: 'shuffle' })}
-                    >
-                      Barajar
-                    </button>
-                    <button
-                      disabled={
-                        busy ||
-                        !room.started ||
-                        room.active !== me?.id ||
-                        room.phase !== 'Agrupación'
-                      }
-                      onClick={() => act({ type: 'group' })}
-                    >
-                      Agrupar
-                    </button>
-                  </div>
-                  <p className="hint">
-                    Robo normal: una carta en tu fase Final, excepto el primer
-                    turno de la partida.
-                  </p>
-                  <label>
-                    Carta o efecto excepcional
-                    <input
-                      maxLength={300}
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      placeholder="Ej.: efecto que permite robar o Furia"
-                    />
-                  </label>
-                  <button
-                    disabled={busy || !room.started || !reason.trim()}
-                    onClick={() =>
-                      act({ type: 'effectDraw', count: 1, reason })
-                    }
-                  >
-                    Robar 1 por efecto · registrar motivo
-                  </button>
-                  <label>
-                    Cartas a botar de tu Castillo
-                    <input
-                      type="number"
-                      min="1"
-                      max="250"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                  </label>
-                  <button
-                    disabled={busy}
-                    onClick={() =>
-                      act({ type: 'damage', count: Number(amount) })
-                    }
-                  >
-                    Aplicar daño / botar
-                  </button>
-                  {me && !me.cards.some((c) => c.zone === 'castillo') && (
-                    <p className="warning">
-                      Tu Castillo está vacío. Comprueben el fin de partida y los
-                      efectos pendientes.
-                    </p>
-                  )}
-                </section>
-                <section className="panel">
-                  <h3>{card ? 'Detalle de carta' : 'Inspeccionar carta'}</h3>
-                  {card ? (
-                    <>
-                      <span className="eyebrow">
-                        {found?.p.name} · {card.type}
-                      </span>
-                      <h2>{card.name}</h2>
-                      <p className="effect">
-                        {card.effect || 'Sin habilidad escrita.'}
-                      </p>
-                      <div className="stats">
-                        <span>
-                          Coste <b>{card.cost}</b>
-                        </span>
-                        {card.type === 'Aliado' && (
-                          <span>
-                            Fuerza actual <b>{card.strength}</b>
-                          </span>
-                        )}
+            <Dialog open={toolsOpen} onOpenChange={setToolsOpen}>
+              <DialogContent className="modal tools-modal">
+                <DialogTitle>Herramientas de mesa</DialogTitle>
+                <DialogDescription>
+                  Lee la carta seleccionada, muévela libremente o resuelve una
+                  habilidad.
+                </DialogDescription>
+                <div className="inspector">
+                  <Effects
+                    room={room}
+                    act={act}
+                    busy={busy}
+                    selectedCard={card}
+                  />
+                  <fieldset disabled={room.role === 'spectator'}>
+                    <section className="panel">
+                      <h3>Tu mesa</h3>
+                      <div className="actions">
+                        <button
+                          className="primary"
+                          disabled={busy}
+                          onClick={newCard}
+                        >
+                          <Plus size={16} /> Crear carta
+                        </button>
+                        <button onClick={() => setDeck(true)}>Mazo</button>
+                        <button
+                          disabled={
+                            busy ||
+                            !room.started ||
+                            room.active !== me?.id ||
+                            room.phase !== 'Final' ||
+                            room.turn === 1 ||
+                            room.drawn
+                          }
+                          onClick={() => act({ type: 'draw' })}
+                        >
+                          {room.drawn
+                            ? 'Robo del turno realizado'
+                            : 'Robar carta de fin de turno'}
+                        </button>
+                        <button
+                          disabled={busy}
+                          onClick={() => act({ type: 'shuffle' })}
+                        >
+                          Barajar
+                        </button>
+                        <button
+                          disabled={
+                            busy ||
+                            !room.started ||
+                            room.active !== me?.id ||
+                            room.phase !== 'Agrupación'
+                          }
+                          onClick={() => act({ type: 'group' })}
+                        >
+                          Agrupar
+                        </button>
                       </div>
-                      {mine && (
+                      <p className="hint">
+                        Robo normal: una carta en tu fase Final, excepto el
+                        primer turno de la partida.
+                      </p>
+                      <label>
+                        Carta o efecto excepcional
+                        <input
+                          maxLength={300}
+                          value={reason}
+                          onChange={(e) => setReason(e.target.value)}
+                          placeholder="Ej.: efecto que permite robar o Furia"
+                        />
+                      </label>
+                      <button
+                        disabled={busy || !room.started || !reason.trim()}
+                        onClick={() =>
+                          act({ type: 'effectDraw', count: 1, reason })
+                        }
+                      >
+                        Robar 1 por efecto · registrar motivo
+                      </button>
+                      <label>
+                        Cartas a botar de tu Castillo
+                        <input
+                          type="number"
+                          min="1"
+                          max="250"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                        />
+                      </label>
+                      <button
+                        disabled={busy}
+                        onClick={() =>
+                          act({ type: 'damage', count: Number(amount) })
+                        }
+                      >
+                        Aplicar daño / botar
+                      </button>
+                      {me && !me.cards.some((c) => c.zone === 'castillo') && (
+                        <p className="warning">
+                          Tu Castillo está vacío. Comprueben el fin de partida y
+                          los efectos pendientes.
+                        </p>
+                      )}
+                    </section>
+                    <section className="panel">
+                      <h3>
+                        {card ? 'Detalle de carta' : 'Inspeccionar carta'}
+                      </h3>
+                      {card ? (
                         <>
-                          <button onClick={editCard}>
-                            Editar nombre, efecto y valores
-                          </button>
-                          <Choice
-                            label="Mover a una zona"
-                            value={card.zone}
-                            onChange={(zone) =>
-                              act({ type: 'move', cardId: card.id, zone })
-                            }
-                            items={Object.entries(zones).map(
-                              ([value, label]) => ({ value, label }),
+                          <span className="eyebrow">
+                            {found?.p.name} · {card.type}
+                          </span>
+                          <h2>{card.name}</h2>
+                          <p className="effect">
+                            {card.effect || 'Sin habilidad escrita.'}
+                          </p>
+                          <div className="stats">
+                            <span>
+                              Coste <b>{card.cost}</b>
+                            </span>
+                            {card.type === 'Aliado' && (
+                              <span>
+                                Fuerza actual <b>{card.strength}</b>
+                              </span>
                             )}
-                          />
-                          {card.type === 'Arma' && (
+                          </div>
+                          {mine && (
                             <>
-                              <Choice
-                                label="Aliado portador"
-                                value={host}
-                                onChange={setHost}
-                                items={(
-                                  me?.cards.filter(
-                                    (c) =>
-                                      c.type === 'Aliado' &&
-                                      ['defensa', 'ataque'].includes(c.zone),
-                                  ) || []
-                                ).map((c) => ({ value: c.id, label: c.name }))}
-                              />
-                              <button
-                                disabled={!host || busy}
-                                onClick={() =>
-                                  act({
-                                    type: 'attach',
-                                    cardId: card.id,
-                                    hostId: host,
-                                  })
-                                }
-                              >
-                                Equipar arma
-                              </button>
-                              <p className="hint">
-                                Actualiza la fuerza del portador si el efecto la
-                                modifica.
-                              </p>
-                            </>
-                          )}
-                          {card.type === 'Aliado' && (
-                            <>
-                              <Choice
-                                label="Atacar a"
-                                value={target}
-                                onChange={setTarget}
-                                items={room.players
-                                  .filter((p) => p.id !== me?.id)
-                                  .map((p) => ({ value: p.id, label: p.name }))}
-                              />
-                              <button
-                                disabled={
-                                  !target ||
-                                  busy ||
-                                  room.active !== me?.id ||
-                                  room.phase !== 'Ataque'
-                                }
-                                onClick={() =>
-                                  act({
-                                    type: 'attack',
-                                    cardId: card.id,
-                                    target,
-                                    reason,
-                                  })
-                                }
-                              >
-                                Declarar atacante
+                              <button onClick={editCard}>
+                                Editar nombre, efecto y valores
                               </button>
                               <Choice
-                                label="Bloquear a"
-                                value={block}
-                                onChange={setBlock}
-                                items={room.players
-                                  .flatMap((p) => p.cards)
-                                  .filter(
-                                    (c) =>
-                                      c.zone === 'ataque' &&
-                                      c.target === me?.id,
-                                  )
-                                  .map((c) => ({ value: c.id, label: c.name }))}
+                                label="Mover a una zona"
+                                value={card.zone}
+                                onChange={(zone) =>
+                                  act({ type: 'move', cardId: card.id, zone })
+                                }
+                                items={Object.entries(zones).map(
+                                  ([value, label]) => ({ value, label }),
+                                )}
                               />
-                              <button
-                                disabled={
-                                  !block || busy || room.phase !== 'Bloqueo'
-                                }
-                                onClick={() =>
-                                  act({
-                                    type: 'block',
-                                    cardId: card.id,
-                                    attacker: block,
-                                  })
-                                }
-                              >
-                                Asignar bloqueo
-                              </button>
-                              {card.blocks && (
-                                <button
-                                  onClick={() =>
-                                    act({ type: 'clearBlock', cardId: card.id })
-                                  }
-                                >
-                                  Quitar bloqueo
-                                </button>
+                              {card.type === 'Arma' && (
+                                <>
+                                  <Choice
+                                    label="Aliado portador"
+                                    value={host}
+                                    onChange={setHost}
+                                    items={(
+                                      me?.cards.filter(
+                                        (c) =>
+                                          c.type === 'Aliado' &&
+                                          ['defensa', 'ataque'].includes(
+                                            c.zone,
+                                          ),
+                                      ) || []
+                                    ).map((c) => ({
+                                      value: c.id,
+                                      label: c.name,
+                                    }))}
+                                  />
+                                  <button
+                                    disabled={!host || busy}
+                                    onClick={() =>
+                                      act({
+                                        type: 'attach',
+                                        cardId: card.id,
+                                        hostId: host,
+                                      })
+                                    }
+                                  >
+                                    Equipar arma
+                                  </button>
+                                  <p className="hint">
+                                    Actualiza la fuerza del portador si el
+                                    efecto la modifica.
+                                  </p>
+                                </>
+                              )}
+                              {card.type === 'Aliado' && (
+                                <>
+                                  <Choice
+                                    label="Atacar a"
+                                    value={target}
+                                    onChange={setTarget}
+                                    items={room.players
+                                      .filter((p) => p.id !== me?.id)
+                                      .map((p) => ({
+                                        value: p.id,
+                                        label: p.name,
+                                      }))}
+                                  />
+                                  <button
+                                    disabled={
+                                      !target ||
+                                      busy ||
+                                      room.active !== me?.id ||
+                                      room.phase !== 'Ataque'
+                                    }
+                                    onClick={() =>
+                                      act({
+                                        type: 'attack',
+                                        cardId: card.id,
+                                        target,
+                                        reason,
+                                      })
+                                    }
+                                  >
+                                    Declarar atacante
+                                  </button>
+                                  <Choice
+                                    label="Bloquear a"
+                                    value={block}
+                                    onChange={setBlock}
+                                    items={room.players
+                                      .flatMap((p) => p.cards)
+                                      .filter(
+                                        (c) =>
+                                          c.zone === 'ataque' &&
+                                          c.target === me?.id,
+                                      )
+                                      .map((c) => ({
+                                        value: c.id,
+                                        label: c.name,
+                                      }))}
+                                  />
+                                  <button
+                                    disabled={
+                                      !block || busy || room.phase !== 'Bloqueo'
+                                    }
+                                    onClick={() =>
+                                      act({
+                                        type: 'block',
+                                        cardId: card.id,
+                                        attacker: block,
+                                      })
+                                    }
+                                  >
+                                    Asignar bloqueo
+                                  </button>
+                                  {card.blocks && (
+                                    <button
+                                      onClick={() =>
+                                        act({
+                                          type: 'clearBlock',
+                                          cardId: card.id,
+                                        })
+                                      }
+                                    >
+                                      Quitar bloqueo
+                                    </button>
+                                  )}
+                                </>
                               )}
                             </>
                           )}
                         </>
+                      ) : (
+                        <p className="muted">
+                          Haz clic en una carta de la mesa para leer su efecto.
+                          Tus cartas se pueden editar y mover desde aquí.
+                        </p>
                       )}
-                    </>
-                  ) : (
-                    <p className="muted">
-                      Haz clic en una carta de la mesa para leer su efecto. Tus
-                      cartas se pueden editar y mover desde aquí.
-                    </p>
-                  )}
-                </section>
-                <section className="panel">
-                  <h3>Resolver combate</h3>
-                  <p className="hint">
-                    Actualicen fuerzas y resuelvan efectos. Atacante y defensor
-                    confirman antes de aplicar automáticamente daño y bajas.
-                  </p>
-                  {room.players
-                    .filter((p) => p.id !== room.active)
-                    .map((d) => {
-                      const at =
-                        room.players
-                          .find((p) => p.id === room.active)
-                          ?.cards.filter(
-                            (c) =>
-                              c.zone === 'ataque' &&
-                              c.target === d.id &&
-                              c.type === 'Aliado',
-                          ) || [];
-                      if (!at.length) return null;
-                      let total = 0;
-                      return (
-                        <div key={d.id}>
-                          <h4>Contra {d.name}</h4>
-                          {at.map((a) => {
-                            const b = d.cards.find(
-                              (c) => c.zone === 'defensa' && c.blocks === a.id,
-                            );
-                            const damage = Math.max(
-                              0,
-                              a.strength - (b?.strength || 0),
-                            );
-                            total += damage;
-                            return (
-                              <p className="combat-row" key={a.id}>
-                                <b>
-                                  {a.name} ({a.strength})
-                                </b>
-                                <br />
-                                {b
-                                  ? `${b.name} (${b.strength})`
-                                  : 'Sin bloqueo'}{' '}
-                                → {damage} daño
-                                {b && (
-                                  <small>
-                                    {`Destrucciones: ${[a.strength <= b.strength && !a.statuses?.indestructible ? a.name : '', b.strength <= a.strength && !b.statuses?.indestructible ? b.name : ''].filter(Boolean).join(' y ') || 'ninguna (protecciones activas)'}`}
-                                  </small>
-                                )}
-                              </p>
-                            );
-                          })}
-                          <strong>Daño total: {total}</strong>
-                          {room.resolved?.includes(d.id) ? (
-                            <p className="status">Combate resuelto</p>
-                          ) : (
-                            <button
-                              className="primary"
-                              disabled={
-                                busy ||
-                                room.phase !== 'Asignación de daño' ||
-                                room.active !== me?.id ||
-                                !room.battleReady?.includes(room.active) ||
-                                !room.battleReady?.includes(d.id)
-                              }
-                              onClick={() =>
-                                act({ type: 'resolve', defender: d.id })
-                              }
-                            >
-                              Aplicar daño y destrucciones
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  <button
-                    disabled={
-                      busy ||
-                      room.phase !== 'Asignación de daño' ||
-                      room.battleReady?.includes(me?.id || '')
-                    }
-                    onClick={() => act({ type: 'battleReady' })}
-                  >
-                    {room.battleReady?.includes(me?.id || '')
-                      ? 'Confirmación enviada'
-                      : 'Confirmo efectos y fuerzas'}
-                  </button>
-                  <p className="hint">
-                    Aplica las reglas básicas. Si hay prevención,
-                    indestructibilidad u otra excepción, resuélvanla manualmente
-                    antes de confirmar.
-                  </p>
-                </section>
-                <section className="panel">
-                  <h3>Bitácora</h3>
-                  <label>
-                    Registrar efecto o acuerdo
-                    <textarea
-                      rows={2}
-                      maxLength={500}
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                      placeholder="Ej.: el aliado gana 2 de fuerza…"
-                    />
-                  </label>
-                  <button
-                    disabled={!note.trim() || busy}
-                    onClick={async () => {
-                      if (await act({ type: 'note', text: note })) setNote('');
-                    }}
-                  >
-                    Registrar
-                  </button>
-                  <ol className="log">
-                    {room.log.map((e) => (
-                      <li key={e.id}>
-                        <time>
-                          {new Date(e.time).toLocaleTimeString('es-CL', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </time>
-                        {e.message}
-                      </li>
-                    ))}
-                  </ol>
-                </section>
-              </fieldset>
-            </aside>
+                    </section>
+                    <section className="panel">
+                      <h3>Resolver combate</h3>
+                      <p className="hint">
+                        Actualicen fuerzas y resuelvan efectos. Atacante y
+                        defensor confirman antes de aplicar automáticamente daño
+                        y bajas.
+                      </p>
+                      {room.players
+                        .filter((p) => p.id !== room.active)
+                        .map((d) => {
+                          const at =
+                            room.players
+                              .find((p) => p.id === room.active)
+                              ?.cards.filter(
+                                (c) =>
+                                  c.zone === 'ataque' &&
+                                  c.target === d.id &&
+                                  c.type === 'Aliado',
+                              ) || [];
+                          if (!at.length) return null;
+                          let total = 0;
+                          return (
+                            <div key={d.id}>
+                              <h4>Contra {d.name}</h4>
+                              {at.map((a) => {
+                                const b = d.cards.find(
+                                  (c) =>
+                                    c.zone === 'defensa' && c.blocks === a.id,
+                                );
+                                const damage = Math.max(
+                                  0,
+                                  a.strength - (b?.strength || 0),
+                                );
+                                total += damage;
+                                return (
+                                  <p className="combat-row" key={a.id}>
+                                    <b>
+                                      {a.name} ({a.strength})
+                                    </b>
+                                    <br />
+                                    {b
+                                      ? `${b.name} (${b.strength})`
+                                      : 'Sin bloqueo'}{' '}
+                                    → {damage} daño
+                                    {b && (
+                                      <small>
+                                        {`Destrucciones: ${[a.strength <= b.strength && !a.statuses?.indestructible ? a.name : '', b.strength <= a.strength && !b.statuses?.indestructible ? b.name : ''].filter(Boolean).join(' y ') || 'ninguna (protecciones activas)'}`}
+                                      </small>
+                                    )}
+                                  </p>
+                                );
+                              })}
+                              <strong>Daño total: {total}</strong>
+                              {room.resolved?.includes(d.id) ? (
+                                <p className="status">Combate resuelto</p>
+                              ) : (
+                                <button
+                                  className="primary"
+                                  disabled={
+                                    busy ||
+                                    room.phase !== 'Asignación de daño' ||
+                                    room.active !== me?.id ||
+                                    !room.battleReady?.includes(room.active) ||
+                                    !room.battleReady?.includes(d.id)
+                                  }
+                                  onClick={() =>
+                                    act({ type: 'resolve', defender: d.id })
+                                  }
+                                >
+                                  Aplicar daño y destrucciones
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      <button
+                        disabled={
+                          busy ||
+                          room.phase !== 'Asignación de daño' ||
+                          room.battleReady?.includes(me?.id || '')
+                        }
+                        onClick={() => act({ type: 'battleReady' })}
+                      >
+                        {room.battleReady?.includes(me?.id || '')
+                          ? 'Confirmación enviada'
+                          : 'Confirmo efectos y fuerzas'}
+                      </button>
+                      <p className="hint">
+                        Aplica las reglas básicas. Si hay prevención,
+                        indestructibilidad u otra excepción, resuélvanla
+                        manualmente antes de confirmar.
+                      </p>
+                    </section>
+                    <section className="panel">
+                      <h3>Bitácora</h3>
+                      <label>
+                        Registrar efecto o acuerdo
+                        <textarea
+                          rows={2}
+                          maxLength={500}
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                          placeholder="Ej.: el aliado gana 2 de fuerza…"
+                        />
+                      </label>
+                      <button
+                        disabled={!note.trim() || busy}
+                        onClick={async () => {
+                          if (await act({ type: 'note', text: note }))
+                            setNote('');
+                        }}
+                      >
+                        Registrar
+                      </button>
+                      <ol className="log">
+                        {room.log.map((e) => (
+                          <li key={e.id}>
+                            <time>
+                              {new Date(e.time).toLocaleTimeString('es-CL', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </time>
+                            {e.message}
+                          </li>
+                        ))}
+                      </ol>
+                    </section>
+                  </fieldset>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </main>
       )}
+      <Dialog
+        open={!!zoneOpen}
+        onOpenChange={(open) => !open && setZoneOpen(null)}
+      >
+        <DialogContent className="modal zone-browser">
+          <DialogTitle>{zoneOpen ? zones[zoneOpen.zone] : 'Zona'}</DialogTitle>
+          <DialogDescription>
+            Haz clic en una carta para leerla o moverla. Las cartas ocultas del
+            rival siguen privadas.
+          </DialogDescription>
+          <div className="zone-browser-grid">
+            {zoneOpen &&
+              room?.players
+                .find((p) => p.id === zoneOpen.playerId)
+                ?.cards.filter(
+                  (c) => c.zone === zoneOpen.zone && !c.hidden && !c.attachedTo,
+                )
+                .map((c) => {
+                  const owner = room.players.find(
+                    (p) => p.id === zoneOpen.playerId,
+                  )!;
+                  return tile(c, owner);
+                })}
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={editor} onOpenChange={setEditor}>
         <DialogContent className="modal">
           <DialogTitle>
@@ -1265,15 +1395,16 @@ export default function Home() {
           </p>
           <p>
             Agrupación → Vigilia → Batalla Mitológica (Ataque, Bloqueo, Guerra
-            de Talismanes y daño) → Final. En el primer turno de la partida se
-            omiten la Agrupación y el robo final. El robo normal sólo se permite
-            en Final y una vez por turno. Debes descartar hasta 8 antes de
-            terminar. Al cambiar de turno se agrupa al siguiente jugador.
+            de Talismanes y daño) → Final. Estas fases sirven como referencia:
+            cualquier jugador puede elegir otra fase y terminar el turno sin que
+            la mesa compruebe las condiciones. El botón de robo normal conserva
+            la guía oficial; «Robar una carta» permite resolver libremente los
+            efectos. Al cambiar de turno se agrupa al siguiente jugador.
           </p>
           <p>
-            En Vigilia, el Oro debe ser la primera carta que pongas en juego.
-            Comprueben los costes, requisitos de ataque, prioridades y
-            excepciones antes de mover las cartas.
+            Arrastra tus cartas entre cualquier zona. Comprueben entre ustedes
+            los costes, el Oro de Vigilia, requisitos de ataque, prioridades y
+            excepciones.
           </p>
           <h3>Bloqueo y daño</h3>
           <p>
@@ -1285,10 +1416,11 @@ export default function Home() {
           <h3>Qué hace esta mesa</h3>
           <p>
             Comparte cartas y movimientos; oculta manos ajenas y Castillos;
-            permite equipar armas, marcar ataques y bloqueos, barajar, robar y
-            botar. Al mover un portador fuera de las líneas de batalla, sus
-            armas acompañan al portador a la misma zona; corrige manualmente
-            cualquier excepción.
+            permite arrastrar cartas, equipar armas, marcar ataques y bloqueos,
+            barajar, robar y botar. Cada zona y cada carta abre sus detalles en
+            una ventana flotante. Al mover un portador fuera de las líneas de
+            batalla, sus armas lo acompañan; corrige manualmente cualquier
+            excepción.
           </p>
           <p>
             No interpreta textos ni valida automáticamente la legalidad, la
