@@ -176,7 +176,21 @@ export default function Home() {
         },
         body: body === undefined ? undefined : JSON.stringify(body),
       });
-      const data = (await res.json()) as Room & {
+      const responseText = await res.text();
+      if (!responseText.trim()) {
+        throw Error(
+          `El servidor no respondió${res.status ? ` (estado ${res.status})` : ''}. Comprueba que Mesa Imperio siga abierta y vuelve a intentarlo.`,
+        );
+      }
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(responseText);
+      } catch {
+        throw Error(
+          `El servidor devolvió una respuesta inválida (estado ${res.status}). Recarga la página y vuelve a intentarlo.`,
+        );
+      }
+      const data = parsed as Room & {
         error?: string;
         room: Room;
         token: string;
