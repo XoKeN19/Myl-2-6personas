@@ -99,6 +99,25 @@ test('HTTP: seis jugadores, sala llena, privacidad, rechazo de origen y persiste
     const restored = await req(`/api/${code}`, undefined, token);
     assert.equal(restored.data.players.length, 6);
     assert.ok(JSON.stringify(restored.data).includes('Nombre secreto'));
+    const watcher = await req(`/api/${code}/spectate`, { name: 'Observador' });
+    assert.equal(watcher.status, 200);
+    assert.equal(watcher.data.room.role, 'spectator');
+    assert.equal(watcher.data.room.players.length, 6);
+    assert.ok(!JSON.stringify(watcher.data.room).includes('Nombre secreto'));
+    assert.equal(
+      (
+        await req(
+          `/api/${code}/action`,
+          { type: 'note', text: 'No autorizado' },
+          watcher.data.token,
+        )
+      ).status,
+      400,
+    );
+    assert.equal(
+      (await req(`/api/${code}/deck`, undefined, watcher.data.token)).status,
+      400,
+    );
     const homepage = await fetch('http://localhost:3017/');
     assert.equal(homepage.status, 200);
     const html = await homepage.text();

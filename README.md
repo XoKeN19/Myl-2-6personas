@@ -110,3 +110,36 @@ npm test
 ```
 
 El proyecto incluye Node 22 para evitar un fallo de cierre de Node 24 en Windows durante la compilación. GitHub Actions compila y ejecuta pruebas en cada cambio de main o solicitud de cambios. El catálogo de componentes generado conserva sus avisos de revisión estática; el código propio se comprueba por separado.
+
+## Habilidades: consultas, cartas mostradas y acciones por efecto
+
+Abre **Resolver un efecto**. Indica el nombre de la carta o habilidad, selecciona el jugador, la zona y las cartas. Para tus propias cartas, la acción se aplica directamente. Para las de otro jugador, se envía una solicitud que éste debe autorizar.
+
+- **Buscar en mi Castillo** permite seleccionar cartas sin mostrar el orden real del mazo; **Mirar primeras N** muestra únicamente ese tope, en orden, de forma privada.
+- Para mirar una mano o buscar en el Castillo rival, pide permiso y espera a que ese jugador autorice la consulta. No se comparte con espectadores ni con otros jugadores. El permiso se puede retirar y se cierra al cambiar de turno.
+- **Mostrar a todos** hace visibles las cartas seleccionadas en mano o Castillo, incluidas para espectadores. **Dejar de mostrar** las oculta; los jugadores pueden recordar lo que ya vieron. Moverlas o barajar las oculta nuevamente.
+- **Devolver al Castillo y barajar** funciona con cartas seleccionadas del Cementerio, Mano u otras zonas. Puedes seleccionar varias, o todas. La selección no se duplica.
+- **Poner en el tope/fondo** permite ordenar las cartas con las flechas antes de confirmar.
+- **Mover/jugar por efecto** permite ejecutar búsqueda, Exhumar, jugar desde Cementerio o Castillo y efectos fuera de las fases normales. El motivo queda registrado. El pago de costes y las condiciones del texto siguen siendo responsabilidad de los jugadores.
+- **Transformar** cambia tipo, fuerza base y texto de juego conservando la definición del mazo. Puedes transformar Oricalón en Arma y luego usar **Equipar por efecto**. Al salir del juego recupera su forma original.
+- **Modificar fuerza** suma o resta a una o varias cartas. Puede durar permanentemente, hasta el fin del turno actual o hasta el próximo turno de su controlador. Los modificadores temporales expiran automáticamente y se usan en el cálculo de combate.
+- **Aplicar estado** permite marcar Furia, Indestructible, Indesterrable, Imbloqueable, sin habilidad, impedimento de ataque/bloqueo y protección. Los primeros cinco controles de combate correspondientes actúan sobre las acciones básicas; sin habilidad y protegido son recordatorios para resolver el texto manualmente. Los estados no se deducen del texto de las cartas.
+- **Elegir bloqueador / Retador** permite proponer el bloqueador para un ataque; el dueño de la carta debe aprobarlo si es ajena. **Cancelar ataque** retira la asignación de combate dejando al Aliado en Ataque.
+- **Cambiar controlador** permite, por ejemplo, que el dueño de un Oro en Cementerio lo ponga en la Reserva del otro jugador por Antonio Pincheira. La carta conserva a su propietario y vuelve a la zona de éste al salir del juego.
+- Puedes registrar usos de una habilidad con límite por turno (por ejemplo, tres para Dampir), y generar o gastar Oro temporal. Los contadores se reinician al cambiar de turno; no se activan solos por leer una carta.
+
+Las bonificaciones de Armas, aumentos globales, costes adicionales, prevención y reglas persistentes no se interpretan automáticamente. Selecciona las cartas, aplica los modificadores/estados y registra los acuerdos. No se ejecuta un programa contenido en el JSON de cartas.
+
+Ejemplos: para Karna, busca en tu Castillo, selecciona el Aliado y muévelo a Mano; para Signo amarillo, mira cuatro, mueve las elegidas y ordena el resto; para Wotishir o Purificar Alma, selecciona las cartas por jugador y pide aprobación al rival; para Xi, usa Mover/jugar por efecto o Equipar por efecto desde Mano/Cementerio.
+
+Si ya resolvieron un daño especial manualmente, ambos confirman y el atacante usa **Cerrar combate ya resuelto manualmente**, indicando el motivo. Esto evita aplicar el daño básico una segunda vez.
+
+## Modo espectador
+
+Desde el inicio, introduce el código y pulsa **Entrar como espectador**. También puedes compartir **Invitar espectador** desde la sala. Se puede entrar con la partida comenzada y con los seis asientos ocupados. Los espectadores no ocupan asientos de jugador.
+
+La vista se actualiza aproximadamente cada segundo. Muestra zonas públicas, cartas reveladas, turnos y bitácora. No muestra manos ocultas, orden del Castillo, consultas privadas, credenciales ni mazos completos de los jugadores, y el servidor rechaza sus acciones de juego. El contador indica accesos de espectadores registrados, no presencia exacta en línea.
+
+Para pedirle a ChatGPT un archivo de mazo, usa [el formato de dictado](docs/formato-mazos.md).
+
+El estado No puede jugarse sirve para restricciones como Chakram. Para efectos hasta tu próximo turno, el selector permite elegir el jugador cuyo siguiente turno termina la duración, incluso si la carta afectada pertenece al rival.

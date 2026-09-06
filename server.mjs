@@ -10,6 +10,7 @@ import {
   log,
   exportDeck,
   migrate,
+  addSpectator,
 } from './lib/game.mjs';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const data = process.env.DATA_DIR || path.join(root, 'data');
@@ -120,6 +121,12 @@ const server = http.createServer(async (req, res) => {
       r = rooms[code];
     if (!r) {
       send(404, { error: 'Sala no encontrada' });
+      return;
+    }
+    if (url.pathname.endsWith('/spectate') && req.method === 'POST') {
+      const spectator = addSpectator(r, body.name);
+      save();
+      send(200, { token: spectator.token, room: view(r, spectator.token) });
       return;
     }
     if (url.pathname.endsWith('/join') && req.method === 'POST') {
