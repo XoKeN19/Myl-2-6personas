@@ -1,0 +1,16 @@
+import type { Metadata } from 'next';
+import './globals.css';
+export const metadata: Metadata = {
+  title: 'Mesa Imperio — Mitos y Leyendas',
+  description:
+    'Mesa digital de cartas editable, para jugar Mitos y Leyendas con amigos.',
+};
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="es" className="dark">
+      <body>{children}</body>
+    </html>
+  );
+}

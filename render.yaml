@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: mesa-imperio
+    runtime: node
+    plan: 0.5c-512mb
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.23.2
+      - key: DATA_DIR
+        value: /var/data/mesa-imperio
+      - key: PUBLIC_ORIGIN
+        sync: false
+    disk:
+      name: partidas
+      mountPath: /var/data
+      sizeGB: 1
