@@ -1,19 +1,22 @@
-# Verificación de la versión
+# Verificación · 7 de septiembre de 2026
 
-- Compilación de producción y TypeScript comprobados.
-- Pruebas del motor: preparación, privacidad, sesión, mulligan normal, excepcional y de la casa, robo una vez y por fase, excepción documentada, Oro inicial de Vigilia, ataques, armas, daño directo confirmado, invalidación de confirmaciones y exportación completa.
-- Prueba HTTP con seis clientes: sala llena, privacidad, mazo completo propio, rechazo de origen externo, guardado y recuperación tras reiniciar, página y recursos compilados.
-- Revisión estática del código propio sin errores. Se conserva el catálogo generado sin modificar sus avisos preexistentes.
-- Sin prueba visual/interactiva de navegador ni validación en contexto WebMCP.
-- El alojamiento de Render, Docker y un túnel público no se han ejecutado. La configuración se entrega preparada para revisión y despliegue por el propietario.
-- La aplicación automatiza las reglas básicas indicadas en README; no es un motor completo de todas las habilidades.
+Compilación de producción, TypeScript y revisión estática del código modificado sin errores. Las 43 pruebas automáticas pasan: movimiento libre, consultas privadas, transferencias, armas, temporizador, fases sugeridas, importación, persistencia y HTTP con seis jugadores.
 
-## Ampliación de habilidades y espectadores
+## Cuatro recorridos en navegador
 
-Se añadieron pruebas de privacidad del espectador y consultas, consentimiento para efectos ajenos, rechazo de solicitudes obsoletas, selección múltiple y barajado, orden del tope/fondo, fuerza y estados temporales, transformación, control y propiedad de cartas, y límites de usos. El flujo HTTP prueba también entrada del espectador con sala llena y rechazo de escritura/exportación privada.
+Se ejecutaron recorridos independientes en Chromium con los mazos Guerrero y Dragón, dos sesiones de jugador y una de espectador:
 
-No se ha realizado QA visual/interactiva en navegador. Las cartas dictadas se validan como datos JSON; sus textos no se han cotejado contra un catálogo oficial. Los mazos personales se entregan fuera del repositorio público.
+| Recorrido | Ventana | Jugadores | Movimiento |
+| --- | --- | --- | --- |
+| 1 | 1440 × 900 | 2 | Normal |
+| 2 | 1280 × 800 | 2 | Normal |
+| 3 | 1920 × 1080 | 6 | Normal |
+| 4 | 390 × 844 | 2 | Reducido, entrada táctil emulada |
 
-## Modo de mesa libre
+Cada recorrido comprueba robo, arrastre a defensa y ataque, cambio de fase, coste y fuerza, modificación de fuerza, última carta, barajado, búsqueda, consentimiento rival, privacidad del espectador, temporizador, paso de turno y regreso al mismo asiento desde el menú. La extracción de primera y última carta también tiene pruebas del motor. Se instrumentaron las animaciones de cartas y los sonidos para confirmar su ejecución; con movimiento reducido no se generan animaciones de cartas.
 
-Se comprobó el movimiento directo entre todas las zonas, el robo libre sin consumir el robo normal, la elección de fases fuera de orden y la toma de control de una carta rival visible. La privacidad de Mano y Castillo rival se mantiene: para usar una carta oculta de esas zonas primero debe existir una consulta autorizada. La disposición compacta, las ventanas flotantes y sus animaciones se verificaron mediante compilación; no se realizó inspección visual automatizada del navegador.
+La prueba móvil detectó una cabecera superpuesta que impedía volver al menú. Se corrigió y se repitieron los cuatro recorridos. También se ajustaron el espacio de la mano en mesas de seis y las etiquetas de pilas. Se inspeccionaron capturas de escritorio y móvil. No se observaron errores de JavaScript ni desbordamiento horizontal. En móvil las mesas se apilan y requieren desplazamiento vertical; en los tamaños de escritorio probados caben en la ventana.
+
+## Alcance
+
+Las pruebas usan Chromium local y emulación móvil, no teléfonos físicos ni todos los navegadores. No garantizan ausencia universal de fallos. Las habilidades conservan resolución manual y los atajos no certifican su legalidad. No se desplegaron Render, Docker ni túneles públicos. Los mazos personales permanecen fuera del repositorio.

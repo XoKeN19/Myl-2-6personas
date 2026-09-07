@@ -35,14 +35,16 @@ Formato compatible: una lista de cartas, o `{ "version": 1, "name": "Mi mazo", "
 - Mulligan excepcional oficial: una vez, si hay uno o ningún Oro; publica los nombres de la mano y conserva su cantidad.
 - **Volver a ocho**: regla de la casa solicitada para esta mesa. Devuelve y baraja la mano, roba 8 y sólo puede usarse una vez antes de comenzar. No es el mulligan oficial.
 - Las fases son una guía visible y cualquier jugador puede elegirlas libremente. La mesa no bloquea una jugada por la fase actual.
-- El robo normal sólo se permite al final del turno del jugador activo, una vez; no se roba en el primer turno de la partida. No se puede terminar con más de 8 cartas en mano.
-- **Robar por efecto** requiere escribir el motivo en la casilla de efecto excepcional; queda en la bitácora y no consume el robo normal.
-- Al terminar el turno se agrupan automáticamente los aliados y oros del siguiente jugador. También puedes mover libremente las cartas y resolver la agrupación a mano.
-- Arrastra cualquier carta visible que controles hacia Mano, Ataque, Defensa, Apoyo, Reserva, Oro pagado, Cementerio o Destierro. Los botones de ataque y bloqueo se conservan como ayuda opcional.
-- En Asignación de daño, ambos jugadores confirman los efectos y fuerzas. El atacante pulsa **Aplicar daño y destrucciones**: mueve las bajas y sus armas al Cementerio y bota del Castillo defensor el daño calculado, una sola vez por defensor y turno. Modificar cartas invalida las confirmaciones.
+- Robar y pasar turno son libres. Los jugadores resuelven costes, límites de mano, daño y agrupación manualmente.
+- Arrastra cartas a las zonas o pulsa una carta para abrir sus acciones, coste, fuerza y efecto. Arrastrar un arma sobre un aliado permite equiparla.
+- Jugar desde la mano sugiere Vigilia. Mover al ataque abre Guerra de Talismanes como atajo de la casa; pueden corregir la fase. La secuencia oficial distingue declaración de ataque, bloqueo y guerra.
+- Pulsa Castillo para robar primera o última, barajar, mirar, buscar y colocar cartas arriba o abajo. Las opciones de cantidades están plegadas.
+- Las manos rivales muestran reversos. Solicitar una consulta abre una ventana de aceptación al propietario; sólo el solicitante obtiene acceso. Un espectador no recibe ese contenido privado.
+- El temporizador compartido se puede iniciar, pausar y reiniciar. Llegar a cero no fuerza acciones. El sonido es opcional mediante el icono del altavoz.
+- Las animaciones de movimiento, robo y barajado usan el motor 2D del navegador, sin renderizado continuo. Respetan la preferencia de movimiento reducido.
 - Las mesas se acomodan dentro de la ventana y cada zona tiene desplazamiento propio. Haz clic en el nombre de una zona para abrir todas sus cartas en una ventana flotante. Las manos rivales y el contenido del Castillo permanecen ocultos.
 
-La aplicación detecta palabras frecuentes del texto —Robar, Castillo, Cementerio, Desterrar y Barajar— y ofrece atajos al abrir una carta. No decide si se cumplen sus condiciones. Costes, pagos, prioridades, prevención y otras excepciones siguen bajo control de los jugadores. El daño automático es opcional. Las salas de más de dos jugadores son una variante de la casa con turnos por orden de entrada y objetivo por atacante.
+La aplicación detecta palabras frecuentes del texto —Robar, Castillo, Cementerio, Desterrar y Barajar— y ofrece atajos al abrir una carta. No decide si se cumplen sus condiciones. Costes, pagos, prioridades, prevención y daño siguen bajo control de los jugadores. Las salas de más de dos jugadores son una variante de la casa con turnos por orden de entrada.
 
 Documentos oficiales consultados el 6 de septiembre de 2026:
 

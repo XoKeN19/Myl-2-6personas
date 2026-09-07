@@ -92,6 +92,7 @@ const server = http.createServer(async (req, res) => {
     let body = {};
     if (req.method === 'POST') {
       let text = '';
+      req.setEncoding('utf8');
       for await (const chunk of req) {
         text += chunk;
         if (text.length > 500000) {

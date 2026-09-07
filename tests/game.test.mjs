@@ -166,18 +166,11 @@ test('El modo libre permite mover varios Oros a Reserva', () => {
   assert.equal(a.zone, 'reserva');
   assert.equal(b.zone, 'reserva');
 });
-test('Ataque necesita fase y Agrupación o excepción explícita', () => {
+test('Ataque libre no exige fase ni Agrupación', () => {
   const [r, p, q] = setup();
   start(r);
   const c = p.cards.find((c) => c.zone === 'mano');
   action(r, p.token, { type: 'move', cardId: c.id, zone: 'defensa' });
-  assert.throws(() =>
-    action(r, p.token, { type: 'attack', cardId: c.id, target: q.id }),
-  );
-  phase(r, p, 'Ataque');
-  assert.throws(() =>
-    action(r, p.token, { type: 'attack', cardId: c.id, target: q.id }),
-  );
   action(r, p.token, {
     type: 'attack',
     cardId: c.id,

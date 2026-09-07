@@ -210,7 +210,7 @@ test('Fuerza y estados temporales expiran al terminar turno y afectan combate', 
   });
   assert.equal(
     view(r, p.token).players[0].cards.find((x) => x.id === c.id).strength,
-    2,
+    c.strength + 2,
   );
   assert.throws(() => effect(r, p, 'destroy', [c.id]));
   action(r, p.token, { type: 'phase', phase: 'Final' });

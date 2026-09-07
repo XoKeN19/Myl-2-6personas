@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Select,
   SelectTrigger,
@@ -14,21 +14,18 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import DeckManager from './deck-manager';
-import Effects from './effects-panel';
+import Arena from './arena';
 import {
   Shield,
   Swords,
   Castle,
   Coins,
   BookOpen,
-  Plus,
-  Copy,
   ArrowRight,
   ScrollText,
   LogOut,
-  Sparkles,
 } from 'lucide-react';
-type Card = {
+export type Card = {
   id: string;
   name: string;
   type: string;
@@ -44,7 +41,7 @@ type Card = {
   revealed?: boolean;
   statuses?: Record<string, unknown>;
 };
-type Player = {
+export type Player = {
   id: string;
   name: string;
   cards: Card[];
@@ -53,7 +50,10 @@ type Player = {
   houseMulligan: boolean;
   temporaryGold?: number;
 };
-type Room = {
+export type Room = {
+  revision: number;
+  serverTime: number;
+  timer: { duration: number; remaining: number; deadline: number | null };
   code: string;
   me: string | null;
   role: string;
@@ -69,6 +69,7 @@ type Room = {
     zone?: string;
     operation?: string;
     count?: number;
+    mode?: string;
   }[];
   uses: Record<string, number>;
   host: string;
@@ -95,22 +96,13 @@ const zones: Record<string, string> = {
   destierro: 'Destierro',
 };
 const types = ['Aliado', 'Arma', 'Tótem', 'Talismán', 'Oro'];
-const phases = [
-  'Agrupación',
-  'Vigilia',
-  'Ataque',
-  'Bloqueo',
-  'Guerra de Talismanes',
-  'Asignación de daño',
-  'Final',
-];
 const blank = {
   name: '',
   type: 'Aliado',
   effect: '',
   race: '',
-  cost: 0,
-  strength: 0,
+  cost: 1,
+  strength: 2,
   zone: 'mano',
 };
 function Choice({
@@ -154,26 +146,14 @@ export default function Home() {
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
     [online, setOnline] = useState(true),
-    [selected, setSelected] = useState<string | null>(null),
     [editor, setEditor] = useState(false),
     [draft, setDraft] = useState(blank),
     [editing, setEditing] = useState<string | null>(null),
     [rules, setRules] = useState(false),
     [deck, setDeck] = useState(false),
-    [toolsOpen, setToolsOpen] = useState(false),
-    [zoneOpen, setZoneOpen] = useState<{
-      playerId: string;
-      zone: string;
-    } | null>(null),
-    [motion, setMotion] = useState<{ key: number; text: string } | null>(null),
-    [reason, setReason] = useState(''),
-    [target, setTarget] = useState(''),
-    [host, setHost] = useState(''),
-    [block, setBlock] = useState(''),
-    [amount, setAmount] = useState('1'),
-    [note, setNote] = useState(''),
     [notice, setNotice] = useState(''),
-    [boardView, setBoardView] = useState('all');
+    [canResume, setCanResume] = useState(false);
+  const actionBusy = useRef(false);
   const request = useCallback(
     async (url: string, body?: unknown, auth = '') => {
       const res = await fetch(url, {
@@ -245,7 +225,13 @@ export default function Home() {
         request(`/api/${roomCode}`, undefined, token)
           .then((r) => {
             if (live) {
-              setRoom(r);
+              setRoom((previous) =>
+                previous &&
+                previous.code === r.code &&
+                previous.revision > r.revision
+                  ? previous
+                  : r,
+              );
               setOnline(true);
             }
           })
@@ -267,6 +253,18 @@ export default function Home() {
     setBusy(true);
     setError('');
     try {
+      const saved = JSON.parse(
+        sessionStorage.getItem('imperio-session') || 'null',
+      );
+      if (
+        join &&
+        !watch &&
+        saved?.code === code.trim().toUpperCase() &&
+        saved.role !== 'spectator'
+      ) {
+        await resumeRoom();
+        return;
+      }
       const r = await request(
         watch
           ? `/api/${code.trim().toUpperCase()}/spectate`
@@ -293,30 +291,18 @@ export default function Home() {
     }
   }
   async function act(a: Record<string, unknown>) {
-    if (!room) return;
+    if (!room || actionBusy.current) return;
+    actionBusy.current = true;
     setBusy(true);
     setError('');
     try {
       const r = await request(`/api/${room.code}/action`, a, token);
       setRoom(r);
-      const kind = typeof a.type === 'string' ? a.type : '';
-      const destination =
-        typeof a.zone === 'string' ? zones[a.zone] || a.zone : 'la zona';
-      const text = ['draw', 'effectDraw', 'freeDraw'].includes(kind)
-        ? 'Carta robada'
-        : kind === 'shuffle'
-          ? 'Castillo barajado'
-          : kind === 'damage'
-            ? 'Cartas enviadas al Cementerio'
-            : kind === 'freeMove'
-              ? `Carta movida a ${destination}`
-              : '';
-      if (text)
-        setMotion((previous) => ({ key: (previous?.key || 0) + 1, text }));
       return r;
     } catch (e) {
       setError((e as Error).message);
     } finally {
+      actionBusy.current = false;
       setBusy(false);
     }
   }
@@ -349,39 +335,31 @@ export default function Home() {
     } catch {}
     return () => life.abort();
   }, [roomCode, token, request]);
-  const me = room?.players.find((p) => p.id === room.me);
-  const found = room?.players
-    .flatMap((p) => p.cards.map((c) => ({ c, p })))
-    .find((x) => x.c.id === selected && !x.c.hidden);
-  const card = found?.c;
-  const mine = found?.p.id === me?.id;
   function newCard() {
     setEditing(null);
     setDraft(blank);
     setEditor(true);
   }
-  function editCard() {
-    if (!card) return;
-    setEditing(card.id);
-    setDraft({
-      name: card.name,
-      type: card.type,
-      effect: card.effect,
-      race: card.race,
-      cost: card.cost,
-      strength: card.strength,
-      zone: card.zone,
-    });
-    setEditor(true);
-  }
   function leaveRoom() {
-    sessionStorage.removeItem('imperio-session');
+    // Keep the seat credential so the menu can resume this same player.
     setRoom(null);
     setToken('');
-    setSelected(null);
-    setToolsOpen(false);
-    setZoneOpen(null);
+    setCanResume(true);
     history.replaceState(null, '', location.pathname);
+  }
+  async function resumeRoom() {
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem('imperio-session') || 'null',
+      );
+      if (!saved) return;
+      const r = await request(`/api/${saved.code}`, undefined, saved.token);
+      setToken(saved.token);
+      setRoom(r);
+      history.replaceState(null, '', `?sala=${saved.code}`);
+    } catch {
+      setError('No se pudo recuperar la sala. Comprueba la conexión.');
+    }
   }
   async function copy(watch = false) {
     try {
@@ -392,148 +370,6 @@ export default function Home() {
     } catch {
       setNotice(`Código de sala: ${room?.code}`);
     }
-  }
-  function tile(c: Card, p: Player, attached = false) {
-    return (
-      <button
-        key={c.id}
-        className={`card type-${c.type} ${attached ? 'weapon' : ''} ${selected === c.id ? 'chosen' : ''}`}
-        draggable={room?.role !== 'spectator' && !c.hidden}
-        onDragStart={(e) => {
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData(
-            'application/x-imperio-card',
-            JSON.stringify({ cardId: c.id, sourcePlayerId: p.id }),
-          );
-        }}
-        onClick={() => {
-          setSelected(c.id);
-          setTarget('');
-          setHost('');
-          setBlock('');
-          setZoneOpen(null);
-          setToolsOpen(true);
-        }}
-      >
-        <div className="card-top">
-          <span>{c.type}</span>
-          <b>{c.type === 'Oro' ? '◈' : c.cost}</b>
-        </div>
-        <strong>{c.name}</strong>
-        {c.race && <small>{c.race}</small>}
-        <p>
-          {c.statuses?.sinHabilidad
-            ? 'Sin habilidad (estado activo)'
-            : c.effect || 'Sin habilidad escrita'}
-        </p>
-        <div className="card-bottom">
-          {c.type === 'Aliado' ? (
-            <>
-              <Shield size={14} />
-              <b>{c.strength}</b>
-              <span>Fuerza actual</span>
-            </>
-          ) : (
-            <span>{attached ? 'Arma equipada' : 'IMPERIO'}</span>
-          )}
-        </div>
-        {c.revealed && <small className="tag">Mostrada a todos</small>}
-        {Object.keys(c.statuses || {}).length > 0 && (
-          <small className="tag">
-            {Object.keys(c.statuses || {}).join(' · ')}
-          </small>
-        )}
-        {c.target && (
-          <small className="tag">
-            Ataca a {room?.players.find((x) => x.id === c.target)?.name}
-          </small>
-        )}
-        {c.blocks && (
-          <small className="tag">
-            Bloquea a{' '}
-            {room?.players
-              .flatMap((x) => x.cards)
-              .find((x) => x.id === c.blocks)?.name || 'un atacante'}
-          </small>
-        )}
-      </button>
-    );
-  }
-  function zone(p: Player, z: string) {
-    const cards = p.cards.filter((c) => c.zone === z && !c.attachedTo);
-    return (
-      <section
-        className={`zone z-${z} ${p.id === me?.id ? 'drop-zone' : ''}`}
-        key={z}
-        onDragOver={(e) => {
-          if (p.id === me?.id && room?.role !== 'spectator') e.preventDefault();
-        }}
-        onDrop={(e) => {
-          if (p.id !== me?.id || room?.role === 'spectator') return;
-          e.preventDefault();
-          try {
-            const dragged = JSON.parse(
-              e.dataTransfer.getData('application/x-imperio-card'),
-            );
-            if (dragged.cardId)
-              void act({
-                type: 'freeMove',
-                cardId: dragged.cardId,
-                sourcePlayerId: dragged.sourcePlayerId,
-                zone: z,
-              });
-          } catch {}
-        }}
-      >
-        <div className="zone-title">
-          <button
-            className="zone-open"
-            onClick={() => setZoneOpen({ playerId: p.id, zone: z })}
-          >
-            {zones[z]}
-          </button>
-          <b>{cards.length}</b>
-        </div>
-        <div className="cards">
-          {z === 'castillo' ? (
-            <div className="pile">
-              <Castle size={28} />
-              <strong>{cards.length}</strong>
-              <small>cartas en Castillo</small>
-              {cards
-                .filter((c) => c.revealed && !c.hidden)
-                .map((c) => tile(c, p))}
-            </div>
-          ) : z === 'mano' && p.id !== me?.id ? (
-            <div className="hidden-hand">
-              {cards.length} cartas en mano
-              <div className="cards">
-                {cards
-                  .filter((c) => c.revealed && !c.hidden)
-                  .map((c) => tile(c, p))}
-              </div>
-            </div>
-          ) : cards.length ? (
-            cards.map((c) => (
-              <div className="stack" key={c.id}>
-                {tile(c, p)}
-                {p.cards
-                  .filter((a) => a.attachedTo === c.id)
-                  .map((a) => tile(a, p, true))}
-              </div>
-            ))
-          ) : (
-            <div className="empty-zone">
-              {z === 'defensa'
-                ? 'Tus aliados se despliegan aquí'
-                : z === 'ataque'
-                  ? 'Sin atacantes'
-                  : 'Sin cartas'}
-            </div>
-          )}
-        </div>
-      </section>
-    );
   }
   return (
     <>
@@ -573,6 +409,11 @@ export default function Home() {
       )}
       {!room ? (
         <main className="lobby">
+          {canResume && (
+            <button className="primary" onClick={() => void resumeRoom()}>
+              Volver a mi partida
+            </button>
+          )}
           <div className="eyebrow">EL CAMPO DE BATALLA ES TUYO</div>
           <h1>
             Mesa Imperio<span>Tu próxima batalla.</span>
@@ -666,608 +507,35 @@ export default function Home() {
           </div>
         </main>
       ) : (
-        <main className="game compact-table">
-          {motion && (
-            <div key={motion.key} className="table-fx" aria-live="polite">
-              <Sparkles size={22} /> {motion.text}
-            </div>
-          )}
-          <section className="room-bar">
-            <div>
-              <div className="eyebrow">
-                {room.players.length}/{room.capacity} JUGADORES ·{' '}
-                {online ? 'CONECTADO' : 'RECONECTANDO…'}
-              </div>
-              <h2>Sala {room.code}</h2>
-              <small>
-                {room.role === 'spectator'
-                  ? 'Modo espectador · Sólo lectura'
-                  : 'Jugador'}{' '}
-                · {room.spectatorCount || 0} espectadores registrados
-              </small>
-            </div>
-            <button onClick={() => copy()}>
-              <Copy size={16} /> Invitar
-            </button>
-            <button onClick={() => copy(true)}>Invitar espectador</button>
-            <div className="turn">
-              <small>Turno {room.turn}</small>
-              <strong>
-                {room.players.find((p) => p.id === room.active)?.name}
-              </strong>
-            </div>
-            <Choice
-              label="Fase libre"
-              value={room.phase}
-              onChange={(phase) => act({ type: 'phase', phase })}
-              items={options(phases)}
-            />
-            <button
-              disabled={busy || room.active !== me?.id || !room.started}
-              onClick={() => act({ type: 'next' })}
-            >
-              Terminar turno →
-            </button>
-          </section>
-          {!room.started && room.role !== 'spectator' && (
-            <section className="preparation">
-              <span>
-                <b>Preparación</b> · Importa tu mazo o usa cartas sin definir.
-                Prepara tu mano antes de comenzar.
-              </span>
-              <button
-                disabled={busy || me?.ready}
-                onClick={() => act({ type: 'setup' })}
-              >
-                Preparar mano · 8 cartas
-              </button>
-              <button
-                disabled={busy || !me?.ready}
-                onClick={() => act({ type: 'mulligan' })}
-              >
-                Mulligan · una menos
-              </button>
-              <button
-                disabled={busy || !me?.ready || me.houseMulligan}
-                onClick={() => act({ type: 'houseMulligan' })}
-              >
-                Volver a ocho · regla de la casa
-              </button>
-              <button
-                disabled={
-                  busy ||
-                  !me?.ready ||
-                  me.freeMulligan ||
-                  me.cards.filter((c) => c.zone === 'mano' && c.type === 'Oro')
-                    .length > 1
-                }
-                onClick={() => act({ type: 'freeMulligan' })}
-              >
-                Mulligan excepcional · conservar mano
-              </button>
-              {room.host === me?.id && (
-                <button
-                  className="primary"
-                  disabled={
-                    busy ||
-                    room.players.length < 2 ||
-                    room.players.some((p) => !p.ready)
-                  }
-                  onClick={() => act({ type: 'start' })}
-                >
-                  Comenzar partida
-                </button>
-              )}
-            </section>
-          )}
-          <nav className="board-nav" aria-label="Ver mesas">
-            <button
-              className={boardView === 'all' ? 'primary' : ''}
-              onClick={() => setBoardView('all')}
-            >
-              Todas las mesas
-            </button>
-            {room.players.map((p) => (
-              <button
-                className={boardView === p.id ? 'primary' : ''}
-                key={p.id}
-                onClick={() => setBoardView(p.id)}
-              >
-                {p.name}
-                {p.id === me?.id ? ' · Tú' : ' · Rival'}
-              </button>
-            ))}
-          </nav>
-          <div className="table-tools">
-            <button className="primary" onClick={() => setToolsOpen(true)}>
-              <Sparkles size={16} /> Herramientas y efectos
-            </button>
-            <button
-              disabled={busy || room.role === 'spectator'}
-              onClick={() => act({ type: 'freeDraw', count: 1 })}
-            >
-              Robar una carta
-            </button>
-            <button
-              disabled={busy || room.role === 'spectator'}
-              onClick={() => act({ type: 'shuffle' })}
-            >
-              Barajar Castillo
-            </button>
-            <small>
-              Arrastra tus cartas a cualquier zona. Haz clic en una zona para
-              abrirla.
-            </small>
-          </div>
-          <div className="workspace">
-            <div className={`tables table-count-${room.players.length}`}>
-              {room.players
-                .filter((p) => boardView === 'all' || boardView === p.id)
-                .map((p) => (
-                  <article
-                    className={`player-board ${p.id === me?.id ? 'own' : ''}`}
-                    key={p.id}
-                  >
-                    <header className="player-head">
-                      <div className="avatar">
-                        {p.name.slice(0, 1).toUpperCase()}
-                      </div>
-                      <h2>
-                        {p.name} {p.id === me?.id && <small>· Tú</small>}
-                      </h2>
-                      {p.ready && <span className="status">Preparado</span>}
-                      {p.id === room.active && (
-                        <span className="status gold">Turno actual</span>
-                      )}
-                      <span className="board-count">
-                        {p.cards.filter((c) => c.zone === 'castillo').length} en
-                        Castillo
-                      </span>
-                    </header>
-                    <div className="battle-lines">
-                      {zone(p, 'ataque')}
-                      {zone(p, 'defensa')}
-                    </div>
-                    <div className="resources">
-                      {zone(p, 'apoyo')}
-                      {zone(p, 'reserva')}
-                      {zone(p, 'pagado')}
-                    </div>
-                    <div className="piles">
-                      {zone(p, 'castillo')}
-                      {zone(p, 'cementerio')}
-                      {zone(p, 'destierro')}
-                    </div>
-                    {zone(p, 'mano')}
-                  </article>
-                ))}
-            </div>
-            <Dialog open={toolsOpen} onOpenChange={setToolsOpen}>
-              <DialogContent className="modal tools-modal">
-                <DialogTitle>Herramientas de mesa</DialogTitle>
-                <DialogDescription>
-                  Lee la carta seleccionada, muévela libremente o resuelve una
-                  habilidad.
-                </DialogDescription>
-                <div className="inspector">
-                  <Effects
-                    room={room}
-                    act={act}
-                    busy={busy}
-                    selectedCard={card}
-                  />
-                  <fieldset disabled={room.role === 'spectator'}>
-                    <section className="panel">
-                      <h3>Tu mesa</h3>
-                      <div className="actions">
-                        <button
-                          className="primary"
-                          disabled={busy}
-                          onClick={newCard}
-                        >
-                          <Plus size={16} /> Crear carta
-                        </button>
-                        <button onClick={() => setDeck(true)}>Mazo</button>
-                        <button
-                          disabled={
-                            busy ||
-                            !room.started ||
-                            room.active !== me?.id ||
-                            room.phase !== 'Final' ||
-                            room.turn === 1 ||
-                            room.drawn
-                          }
-                          onClick={() => act({ type: 'draw' })}
-                        >
-                          {room.drawn
-                            ? 'Robo del turno realizado'
-                            : 'Robar carta de fin de turno'}
-                        </button>
-                        <button
-                          disabled={busy}
-                          onClick={() => act({ type: 'shuffle' })}
-                        >
-                          Barajar
-                        </button>
-                        <button
-                          disabled={
-                            busy ||
-                            !room.started ||
-                            room.active !== me?.id ||
-                            room.phase !== 'Agrupación'
-                          }
-                          onClick={() => act({ type: 'group' })}
-                        >
-                          Agrupar
-                        </button>
-                      </div>
-                      <p className="hint">
-                        Robo normal: una carta en tu fase Final, excepto el
-                        primer turno de la partida.
-                      </p>
-                      <label>
-                        Carta o efecto excepcional
-                        <input
-                          maxLength={300}
-                          value={reason}
-                          onChange={(e) => setReason(e.target.value)}
-                          placeholder="Ej.: efecto que permite robar o Furia"
-                        />
-                      </label>
-                      <button
-                        disabled={busy || !room.started || !reason.trim()}
-                        onClick={() =>
-                          act({ type: 'effectDraw', count: 1, reason })
-                        }
-                      >
-                        Robar 1 por efecto · registrar motivo
-                      </button>
-                      <label>
-                        Cartas a botar de tu Castillo
-                        <input
-                          type="number"
-                          min="1"
-                          max="250"
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                        />
-                      </label>
-                      <button
-                        disabled={busy}
-                        onClick={() =>
-                          act({ type: 'damage', count: Number(amount) })
-                        }
-                      >
-                        Aplicar daño / botar
-                      </button>
-                      {me && !me.cards.some((c) => c.zone === 'castillo') && (
-                        <p className="warning">
-                          Tu Castillo está vacío. Comprueben el fin de partida y
-                          los efectos pendientes.
-                        </p>
-                      )}
-                    </section>
-                    <section className="panel">
-                      <h3>
-                        {card ? 'Detalle de carta' : 'Inspeccionar carta'}
-                      </h3>
-                      {card ? (
-                        <>
-                          <span className="eyebrow">
-                            {found?.p.name} · {card.type}
-                          </span>
-                          <h2>{card.name}</h2>
-                          <p className="effect">
-                            {card.effect || 'Sin habilidad escrita.'}
-                          </p>
-                          <div className="stats">
-                            <span>
-                              Coste <b>{card.cost}</b>
-                            </span>
-                            {card.type === 'Aliado' && (
-                              <span>
-                                Fuerza actual <b>{card.strength}</b>
-                              </span>
-                            )}
-                          </div>
-                          {mine && (
-                            <>
-                              <button onClick={editCard}>
-                                Editar nombre, efecto y valores
-                              </button>
-                              <Choice
-                                label="Mover a una zona"
-                                value={card.zone}
-                                onChange={(zone) =>
-                                  act({ type: 'move', cardId: card.id, zone })
-                                }
-                                items={Object.entries(zones).map(
-                                  ([value, label]) => ({ value, label }),
-                                )}
-                              />
-                              {card.type === 'Arma' && (
-                                <>
-                                  <Choice
-                                    label="Aliado portador"
-                                    value={host}
-                                    onChange={setHost}
-                                    items={(
-                                      me?.cards.filter(
-                                        (c) =>
-                                          c.type === 'Aliado' &&
-                                          ['defensa', 'ataque'].includes(
-                                            c.zone,
-                                          ),
-                                      ) || []
-                                    ).map((c) => ({
-                                      value: c.id,
-                                      label: c.name,
-                                    }))}
-                                  />
-                                  <button
-                                    disabled={!host || busy}
-                                    onClick={() =>
-                                      act({
-                                        type: 'attach',
-                                        cardId: card.id,
-                                        hostId: host,
-                                      })
-                                    }
-                                  >
-                                    Equipar arma
-                                  </button>
-                                  <p className="hint">
-                                    Actualiza la fuerza del portador si el
-                                    efecto la modifica.
-                                  </p>
-                                </>
-                              )}
-                              {card.type === 'Aliado' && (
-                                <>
-                                  <Choice
-                                    label="Atacar a"
-                                    value={target}
-                                    onChange={setTarget}
-                                    items={room.players
-                                      .filter((p) => p.id !== me?.id)
-                                      .map((p) => ({
-                                        value: p.id,
-                                        label: p.name,
-                                      }))}
-                                  />
-                                  <button
-                                    disabled={
-                                      !target ||
-                                      busy ||
-                                      room.active !== me?.id ||
-                                      room.phase !== 'Ataque'
-                                    }
-                                    onClick={() =>
-                                      act({
-                                        type: 'attack',
-                                        cardId: card.id,
-                                        target,
-                                        reason,
-                                      })
-                                    }
-                                  >
-                                    Declarar atacante
-                                  </button>
-                                  <Choice
-                                    label="Bloquear a"
-                                    value={block}
-                                    onChange={setBlock}
-                                    items={room.players
-                                      .flatMap((p) => p.cards)
-                                      .filter(
-                                        (c) =>
-                                          c.zone === 'ataque' &&
-                                          c.target === me?.id,
-                                      )
-                                      .map((c) => ({
-                                        value: c.id,
-                                        label: c.name,
-                                      }))}
-                                  />
-                                  <button
-                                    disabled={
-                                      !block || busy || room.phase !== 'Bloqueo'
-                                    }
-                                    onClick={() =>
-                                      act({
-                                        type: 'block',
-                                        cardId: card.id,
-                                        attacker: block,
-                                      })
-                                    }
-                                  >
-                                    Asignar bloqueo
-                                  </button>
-                                  {card.blocks && (
-                                    <button
-                                      onClick={() =>
-                                        act({
-                                          type: 'clearBlock',
-                                          cardId: card.id,
-                                        })
-                                      }
-                                    >
-                                      Quitar bloqueo
-                                    </button>
-                                  )}
-                                </>
-                              )}
-                            </>
-                          )}
-                        </>
-                      ) : (
-                        <p className="muted">
-                          Haz clic en una carta de la mesa para leer su efecto.
-                          Tus cartas se pueden editar y mover desde aquí.
-                        </p>
-                      )}
-                    </section>
-                    <section className="panel">
-                      <h3>Resolver combate</h3>
-                      <p className="hint">
-                        Actualicen fuerzas y resuelvan efectos. Atacante y
-                        defensor confirman antes de aplicar automáticamente daño
-                        y bajas.
-                      </p>
-                      {room.players
-                        .filter((p) => p.id !== room.active)
-                        .map((d) => {
-                          const at =
-                            room.players
-                              .find((p) => p.id === room.active)
-                              ?.cards.filter(
-                                (c) =>
-                                  c.zone === 'ataque' &&
-                                  c.target === d.id &&
-                                  c.type === 'Aliado',
-                              ) || [];
-                          if (!at.length) return null;
-                          let total = 0;
-                          return (
-                            <div key={d.id}>
-                              <h4>Contra {d.name}</h4>
-                              {at.map((a) => {
-                                const b = d.cards.find(
-                                  (c) =>
-                                    c.zone === 'defensa' && c.blocks === a.id,
-                                );
-                                const damage = Math.max(
-                                  0,
-                                  a.strength - (b?.strength || 0),
-                                );
-                                total += damage;
-                                return (
-                                  <p className="combat-row" key={a.id}>
-                                    <b>
-                                      {a.name} ({a.strength})
-                                    </b>
-                                    <br />
-                                    {b
-                                      ? `${b.name} (${b.strength})`
-                                      : 'Sin bloqueo'}{' '}
-                                    → {damage} daño
-                                    {b && (
-                                      <small>
-                                        {`Destrucciones: ${[a.strength <= b.strength && !a.statuses?.indestructible ? a.name : '', b.strength <= a.strength && !b.statuses?.indestructible ? b.name : ''].filter(Boolean).join(' y ') || 'ninguna (protecciones activas)'}`}
-                                      </small>
-                                    )}
-                                  </p>
-                                );
-                              })}
-                              <strong>Daño total: {total}</strong>
-                              {room.resolved?.includes(d.id) ? (
-                                <p className="status">Combate resuelto</p>
-                              ) : (
-                                <button
-                                  className="primary"
-                                  disabled={
-                                    busy ||
-                                    room.phase !== 'Asignación de daño' ||
-                                    room.active !== me?.id ||
-                                    !room.battleReady?.includes(room.active) ||
-                                    !room.battleReady?.includes(d.id)
-                                  }
-                                  onClick={() =>
-                                    act({ type: 'resolve', defender: d.id })
-                                  }
-                                >
-                                  Aplicar daño y destrucciones
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      <button
-                        disabled={
-                          busy ||
-                          room.phase !== 'Asignación de daño' ||
-                          room.battleReady?.includes(me?.id || '')
-                        }
-                        onClick={() => act({ type: 'battleReady' })}
-                      >
-                        {room.battleReady?.includes(me?.id || '')
-                          ? 'Confirmación enviada'
-                          : 'Confirmo efectos y fuerzas'}
-                      </button>
-                      <p className="hint">
-                        Aplica las reglas básicas. Si hay prevención,
-                        indestructibilidad u otra excepción, resuélvanla
-                        manualmente antes de confirmar.
-                      </p>
-                    </section>
-                    <section className="panel">
-                      <h3>Bitácora</h3>
-                      <label>
-                        Registrar efecto o acuerdo
-                        <textarea
-                          rows={2}
-                          maxLength={500}
-                          value={note}
-                          onChange={(e) => setNote(e.target.value)}
-                          placeholder="Ej.: el aliado gana 2 de fuerza…"
-                        />
-                      </label>
-                      <button
-                        disabled={!note.trim() || busy}
-                        onClick={async () => {
-                          if (await act({ type: 'note', text: note }))
-                            setNote('');
-                        }}
-                      >
-                        Registrar
-                      </button>
-                      <ol className="log">
-                        {room.log.map((e) => (
-                          <li key={e.id}>
-                            <time>
-                              {new Date(e.time).toLocaleTimeString('es-CL', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </time>
-                            {e.message}
-                          </li>
-                        ))}
-                      </ol>
-                    </section>
-                  </fieldset>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </main>
+        <>
+          <output className="connection-state">
+            {online
+              ? ''
+              : 'Reconectando… no repitas movimientos hasta recuperar la conexión.'}
+          </output>
+          <Arena
+            room={room}
+            act={act}
+            busy={busy}
+            onDeck={() => setDeck(true)}
+            onCreate={newCard}
+            onInvite={(watch) => void copy(watch)}
+            onEdit={(c) => {
+              setEditing(c.id);
+              setDraft({
+                name: c.name,
+                type: c.type,
+                effect: c.effect,
+                race: c.race,
+                cost: c.cost,
+                strength: c.strength,
+                zone: c.zone,
+              });
+              setEditor(true);
+            }}
+          />
+        </>
       )}
-      <Dialog
-        open={!!zoneOpen}
-        onOpenChange={(open) => !open && setZoneOpen(null)}
-      >
-        <DialogContent className="modal zone-browser">
-          <DialogTitle>{zoneOpen ? zones[zoneOpen.zone] : 'Zona'}</DialogTitle>
-          <DialogDescription>
-            Haz clic en una carta para leerla o moverla. Las cartas ocultas del
-            rival siguen privadas.
-          </DialogDescription>
-          <div className="zone-browser-grid">
-            {zoneOpen &&
-              room?.players
-                .find((p) => p.id === zoneOpen.playerId)
-                ?.cards.filter(
-                  (c) => c.zone === zoneOpen.zone && !c.hidden && !c.attachedTo,
-                )
-                .map((c) => {
-                  const owner = room.players.find(
-                    (p) => p.id === zoneOpen.playerId,
-                  )!;
-                  return tile(c, owner);
-                })}
-          </div>
-        </DialogContent>
-      </Dialog>
       <Dialog open={editor} onOpenChange={setEditor}>
         <DialogContent className="modal">
           <DialogTitle>
@@ -1284,7 +552,7 @@ export default function Home() {
                   type: editing ? 'edit' : 'add',
                   cardId: editing,
                   card: draft,
-                  reason,
+                  reason: 'Carta creada manualmente',
                 })
               )
                 setEditor(false);
@@ -1397,9 +665,10 @@ export default function Home() {
             Agrupación → Vigilia → Batalla Mitológica (Ataque, Bloqueo, Guerra
             de Talismanes y daño) → Final. Estas fases sirven como referencia:
             cualquier jugador puede elegir otra fase y terminar el turno sin que
-            la mesa compruebe las condiciones. El botón de robo normal conserva
-            la guía oficial; «Robar una carta» permite resolver libremente los
-            efectos. Al cambiar de turno se agrupa al siguiente jugador.
+            la mesa compruebe las condiciones. Robar permite resolver libremente
+            los efectos. La agrupación se resuelve manualmente. Jugar desde la
+            mano sugiere Vigilia; mover a Ataque sugiere Guerra de Talismanes
+            como atajo de la casa. Pueden corregir la fase en cualquier momento.
           </p>
           <p>
             Arrastra tus cartas entre cualquier zona. Comprueben entre ustedes

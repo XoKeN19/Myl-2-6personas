@@ -1,0 +1,1175 @@
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Shield,
+  Swords,
+  Eye,
+  Shuffle,
+  Volume2,
+  VolumeX,
+  Clock3,
+  Sparkles,
+  ChevronRight,
+  Layers,
+  History,
+  Hand,
+} from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+import Effects from './effects-panel';
+import { useTableMotion } from './table-motion';
+import type { Card, Player, Room } from './page';
+
+const zones: Record<string, string> = {
+  ataque: 'Ataque',
+  defensa: 'Defensa',
+  apoyo: 'Apoyo',
+  reserva: 'Reserva',
+  pagado: 'Oro pagado',
+  castillo: 'Castillo',
+  cementerio: 'Cementerio',
+  destierro: 'Destierro',
+  mano: 'Mano',
+};
+const phases = [
+  'Agrupación',
+  'Vigilia',
+  'Ataque',
+  'Bloqueo',
+  'Guerra de Talismanes',
+  'Asignación de daño',
+  'Final',
+];
+type Act = (a: Record<string, unknown>) => Promise<Room | undefined>;
+function Pick({
+  label,
+  value,
+  options,
+  onChange,
+  disabled = false,
+}: {
+  label: string;
+  value: string;
+  options: Record<string, string>;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <label className="arena-pick">
+      {label}
+      <Select
+        value={value}
+        onValueChange={(v) => {
+          if (v) onChange(v);
+        }}
+        disabled={disabled}
+      >
+        <SelectTrigger aria-label={label}>
+          <SelectValue>{options[value] || 'Elegir'}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {Object.entries(options).map(([v, l]) => (
+            <SelectItem key={v} value={v}>
+              {l}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </label>
+  );
+}
+export default function Arena({
+  room,
+  act,
+  busy,
+  onDeck,
+  onEdit,
+  onCreate,
+  onInvite,
+}: {
+  room: Room;
+  act: Act;
+  busy: boolean;
+  onDeck: () => void;
+  onEdit: (c: Card) => void;
+  onCreate: () => void;
+  onInvite: (watch?: boolean) => void;
+}) {
+  const me = room.players.find((p) => p.id === room.me),
+    spectator = !me;
+  const [selected, setSelected] = useState<{
+    id: string;
+    player: string;
+  } | null>(null);
+  const [pile, setPile] = useState<{ player: string; zone: string } | null>(
+    null,
+  );
+  const [logOpen, setLogOpen] = useState(false),
+    [timerOpen, setTimerOpen] = useState(false);
+  const [amount, setAmount] = useState(1),
+    [reason, setReason] = useState('Consulta por efecto');
+  const [search, setSearch] = useState(''),
+    [chosen, setChosen] = useState<string[]>([]);
+  const [recipient, setRecipient] = useState(''),
+    [destination, setDestination] = useState('mano');
+  const [focus, setFocus] = useState('all'),
+    [note, setNote] = useState(''),
+    [seconds, setSeconds] = useState(120);
+  const [now, setNow] = useState(0);
+  const [drag, setDrag] = useState<{
+    card: Card;
+    player: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const gesture = useRef<{
+    card: Card;
+    player: string;
+    x: number;
+    y: number;
+    moved: boolean;
+  } | null>(null);
+  const suppressClick = useRef(false);
+  const { root, sound, setSound, play } = useTableMotion(
+    room.revision,
+    room.log[0]?.id + ' ' + room.log[0]?.message,
+  );
+  const timeOffset = useRef(0);
+  useEffect(() => {
+    timeOffset.current = room.serverTime - Date.now();
+  }, [room.serverTime]);
+  useEffect(() => {
+    const tick = () => setNow(Date.now() + timeOffset.current);
+    tick();
+    const t = setInterval(tick, 250);
+    return () => clearInterval(t);
+  }, []);
+  const remaining =
+    room.timer?.deadline === null
+      ? room.timer.remaining
+      : Math.max(0, (room.timer?.deadline || 0) - now);
+  const displaySeconds = Math.ceil(remaining / 1000);
+  const clock = `${Math.floor(displaySeconds / 60)
+    .toString()
+    .padStart(2, '0')}:${(displaySeconds % 60)
+    .toString()
+    .padStart(2, '0')}`;
+  const incoming = room.requests.find((r) => r.owner === room.me);
+  const owners = Object.fromEntries(room.players.map((p) => [p.id, p.name]));
+  const owner = room.players.find((p) => p.id === selected?.player);
+  const card =
+    owner?.cards.find((c) => c.id === selected?.id && !c.hidden) ||
+    (room.inspection?.owner === selected?.player
+      ? room.privateCards.find((c) => c.id === selected?.id)
+      : undefined);
+  const pileOwner = room.players.find((p) => p.id === pile?.player);
+  const hasInspection =
+    room.inspection?.owner === pile?.player &&
+    room.inspection?.zone === pile?.zone;
+  const pileCards = hasInspection
+    ? room.privateCards
+    : pileOwner?.cards.filter((c) => c.zone === pile?.zone) || [];
+  const visible = pileCards.filter(
+    (c) =>
+      !c.hidden &&
+      `${c.name} ${c.type} ${c.race}`
+        .toLocaleLowerCase()
+        .includes(search.toLocaleLowerCase()),
+  );
+  const selectedIds = chosen.filter((id) => visible.some((c) => c.id === id));
+  const locked =
+    !!pile &&
+    (pile.zone === 'castillo' ||
+      (pile.zone === 'mano' && pile.player !== room.me)) &&
+    !hasInspection;
+  const pending = room.requests.some(
+    (r) =>
+      r.actor === room.me &&
+      r.owner === pile?.player &&
+      r.zone === pile?.zone &&
+      r.kind === 'look',
+  );
+  const openPile = (p: Player, z: string) => {
+    setPile({ player: p.id, zone: z });
+    setSelected(null);
+    setChosen([]);
+    setSearch('');
+    setRecipient(room.me || p.id);
+  };
+  const move = async (c: Card, p: string, z: string, to = room.me || p) => {
+    const result = await act({
+      type: 'freeMove',
+      cardId: c.id,
+      sourcePlayerId: p,
+      recipient: to,
+      zone: z,
+    });
+    if (result) setSelected(null);
+    return result;
+  };
+  async function look(mode: 'all' | 'top') {
+    if (!pile) return;
+    await act({
+      type: pile.player === room.me ? 'look' : 'requestLook',
+      playerId: pile.player,
+      zone: pile.zone,
+      mode,
+      count: amount,
+      reason: reason.trim() || 'Consulta por efecto',
+    });
+  }
+  async function batch(operation: string) {
+    if (!pile || !selectedIds.length) return;
+    if (operation === 'move') {
+      for (const id of selectedIds) {
+        const c = visible.find((c) => c.id === id)!;
+        if (
+          !(await move(c, pile.player, destination, recipient || pile.player))
+        )
+          break;
+      }
+    } else {
+      await act({
+        type: pile.player === room.me ? 'effect' : 'requestEffect',
+        playerId: pile.player,
+        ids: selectedIds,
+        operation,
+        reason: reason.trim() || 'Efecto de mesa libre',
+      });
+    }
+    setChosen([]);
+  }
+  function face(c: Card, p: Player, small = false, draggable = true) {
+    const hidden = !!c.hidden;
+    return (
+      <button
+        key={c.id}
+        className={`tcg-card ${hidden ? 'card-back' : `tcg-${c.type}`} ${small ? 'mini' : ''}`}
+        data-motion-card={draggable ? c.id : undefined}
+        data-owner={p.id}
+        data-card-target={!hidden ? c.id : undefined}
+        data-card-player={p.id}
+        aria-label={
+          hidden
+            ? 'Carta oculta — solicitar consulta'
+            : `${c.name}, ${c.type}, fuerza ${c.strength}`
+        }
+        title={hidden ? 'Carta oculta' : c.name}
+        onPointerDown={(e) => {
+          if (hidden || spectator || !draggable || e.button !== 0) return;
+          gesture.current = {
+            card: c,
+            player: p.id,
+            x: e.clientX,
+            y: e.clientY,
+            moved: false,
+          };
+          e.currentTarget.setPointerCapture(e.pointerId);
+          suppressClick.current = false;
+        }}
+        onPointerMove={(e) => {
+          const g = gesture.current;
+          if (!g || !draggable) return;
+          if (!g.moved && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 7)
+            return;
+          if (!g.moved) play('pick');
+          g.moved = true;
+          suppressClick.current = true;
+          setDrag({
+            card: g.card,
+            player: g.player,
+            x: e.clientX,
+            y: e.clientY,
+          });
+        }}
+        onPointerCancel={() => {
+          gesture.current = null;
+          setDrag(null);
+        }}
+        onPointerUp={(e) => {
+          const g = gesture.current;
+          gesture.current = null;
+          setDrag(null);
+          if (!g?.moved) return;
+          const hit = document.elementFromPoint(e.clientX, e.clientY);
+          const host = hit?.closest<HTMLElement>('[data-card-target]');
+          if (
+            g.card.type === 'Arma' &&
+            g.player === room.me &&
+            host?.dataset.cardPlayer === room.me &&
+            host.dataset.cardTarget !== g.card.id
+          ) {
+            const h = me?.cards.find((c) => c.id === host.dataset.cardTarget);
+            if (
+              h?.type === 'Aliado' &&
+              ['ataque', 'defensa'].includes(h.zone)
+            ) {
+              void act({ type: 'attach', cardId: g.card.id, hostId: h.id });
+              return;
+            }
+          }
+          const target = hit?.closest<HTMLElement>('[data-drop-zone]');
+          if (target)
+            void move(
+              g.card,
+              g.player,
+              target.dataset.dropZone!,
+              target.dataset.dropPlayer!,
+            );
+        }}
+        onClick={() => {
+          if (suppressClick.current) {
+            suppressClick.current = false;
+            return;
+          }
+          if (hidden) {
+            openPile(p, c.zone);
+            return;
+          }
+          setSelected({ id: c.id, player: p.id });
+          setPile(null);
+        }}
+      >
+        {hidden ? (
+          <>
+            <Shield size={22} />
+            <span>IMPERIO</span>
+            <i>MITOS · LEYENDAS</i>
+          </>
+        ) : (
+          <>
+            <div className="tcg-heading">
+              <span>{c.type}</span>
+              <b>{c.type === 'Oro' ? '◈' : c.cost}</b>
+            </div>
+            <strong>{c.name}</strong>
+            <div className="tcg-emblem">
+              {c.type === 'Aliado' ? (
+                <Swords />
+              ) : c.type === 'Oro' ? (
+                <span>◈</span>
+              ) : c.type === 'Arma' ? (
+                <Shield />
+              ) : (
+                <Sparkles />
+              )}
+            </div>
+            <small>{c.race || c.type}</small>
+            <div className="tcg-foot">
+              <span>
+                {c.revealed
+                  ? 'Mostrada'
+                  : c.attachedTo
+                    ? 'Equipada'
+                    : 'IMPERIO'}
+              </span>
+              {c.type === 'Aliado' && <b>{c.strength} ⚔</b>}
+            </div>
+          </>
+        )}
+      </button>
+    );
+  }
+  function zone(p: Player, z: string) {
+    const cards = p.cards.filter((c) => c.zone === z && !c.attachedTo);
+    const stack = ['castillo', 'cementerio', 'destierro'].includes(z);
+    return (
+      <section
+        key={z}
+        className={`arena-zone az-${z} ${drag ? 'drop-ready' : ''}`}
+        data-drop-zone={spectator ? undefined : z}
+        data-drop-player={p.id}
+      >
+        <header>
+          <button onClick={() => openPile(p, z)}>{zones[z]}</button>
+          <span>{cards.length}</span>
+        </header>
+        {stack ? (
+          <button
+            className={`pile-deck ${z === 'castillo' ? 'deck-back' : ''}`}
+            data-pile-owner={z === 'castillo' ? p.id : undefined}
+            onClick={() => openPile(p, z)}
+
+            aria-label={`Abrir ${zones[z]} de ${p.name}, ${cards.length} cartas`}
+          >
+            <Layers size={20} />
+            <strong>{cards.length}</strong>
+            <span>{z === 'castillo' ? 'Abrir / robar' : 'Ver cartas'}</span>
+          </button>
+        ) : (
+          <div className="arena-cards">
+            {cards.map((c) => (
+              <div className="tcg-stack" key={c.id}>
+                {face(c, p)}
+                {p.cards
+                  .filter((w) => w.attachedTo === c.id)
+                  .map((w) => face(w, p, true))}
+              </div>
+            ))}
+            {!cards.length && (
+              <span className="drop-hint">
+                {spectator ? 'Vacío' : 'Soltar aquí'}
+              </span>
+            )}
+          </div>
+        )}
+      </section>
+    );
+  }
+  return (
+    <div ref={root} className={`arena ${drag ? 'is-dragging' : ''}`}>
+      <div className="arena-toolbar">
+        <div className="arena-room">
+          <span>MESA LIBRE · {room.code}</span>
+          <strong>
+            {room.players.find((p) => p.id === room.active)?.name}
+            <small> · Turno {room.turn}</small>
+          </strong>
+        </div>
+        <Pick
+          label="Fase"
+          value={room.phase}
+          options={Object.fromEntries(
+            phases.map((p) => [
+              p,
+              p === 'Vigilia' ? 'Vigilia · preparar mesa' : p,
+            ]),
+          )}
+          onChange={(phase) => void act({ type: 'phase', phase })}
+          disabled={spectator || busy}
+        />
+        <button
+          className={`timer-pill ${remaining === 0 ? 'time-up' : ''}`}
+          onClick={() => setTimerOpen(true)}
+        >
+          <Clock3 size={17} />
+          {clock}
+        </button>
+        <button
+          aria-label={sound ? 'Desactivar sonidos' : 'Activar sonidos'}
+          title={sound ? 'Desactivar sonidos' : 'Activar sonidos'}
+          onClick={() => setSound(!sound)}
+        >
+          {sound ? <Volume2 size={18} /> : <VolumeX size={18} />}
+        </button>
+        <button onClick={() => setLogOpen(true)} title="Bitácora">
+          <History size={18} />
+        </button>
+        <button
+          disabled={busy || spectator || room.active !== room.me}
+          className="pass-turn"
+          onClick={() => void act({ type: 'next' })}
+        >
+          Pasar turno <ChevronRight size={18} />
+        </button>
+      </div>
+      {!room.started && (
+        <div className="arena-setup">
+          <span>Preparación de la partida</span>
+          <button onClick={onDeck}>Cargar mazo</button>
+          <button
+            disabled={busy || spectator || me?.ready}
+            onClick={() => void act({ type: 'setup' })}
+          >
+            Repartir 8
+          </button>
+          <button
+            disabled={busy || spectator || !me?.ready}
+            onClick={() => void act({ type: 'mulligan' })}
+          >
+            Mulligan
+          </button>
+          <button
+            disabled={busy || spectator || !me?.ready || me.houseMulligan}
+            onClick={() => void act({ type: 'houseMulligan' })}
+          >
+            Volver a 8
+          </button>
+          {room.host === room.me && (
+            <button
+              disabled={
+                busy ||
+                room.players.length < 2 ||
+                room.players.some((p) => !p.ready)
+              }
+              onClick={() => void act({ type: 'start' })}
+            >
+              Comenzar
+            </button>
+          )}
+          <button onClick={() => onInvite()}>Invitar</button>
+          <button onClick={() => onInvite(true)}>Espectador</button>
+        </div>
+      )}
+      <div className="arena-viewbar">
+        <Pick
+          label="Vista"
+          value={focus}
+          options={{ all: 'Todas las mesas', ...owners }}
+          onChange={setFocus}
+        />
+        <span>
+          <Hand size={14} /> Arrastra para jugar · Clic para ver acciones
+        </span>
+        {me && (
+          <button
+            disabled={busy}
+            onClick={() => void act({ type: 'freeDraw', count: 1 })}
+          >
+            Robar <Layers size={15} />
+          </button>
+        )}
+        {me && (
+          <button disabled={busy} onClick={() => void act({ type: 'shuffle' })}>
+            <Shuffle size={15} /> Barajar
+          </button>
+        )}
+      </div>
+      <div
+        className={`arena-boards players-${focus === 'all' ? room.players.length : 1}`}
+      >
+        {room.players
+          .filter((p) => focus === 'all' || focus === p.id)
+          .map((p) => (
+            <article
+              key={p.id}
+              className={`arena-board ${p.id === room.me ? 'self' : ''} ${p.id === room.active ? 'active-board' : ''}`}
+            >
+              <header className="arena-player">
+                <Shield size={18} />
+                <strong>{p.name}</strong>
+                <span>
+                  {p.id === room.me ? 'Tú' : spectator ? 'Jugador' : 'Rival'} ·{' '}
+                  {p.ready ? 'Preparado' : 'Preparando'}
+                </span>
+                {p.id === room.active && <i>SU TURNO</i>}
+              </header>
+              <div className="arena-battle">
+                {zone(p, 'ataque')}
+                {zone(p, 'defensa')}
+              </div>
+              <div className="arena-support">
+                {zone(p, 'apoyo')}
+                {zone(p, 'reserva')}
+                {zone(p, 'pagado')}
+              </div>
+              <div className="arena-piles">
+                {zone(p, 'castillo')}
+                {zone(p, 'cementerio')}
+                {zone(p, 'destierro')}
+              </div>
+              {zone(p, 'mano')}
+            </article>
+          ))}
+      </div>
+      <div className="arena-status">
+        <span>{room.log[0]?.message || 'Mesa preparada'}</span>
+        <button disabled={spectator} onClick={onCreate}>
+          Crear carta
+        </button>
+        <button
+          disabled={spectator || busy}
+          onClick={() => void act({ type: 'group' })}
+        >
+          Agrupar mis cartas
+        </button>
+      </div>
+      {drag && (
+        <div className="drag-card" style={{ left: drag.x, top: drag.y }}>
+          <Shield />
+          <strong>{drag.card.name}</strong>
+          <small>Suelta en una zona</small>
+        </div>
+      )}
+
+      <Dialog
+        open={!!card && !incoming}
+        onOpenChange={(v) => {
+          if (!v) setSelected(null);
+        }}
+      >
+        <DialogContent className="modal arena-detail">
+          <DialogTitle>{card?.name || 'Carta'}</DialogTitle>
+          <DialogDescription>
+            {owner?.name} · {card?.type} · Coste {card?.cost}{' '}
+            {card?.race && `· ${card.race}`}
+          </DialogDescription>
+          {card && owner && (
+            <>
+              <div className="detail-body">
+                <div className="detail-face">
+                  {face(card, owner, false, false)}
+                </div>
+                <div>
+                  <p className="full-effect">
+                    {card.effect || 'Sin habilidad.'}
+                  </p>
+                  <div className="actions">
+                    {card.type === 'Aliado' && (
+                      <strong>Fuerza {card.strength}</strong>
+                    )}
+                    {!spectator && owner.id === room.me && (
+                      <>
+                        <button
+                          disabled={busy}
+                          onClick={() =>
+                            void act({
+                              type: 'effect',
+                              ids: [card.id],
+                              operation: 'strength',
+                              delta: -1,
+                              reason: 'Ajuste manual',
+                              until: 'permanent',
+                            })
+                          }
+                        >
+                          −1
+                        </button>
+                        <button
+                          disabled={busy}
+                          onClick={() =>
+                            void act({
+                              type: 'effect',
+                              ids: [card.id],
+                              operation: 'strength',
+                              delta: 1,
+                              reason: 'Ajuste manual',
+                              until: 'permanent',
+                            })
+                          }
+                        >
+                          +1
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelected(null);
+                            onEdit(card);
+                          }}
+                        >
+                          Editar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {!spectator && (
+                <>
+                  <div className="actions">
+                    <button
+                      className="primary"
+                      disabled={busy}
+                      onClick={() =>
+                        void move(
+                          card,
+                          owner.id,
+                          card.type === 'Oro'
+                            ? 'reserva'
+                            : card.type === 'Aliado'
+                              ? 'defensa'
+                              : card.type === 'Talismán'
+                                ? 'cementerio'
+                                : 'apoyo',
+                        )
+                      }
+                    >
+                      Jugar carta
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() => void move(card, owner.id, 'mano')}
+                    >
+                      A mi mano
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() => void move(card, owner.id, 'cementerio')}
+                    >
+                      Cementerio
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() => void move(card, owner.id, 'destierro')}
+                    >
+                      Desterrar
+                    </button>
+                  </div>
+                  <details>
+                    <summary>Otras zonas</summary>
+                    <div className="quick-zones">
+                      <span>Mover a mi mesa</span>
+                      {Object.entries(zones).map(([z, label]) => (
+                        <button
+                          key={z}
+                          disabled={busy}
+                          onClick={() => void move(card, owner.id, z)}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+                  {owner.id === room.me && (
+                    <div className="actions">
+                      <button
+                        disabled={busy}
+                        onClick={() =>
+                          void act({
+                            type: 'effect',
+                            operation: card.revealed ? 'hide' : 'reveal',
+                            ids: [card.id],
+                            reason: card.name,
+                          })
+                        }
+                      >
+                        <Eye size={16} />
+                        {card.revealed ? 'Ocultar' : 'Mostrar a todos'}
+                      </button>
+                      {card.type === 'Arma' && (
+                        <Pick
+                          label="Equipar a"
+                          value=""
+                          options={Object.fromEntries(
+                            me!.cards
+                              .filter(
+                                (c) =>
+                                  c.type === 'Aliado' &&
+                                  ['defensa', 'ataque'].includes(c.zone),
+                              )
+                              .map((c) => [c.id, c.name]),
+                          )}
+                          onChange={(hostId) =>
+                            void act({
+                              type: 'attach',
+                              cardId: card.id,
+                              hostId,
+                            })
+                          }
+                        />
+                      )}
+                      <button
+                        disabled={busy || room.active !== room.me}
+                        onClick={() => void act({ type: 'next' })}
+                      >
+                        Pasar turno
+                      </button>
+                    </div>
+                  )}
+                  <Effects
+                    room={room}
+                    act={act}
+                    busy={busy}
+                    selectedCard={card}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!pile && !incoming}
+        onOpenChange={(v) => {
+          if (!v) setPile(null);
+        }}
+      >
+        <DialogContent className="modal arena-pile-modal">
+          <DialogTitle>
+            {pile ? zones[pile.zone] : ''} · {pileOwner?.name}
+          </DialogTitle>
+          <DialogDescription>
+            {locked
+              ? 'Las cartas permanecen boca abajo hasta abrir una consulta.'
+              : 'Selecciona cartas para moverlas, mostrarlas o barajarlas.'}
+          </DialogDescription>
+          {pile && (
+            <>
+              {!spectator &&
+                pile.player === room.me &&
+                pile.zone === 'castillo' && (
+                  <div className="castle-menu">
+                    <button
+                      className="primary"
+                      disabled={busy}
+                      onClick={() => void act({ type: 'freeDraw', count: 1 })}
+                    >
+                      Robar primera
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() =>
+                        void act({
+                          type: 'castleTake',
+                          edge: 'last',
+                          zone: 'mano',
+                          count: 1,
+                        })
+                      }
+                    >
+                      Sacar última
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() => void act({ type: 'shuffle' })}
+                    >
+                      Barajar
+                    </button>
+                    <button disabled={busy} onClick={() => void look('all')}>
+                      Buscar carta
+                    </button>
+                    <button disabled={busy} onClick={() => void look('top')}>
+                      Mirar primeras {amount}
+                    </button>
+                    <button
+                      onClick={() => {
+                        openPile(me!, 'mano');
+                        setDestination('castillo');
+                      }}
+                    >
+                      Poner arriba / abajo
+                    </button>
+                  </div>
+                )}
+              {locked && !spectator && pile.player !== room.me && (
+                <button
+                  className="primary"
+                  disabled={busy || pending}
+                  onClick={() => void look('all')}
+                >
+                  {pending ? 'Esperando respuesta…' : 'Pedir ver estas cartas'}
+                </button>
+              )}
+              {!spectator && (
+                <details className="more-actions">
+                  <summary>Cantidad y otras acciones</summary>
+                  <div className="consult-controls">
+                    <label>
+                      Cantidad
+                      <input
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={amount}
+                        onChange={(e) => setAmount(Number(e.target.value))}
+                      />
+                    </label>
+                    <label>
+                      Motivo opcional
+                      <input
+                        value={reason}
+                        maxLength={300}
+                        onChange={(e) => setReason(e.target.value)}
+                      />
+                    </label>
+                    {pile.zone === 'castillo' && pile.player === room.me && (
+                      <>
+                        <button
+                          disabled={busy}
+                          onClick={() =>
+                            void act({ type: 'freeDraw', count: amount })
+                          }
+                        >
+                          Robar {amount}
+                        </button>
+                        <button
+                          disabled={busy}
+                          onClick={() =>
+                            void act({ type: 'damage', count: amount })
+                          }
+                        >
+                          Botar {amount}
+                        </button>
+                        <button
+                          disabled={busy}
+                          onClick={() =>
+                            void act({
+                              type: 'castleTake',
+                              edge: 'first',
+                              zone: 'destierro',
+                              count: amount,
+                            })
+                          }
+                        >
+                          Desterrar {amount} del tope
+                        </button>
+                      </>
+                    )}
+                    {locked &&
+                      pile.player !== room.me &&
+                      pile.zone === 'castillo' && (
+                        <button
+                          disabled={busy || pending}
+                          onClick={() => void look('top')}
+                        >
+                          Pedir mirar primeras {amount}
+                        </button>
+                      )}
+                  </div>
+                </details>
+              )}
+              {hasInspection && (
+                <div className="consult-banner">
+                  <Eye size={16} /> Consulta privada ·{' '}
+                  {room.inspection?.mode === 'top'
+                    ? 'Tope en orden'
+                    : 'Búsqueda por nombre'}
+                  <button onClick={() => void act({ type: 'closeLook' })}>
+                    Cerrar consulta
+                  </button>
+                </div>
+              )}
+              {!locked && (
+                <input
+                  aria-label="Buscar cartas"
+                  placeholder="Buscar por nombre, tipo o raza…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              )}
+              <div className="pile-card-grid">
+                {locked
+                  ? pileCards
+                      .slice(0, pile.zone === 'castillo' ? 4 : 50)
+                      .map((c) => (
+                        <div key={c.id} className="pile-card-choice">
+                          {face(c, pileOwner!, false, false)}
+                        </div>
+                      ))
+                  : visible.map((c) => (
+                      <div
+                        key={c.id}
+                        className={`pile-card-choice ${selectedIds.includes(c.id) ? 'picked' : ''}`}
+                      >
+                        {face(c, pileOwner!, false, false)}
+                        {!spectator && (
+                          <button
+                            className="select-card"
+                            aria-pressed={selectedIds.includes(c.id)}
+                            onClick={() =>
+                              setChosen((old) =>
+                                old.includes(c.id)
+                                  ? old.filter((id) => id !== c.id)
+                                  : [...old, c.id],
+                              )
+                            }
+                          >
+                            {selectedIds.includes(c.id)
+                              ? '✓ Elegida'
+                              : 'Seleccionar'}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+              </div>
+              {!pileCards.length && <p>Esta zona está vacía.</p>}
+              {!locked && !spectator && (
+                <div className="pile-footer">
+                  <div className="actions">
+                    <button onClick={() => setChosen(visible.map((c) => c.id))}>
+                      Seleccionar todas
+                    </button>
+                    <button onClick={() => setChosen([])}>Limpiar</button>
+                    <span>{selectedIds.length} elegidas</span>
+                  </div>
+                  <div className="fields">
+                    <Pick
+                      label="Mesa de destino"
+                      value={recipient || pile.player}
+                      options={owners}
+                      onChange={setRecipient}
+                    />
+                    <Pick
+                      label="Zona de destino"
+                      value={destination}
+                      options={zones}
+                      onChange={setDestination}
+                    />
+                  </div>
+                  <div className="actions">
+                    <button
+                      className="primary"
+                      disabled={busy || !selectedIds.length}
+                      onClick={() => void batch('move')}
+                    >
+                      Mover seleccionadas
+                    </button>
+                    <button
+                      disabled={busy || !selectedIds.length}
+                      onClick={() => void batch('reveal')}
+                    >
+                      Mostrar
+                    </button>
+                    <button
+                      disabled={busy || !selectedIds.length}
+                      onClick={() => void batch('shuffle')}
+                    >
+                      Devolver y barajar
+                    </button>
+                    <button
+                      disabled={busy || !selectedIds.length}
+                      onClick={() => void batch('top')}
+                    >
+                      Poner al tope
+                    </button>
+                    <button
+                      disabled={busy || !selectedIds.length}
+                      onClick={() => void batch('bottom')}
+                    >
+                      Poner al fondo
+                    </button>
+                  </div>
+                  <small>
+                    Tope y fondo respetan el orden de selección. Los efectos
+                    sobre cartas ajenas se solicitan a su controlador.
+                  </small>
+                </div>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!incoming} onOpenChange={() => {}}>
+        <DialogContent className="modal request-modal" showCloseButton={false}>
+          <DialogTitle>
+            <Eye />{' '}
+            {incoming?.kind === 'look'
+              ? 'Te piden consultar cartas'
+              : 'Te proponen un efecto'}
+          </DialogTitle>
+          <DialogDescription>
+            {incoming ? owners[incoming.actor] : ''} espera tu respuesta.
+          </DialogDescription>
+          <p>{incoming?.reason}</p>
+          <strong>
+            {incoming?.kind === 'look'
+              ? `${incoming.mode === 'top' ? `Primeras ${incoming.count} cartas de ` : ''}${zones[incoming.zone || ''] || incoming.zone}`
+              : `${incoming?.operation} · ${incoming?.count} cartas`}
+          </strong>
+          <p>
+            La consulta sólo será visible para ese jugador. Puedes retirarla con
+            «Cerrar consultas».
+          </p>
+          <div className="actions">
+            <button
+              className="primary"
+              disabled={busy}
+              onClick={() =>
+                void act({
+                  type:
+                    incoming?.kind === 'look' ? 'grantLook' : 'approveEffect',
+                  requestId: incoming?.id,
+                })
+              }
+            >
+              Aceptar
+            </button>
+            <button
+              disabled={busy}
+              onClick={() =>
+                void act({ type: 'denyRequest', requestId: incoming?.id })
+              }
+            >
+              Rechazar
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={timerOpen && !incoming} onOpenChange={setTimerOpen}>
+        <DialogContent className="modal">
+          <DialogTitle>Temporizador compartido</DialogTitle>
+          <DialogDescription>
+            Marca el tiempo de turno. Al llegar a cero no mueve cartas ni pasa
+            el turno.
+          </DialogDescription>
+          <strong className="clock-display">{clock}</strong>
+          <label>
+            Segundos por turno
+            <input
+              type="number"
+              min={10}
+              max={3600}
+              value={seconds}
+              onChange={(e) => setSeconds(Number(e.target.value))}
+            />
+          </label>
+          <div className="actions">
+            <button
+              disabled={spectator || busy}
+              onClick={() =>
+                void act({ type: 'timer', command: 'start', seconds })
+              }
+            >
+              Iniciar / reiniciar
+            </button>
+            <button
+              disabled={spectator || busy}
+              onClick={() =>
+                void act({
+                  type: 'timer',
+                  command: room.timer?.deadline === null ? 'resume' : 'pause',
+                })
+              }
+            >
+              {room.timer?.deadline === null ? 'Continuar' : 'Pausar'}
+            </button>
+            <button
+              disabled={spectator || busy}
+              onClick={() => void act({ type: 'timer', command: 'reset' })}
+            >
+              Detener
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={logOpen && !incoming} onOpenChange={setLogOpen}>
+        <DialogContent className="modal">
+          <DialogTitle>Bitácora de la partida</DialogTitle>
+          <DialogDescription>
+            Movimientos, acuerdos y consultas de la mesa.
+          </DialogDescription>
+          <label>
+            Registrar un acuerdo
+            <input
+              value={note}
+              maxLength={500}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </label>
+          <button
+            disabled={spectator || busy || !note.trim()}
+            onClick={async () => {
+              if (await act({ type: 'note', text: note })) setNote('');
+            }}
+          >
+            Registrar
+          </button>
+          <button
+            disabled={spectator || busy}
+            onClick={() => void act({ type: 'revokeLook' })}
+          >
+            Cerrar consultas de mis cartas
+          </button>
+          <ol className="log">
+            {room.log.map((l) => (
+              <li key={l.id}>{l.message}</li>
+            ))}
+          </ol>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
