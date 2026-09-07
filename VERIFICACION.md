@@ -28,3 +28,7 @@ Se repitieron los cuatro recorridos añadiendo transformación desde la carta, f
 ## Orden del Castillo
 
 Debajo de cada carta consultada, Antes y Después cambian su posición. Guardar orden en el Castillo aplica el orden sin barajar y conserva los lugares de las cartas no consultadas. La posición 1 es la primera entre las cartas consultadas. Mover a… permite trasladar una carta usando el destino elegido en la ventana. Se probaron guardado y robo posterior en el motor y guardado desde escritorio y móvil.
+
+## Intercambio directo en la consulta
+
+Las cartas consultadas se pueden arrastrar sobre otra posición, o mover pulsando Mover de lugar y luego Colocar aquí. El intercambio se guarda automáticamente. Al sacar una carta de la consulta, las restantes siguen disponibles para ordenar sin consultar cartas adicionales. Se verificó el intercambio en cuatro tamaños de mesa y se mantuvieron las 44 pruebas del motor.

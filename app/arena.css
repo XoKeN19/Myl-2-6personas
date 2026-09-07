@@ -1,4 +1,8 @@
 /* Tabletop surfaces use the browser's composited transform animations. */
+[data-castle-slot] .tcg-card {
+  touch-action: none;
+  cursor: grab;
+}
 .castle-menu {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

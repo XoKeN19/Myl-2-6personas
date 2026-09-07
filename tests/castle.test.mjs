@@ -88,4 +88,12 @@ test('Ordenar consulta conserva resto del Castillo y determina el siguiente robo
   actRoom(r, p.token, { type: 'freeDraw', count: 1 });
   assert.ok(p.cards.some((c) => c.id === ids[0] && c.zone === 'mano'));
   assert.throws(() => actRoom(r, p.token, { type: 'orderCastle', ids }));
+  actRoom(r, p.token, { type: 'orderCastle', ids: [ids[2], ids[1]] });
+  assert.deepEqual(
+    p.cards
+      .filter((c) => c.zone === 'castillo')
+      .slice(0, 2)
+      .map((c) => c.id),
+    [ids[2], ids[1]],
+  );
 });

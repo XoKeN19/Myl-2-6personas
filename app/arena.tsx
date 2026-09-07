@@ -217,6 +217,27 @@ export default function Arena({
     [ids[index], ids[target]] = [ids[target], ids[index]];
     setCastleOrder(ids);
   }
+  const [placingCard, setPlacingCard] = useState<string | null>(null);
+  const consultationGesture = useRef<{
+    id: string;
+    x: number;
+    y: number;
+    moved: boolean;
+  } | null>(null);
+  const consultationClick = useRef(false);
+  async function placeCastle(source: string, target: string) {
+    const ids = orderedCards.map((c) => c.id),
+      a = ids.indexOf(source),
+      b = ids.indexOf(target);
+    setPlacingCard(null);
+    if (a < 0 || b < 0 || a === b || busy) return;
+    [ids[a], ids[b]] = [ids[b], ids[a]];
+    setCastleOrder(ids);
+    if (await act({ type: 'orderCastle', ids })) {
+      setCastleOrder([]);
+      play('drop');
+    }
+  }
   const visible = orderedCards.filter(
     (c) =>
       !c.hidden &&
@@ -1001,6 +1022,75 @@ export default function Arena({
                   : visible.map((c) => (
                       <div
                         key={c.id}
+                        data-castle-slot={canOrder ? c.id : undefined}
+                        onPointerDownCapture={(e) => {
+                          if (
+                            !canOrder ||
+                            busy ||
+                            search ||
+                            e.button !== 0 ||
+                            !(e.target as HTMLElement).closest('.tcg-card')
+                          )
+                            return;
+                          consultationClick.current = false;
+                          consultationGesture.current = {
+                            id: c.id,
+                            x: e.clientX,
+                            y: e.clientY,
+                            moved: false,
+                          };
+                          e.currentTarget.setPointerCapture(e.pointerId);
+                        }}
+                        onPointerMoveCapture={(e) => {
+                          const g = consultationGesture.current;
+                          if (
+                            !g ||
+                            Math.hypot(e.clientX - g.x, e.clientY - g.y) < 7
+                          )
+                            return;
+                          e.stopPropagation();
+                          if (!g.moved) play('pick');
+                          g.moved = true;
+                          consultationClick.current = true;
+                          setDrag({
+                            card: orderedCards.find((x) => x.id === g.id)!,
+                            player: pile.player,
+                            x: e.clientX,
+                            y: e.clientY,
+                          });
+                        }}
+                        onPointerUpCapture={(e) => {
+                          const g = consultationGesture.current;
+                          consultationGesture.current = null;
+                          if (!g?.moved) return;
+                          setTimeout(() => { consultationClick.current = false; }, 0);
+                          e.stopPropagation();
+                          setDrag(null);
+                          const target = document
+                            .elementFromPoint(e.clientX, e.clientY)
+                            ?.closest<HTMLElement>('[data-castle-slot]')
+                            ?.dataset.castleSlot;
+                          if (target) void placeCastle(g.id, target);
+                        }}
+                        onPointerCancelCapture={() => {
+                          consultationGesture.current = null;
+                          setDrag(null);
+                        }}
+                        onClickCapture={(e) => {
+                          if (consultationClick.current) {
+                            e.stopPropagation();
+                            consultationClick.current = false;
+                            return;
+                          }
+                          if (
+                            canOrder &&
+                            placingCard &&
+                            (e.target as HTMLElement).closest('.tcg-card')
+                          ) {
+                            e.stopPropagation();
+                            void placeCastle(placingCard, c.id);
+                          }
+                        }}
                         className={`pile-card-choice ${selectedIds.includes(c.id) ? 'picked' : ''}`}
                       >
                         {face(c, pileOwner!, false, false)}
@@ -1023,6 +1113,18 @@ export default function Arena({
                             </button>
                             {canOrder && (
                               <div className="actions">
+                                <button
+                                  disabled={busy || !!search}
+                                  onClick={() =>
+                                    placingCard
+                                      ? void placeCastle(placingCard, c.id)
+                                      : setPlacingCard(c.id)
+                                  }
+                                >
+                                  {placingCard
+                                    ? `Colocar aquí · ${orderedCards.findIndex((x) => x.id === c.id) + 1}`
+                                    : 'Mover de lugar'}
+                                </button>
                                 <span>
                                   Posición{' '}
                                   {orderedCards.findIndex(
@@ -1077,6 +1179,16 @@ export default function Arena({
                 <div className="pile-footer">
                   {canOrder && (
                     <div>
+                      <p>
+                        Arrastra una carta sobre otra para intercambiarlas, o
+                        pulsa «Mover de lugar» y elige su posición. El cambio se
+                        guarda al colocarla.
+                      </p>
+                      {placingCard && (
+                        <button onClick={() => setPlacingCard(null)}>
+                          Cancelar movimiento
+                        </button>
+                      )}
                       <button
                         disabled={busy || !castleOrder.length}
                         onClick={async () => {
