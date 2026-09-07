@@ -970,4 +970,24 @@ body:has(.arena) .banner {
   }
 }
 .arena-pile-modal:has(.consult-banner) .castle-menu,
-.arena-pile-modal:has(.consult-banner) .more-actions { display:none; }
+.arena-pile-modal:has(.consult-banner) .more-actions {
+  display: none;
+}
+.hand-limit-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border: 1px solid #b5914e;
+  border-radius: 7px;
+  background: #42371e;
+  color: #ffedbc;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.hand-limit-warning span {
+  flex: 1;
+}
+.hand-limit-warning button {
+  white-space: nowrap;
+}

@@ -106,6 +106,7 @@ export default function Arena({
   onCreate: () => void;
   onInvite: (watch?: boolean) => void;
 }) {
+  const [handWarning, setHandWarning] = useState(false);
   const me = room.players.find((p) => p.id === room.me),
     spectator = !me;
   const [selected, setSelected] = useState<{
@@ -519,11 +520,35 @@ export default function Arena({
         <button
           disabled={busy || spectator || room.active !== room.me}
           className="pass-turn"
-          onClick={() => void act({ type: 'next' })}
+          onClick={() => {
+            if ((me?.cards.filter((c) => c.zone === 'mano').length || 0) > 8)
+              setHandWarning(true);
+            else void act({ type: 'next' });
+          }}
         >
           Pasar turno <ChevronRight size={18} />
         </button>
       </div>
+      {!spectator &&
+        me &&
+        me.cards.filter((c) => c.zone === 'mano').length > 8 && (
+          <output className="hand-limit-warning">
+            <span>
+              Tienes {me.cards.filter((c) => c.zone === 'mano').length} cartas
+              en la mano: {me.cards.filter((c) => c.zone === 'mano').length - 8}{' '}
+              sobre el límite. Revisa tu robo de fin de turno y descarta el
+              exceso antes de terminar.
+            </span>
+            <button
+              onClick={() => {
+                openPile(me, 'mano');
+                setDestination('cementerio');
+              }}
+            >
+              Revisar mano
+            </button>
+          </output>
+        )}
       {!room.started && (
         <div className="arena-setup">
           <span>Preparación de la partida</span>
@@ -815,7 +840,15 @@ export default function Arena({
                       )}
                       <button
                         disabled={busy || room.active !== room.me}
-                        onClick={() => void act({ type: 'next' })}
+                        onClick={() => {
+                          if (
+                            (me?.cards.filter((c) => c.zone === 'mano')
+                              .length || 0) > 8
+                          ) {
+                            setSelected(null);
+                            setHandWarning(true);
+                          } else void act({ type: 'next' });
+                        }}
                       >
                         Pasar turno
                       </button>
@@ -1219,6 +1252,39 @@ export default function Arena({
         </DialogContent>
       </Dialog>
 
+      <Dialog open={handWarning && !incoming} onOpenChange={setHandWarning}>
+        <DialogContent className="modal">
+          <DialogTitle>Revisa tu mano antes de terminar</DialogTitle>
+          <DialogDescription>
+            Tienes {me?.cards.filter((c) => c.zone === 'mano').length || 0}{' '}
+            cartas. Si ya resolviste tu robo de fin de turno, descarta hasta
+            quedar con ocho. La mesa no descarta cartas por ti.
+          </DialogDescription>
+          <div className="actions">
+            <button
+              className="primary"
+              onClick={() => {
+                setHandWarning(false);
+                if (me) openPile(me, 'mano');
+                setDestination('cementerio');
+              }}
+            >
+              Elegir cartas para descartar
+            </button>
+            <button onClick={() => setHandWarning(false)}>
+              Seguir en mi turno
+            </button>
+            <button
+              disabled={busy || room.active !== room.me}
+              onClick={async () => {
+                if (await act({ type: 'next' })) setHandWarning(false);
+              }}
+            >
+              Pasar de todos modos
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!incoming} onOpenChange={() => {}}>
         <DialogContent className="modal request-modal" showCloseButton={false}>
           <DialogTitle>
