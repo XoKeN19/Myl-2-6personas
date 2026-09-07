@@ -31,9 +31,9 @@ Formato compatible: una lista de cartas, o `{ "version": 1, "name": "Mi mazo", "
 ## Preparación y reglas
 
 - Cada jugador empieza con un Oro inicial y 49 cartas sin definir si no importa un mazo. Preparar mano reparte 8.
-- Mulligan normal: devuelve la mano, baraja y roba una carta menos.
-- Mulligan excepcional oficial: una vez, si hay uno o ningún Oro; publica los nombres de la mano y conserva su cantidad.
-- **Volver a ocho**: regla de la casa solicitada para esta mesa. Devuelve y baraja la mano, roba 8 y sólo puede usarse una vez antes de comenzar. No es el mulligan oficial.
+- Al repartir ocho se bloquean la recarga del mazo, los mulligan y Volver a ocho. Es la configuración de la casa solicitada; los movimientos por efectos siguen siendo libres.
+- **Transformar esta carta** permite elegir tipo, fuerza, efecto (vacío para quitarlo), protecciones y duración. Gema del grifo propone Aliado de fuerza 4, Indestructible e Indesterrable hasta tu próximo turno. Los jugadores comprueban las condiciones antes de aplicarlo.
+- **Opciones de partida** permite configurar minutos por turno o para toda la partida y guardar el reloj para que arranque al comenzar. El tiempo total no se reinicia al pasar turno. Los sonidos incluyen alarma, ataque, Cementerio, Destierro y barajado.
 - Las fases son una guía visible y cualquier jugador puede elegirlas libremente. La mesa no bloquea una jugada por la fase actual.
 - Robar y pasar turno son libres. Los jugadores resuelven costes, límites de mano, daño y agrupación manualmente.
 - Arrastra cartas a las zonas o pulsa una carta para abrir sus acciones, coste, fuerza y efecto. Arrastrar un arma sobre un aliado permite equiparla.

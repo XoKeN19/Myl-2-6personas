@@ -125,7 +125,8 @@ export default function Arena({
     [destination, setDestination] = useState('mano');
   const [focus, setFocus] = useState('all'),
     [note, setNote] = useState(''),
-    [seconds, setSeconds] = useState(120);
+    [seconds, setSeconds] = useState(room.timer.duration),
+    [timerMode, setTimerMode] = useState(room.timer.mode || 'turn');
   const [now, setNow] = useState(0);
   const [drag, setDrag] = useState<{
     card: Card;
@@ -162,9 +163,18 @@ export default function Arena({
   const displaySeconds = Math.ceil(remaining / 1000);
   const clock = `${Math.floor(displaySeconds / 60)
     .toString()
-    .padStart(2, '0')}:${(displaySeconds % 60)
-    .toString()
-    .padStart(2, '0')}`;
+    .padStart(2, '0')}:${(displaySeconds % 60).toString().padStart(2, '0')}`;
+  const alertedDeadline = useRef<number | null>(null);
+  useEffect(() => {
+    if (
+      room.timer.deadline !== null &&
+      remaining === 0 &&
+      alertedDeadline.current !== room.timer.deadline
+    ) {
+      alertedDeadline.current = room.timer.deadline;
+      play('alarm');
+    }
+  }, [remaining, room.timer.deadline, play]);
   const incoming = room.requests.find((r) => r.owner === room.me);
   const owners = Object.fromEntries(room.players.map((p) => [p.id, p.name]));
   const owner = room.players.find((p) => p.id === selected?.player);
@@ -477,7 +487,12 @@ export default function Arena({
       {!room.started && (
         <div className="arena-setup">
           <span>Preparación de la partida</span>
-          <button onClick={onDeck}>Cargar mazo</button>
+          <button disabled={spectator || me?.ready} onClick={onDeck}>
+            Cargar mazo
+          </button>
+          <button onClick={() => setTimerOpen(true)}>
+            Opciones de partida
+          </button>
           <button
             disabled={busy || spectator || me?.ready}
             onClick={() => void act({ type: 'setup' })}
@@ -485,13 +500,13 @@ export default function Arena({
             Repartir 8
           </button>
           <button
-            disabled={busy || spectator || !me?.ready}
+            disabled={true}
             onClick={() => void act({ type: 'mulligan' })}
           >
             Mulligan
           </button>
           <button
-            disabled={busy || spectator || !me?.ready || me.houseMulligan}
+            disabled={true}
             onClick={() => void act({ type: 'houseMulligan' })}
           >
             Volver a 8
@@ -771,6 +786,15 @@ export default function Arena({
                     act={act}
                     busy={busy}
                     selectedCard={card}
+                    onCastle={() => {
+                      openPile(me!, 'castillo');
+                      void act({
+                        type: 'look',
+                        zone: 'castillo',
+                        mode: 'all',
+                        reason: card.name,
+                      });
+                    }}
                   />
                 </>
               )}
@@ -1090,27 +1114,68 @@ export default function Arena({
 
       <Dialog open={timerOpen && !incoming} onOpenChange={setTimerOpen}>
         <DialogContent className="modal">
-          <DialogTitle>Temporizador compartido</DialogTitle>
+          <DialogTitle>Opciones de partida</DialogTitle>
           <DialogDescription>
-            Marca el tiempo de turno. Al llegar a cero no mueve cartas ni pasa
-            el turno.
+            Elige un límite por turno o para toda la partida. Al llegar a cero
+            suena una alerta; no mueve cartas ni pasa el turno.
           </DialogDescription>
           <strong className="clock-display">{clock}</strong>
           <label>
-            Segundos por turno
+            Temporizador
+            <select
+              value={timerMode}
+              onChange={(e) => setTimerMode(e.target.value)}
+            >
+              <option value="turn">Por turno</option>
+              <option value="game">Partida completa</option>
+            </select>
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={sound}
+              onChange={(e) => setSound(e.target.checked)}
+            />{' '}
+            Sonidos de la mesa
+          </label>
+          <label>
+            Minutos
             <input
               type="number"
-              min={10}
-              max={3600}
-              value={seconds}
-              onChange={(e) => setSeconds(Number(e.target.value))}
+              min={1}
+              max={180}
+              value={seconds / 60}
+              onChange={(e) => setSeconds(Number(e.target.value) * 60)}
             />
           </label>
           <div className="actions">
+            {!room.started && (
+              <button
+                disabled={spectator || busy}
+                onClick={async () => {
+                  if (
+                    await act({
+                      type: 'timer',
+                      command: 'configure',
+                      seconds,
+                      mode: timerMode,
+                    })
+                  )
+                    setTimerOpen(false);
+                }}
+              >
+                Guardar para el comienzo
+              </button>
+            )}
             <button
               disabled={spectator || busy}
               onClick={() =>
-                void act({ type: 'timer', command: 'start', seconds })
+                void act({
+                  type: 'timer',
+                  command: 'start',
+                  seconds,
+                  mode: timerMode,
+                })
               }
             >
               Iniciar / reiniciar

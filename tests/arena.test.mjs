@@ -13,6 +13,58 @@ function table() {
   r.players.push(player('Dos'));
   return [r, ...r.players];
 }
+test('Oro transformado conserva protecciones hasta el próximo turno y recupera su forma', () => {
+  const [r, p, q] = table();
+  const c = p.cards.find((c) => c.zone === 'reserva');
+  const original = c.effect;
+  action(r, p.token, {
+    type: 'effect',
+    operation: 'transform',
+    ids: [c.id],
+    reason: 'Gema del grifo',
+    cardType: 'Aliado',
+    strength: 4,
+    effect: 'Indestructible. Indesterrable.',
+    traits: ['indestructible', 'indesterrable'],
+    until: 'nextTurn',
+  });
+  assert.equal(c.type, 'Aliado');
+  assert.equal(c.strength, 4);
+  assert.ok(c.statuses.indesterrable);
+  action(r, p.token, { type: 'next' });
+  assert.equal(c.type, 'Aliado');
+  action(r, q.token, { type: 'next' });
+  assert.equal(c.type, 'Oro');
+  assert.equal(c.effect, original);
+  assert.ok(!c.statuses.indesterrable);
+  action(r, p.token, {
+    type: 'effect',
+    operation: 'transform',
+    ids: [c.id],
+    reason: 'Sin habilidad',
+    cardType: 'Oro',
+    strength: 0,
+    effect: '',
+    traits: [],
+  });
+  assert.equal(c.effect, '');
+});
+test('Tiempo de partida se configura antes de comenzar y no reinicia al pasar turno', () => {
+  const [r, p, q] = table();
+  action(r, p.token, {
+    type: 'timer',
+    command: 'configure',
+    mode: 'game',
+    seconds: 1800,
+  });
+  assert.equal(r.timer.deadline, null);
+  for (const x of [p, q]) action(r, x.token, { type: 'setup' });
+  action(r, p.token, { type: 'start' });
+  const deadline = r.timer.deadline;
+  assert.ok(deadline > Date.now());
+  action(r, p.token, { type: 'next' });
+  assert.equal(r.timer.deadline, deadline);
+});
 test('Consulta del tope ajeno revela sólo la cantidad aprobada y conserva orden', () => {
   const [r, p, q] = table();
   const expected = q.cards

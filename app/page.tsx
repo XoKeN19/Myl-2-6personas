@@ -53,7 +53,12 @@ export type Player = {
 export type Room = {
   revision: number;
   serverTime: number;
-  timer: { duration: number; remaining: number; deadline: number | null };
+  timer: {
+    mode?: string;
+    duration: number;
+    remaining: number;
+    deadline: number | null;
+  };
   code: string;
   me: string | null;
   role: string;
@@ -641,7 +646,9 @@ export default function Home() {
             : undefined
         }
         importRoom={
-          room && room.role !== 'spectator'
+          room &&
+          room.role !== 'spectator' &&
+          !room.players.find((p) => p.id === room.me)?.ready
             ? async (d) => !!(await act({ type: 'import', cards: d }))
             : undefined
         }
@@ -656,10 +663,8 @@ export default function Home() {
           <h3>Preparación y turno</h3>
           <p>
             Mazo de 50 cartas, incluyendo el Oro inicial. Se roba una mano de 8.
-            El mulligan normal reduce la mano en una carta. El mulligan
-            excepcional, una vez con uno o ningún Oro, muestra la mano en la
-            bitácora y conserva su cantidad. Volver a ocho es una regla de la
-            casa: una vez antes de comenzar.
+            En esta mesa la mano queda fijada al repartir: no puedes recargar el
+            mazo, hacer mulligan ni volver a ocho. Es la configuración de la casa.
           </p>
           <p>
             Agrupación → Vigilia → Batalla Mitológica (Ataque, Bloqueo, Guerra

@@ -51,38 +51,18 @@ test('No permite editar cartas ajenas ni sesiones falsas', () => {
   assert.throws(() => view(r, 'falso'));
   assert.throws(() => exportDeck(r, 'falso'));
 });
-test('Mulligan normal reduce y excepcional no recupera las ocho', () => {
+test('Repartir bloquea recarga y todos los mulligan', () => {
   const [r, p] = setup();
   action(r, p.token, { type: 'setup' });
-  action(r, p.token, { type: 'mulligan' });
-  assert.equal(p.cards.filter((c) => c.zone === 'mano').length, 7);
-  action(r, p.token, { type: 'freeMulligan' });
-  assert.equal(p.cards.filter((c) => c.zone === 'mano').length, 7);
-  assert.throws(() => action(r, p.token, { type: 'freeMulligan' }));
-  assert.equal(p.cards.length, 50);
-});
-test('Volver a ocho funciona una vez y antes de comenzar', () => {
-  const [r, p, q] = setup();
-  action(r, p.token, { type: 'setup' });
-  action(r, p.token, { type: 'mulligan' });
-  action(r, p.token, { type: 'mulligan' });
-  action(r, p.token, { type: 'houseMulligan' });
+  for (const type of [
+    'mulligan',
+    'houseMulligan',
+    'freeMulligan',
+    'import',
+    'setup',
+  ])
+    assert.throws(() => action(r, p.token, { type }));
   assert.equal(p.cards.filter((c) => c.zone === 'mano').length, 8);
-  assert.equal(p.cards.length, 50);
-  assert.throws(() => action(r, p.token, { type: 'houseMulligan' }));
-  action(r, q.token, { type: 'setup' });
-  action(r, p.token, { type: 'start' });
-  assert.throws(() => action(r, q.token, { type: 'houseMulligan' }));
-});
-test('Excepcional rechaza manos con dos Oros sin consumirlo', () => {
-  const [r, p] = setup();
-  action(r, p.token, { type: 'setup' });
-  p.cards
-    .filter((c) => c.zone === 'mano')
-    .slice(0, 2)
-    .forEach((c) => (c.type = 'Oro'));
-  assert.throws(() => action(r, p.token, { type: 'freeMulligan' }));
-  assert.equal(p.freeMulligan, false);
 });
 test('Robo normal conserva su guía y el turno puede cerrarse libremente', () => {
   const [r, p, q] = setup();

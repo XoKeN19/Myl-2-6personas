@@ -20,3 +20,7 @@ La prueba móvil detectó una cabecera superpuesta que impedía volver al menú.
 ## Alcance
 
 Las pruebas usan Chromium local y emulación móvil, no teléfonos físicos ni todos los navegadores. No garantizan ausencia universal de fallos. Las habilidades conservan resolución manual y los atajos no certifican su legalidad. No se desplegaron Render, Docker ni túneles públicos. Los mazos personales permanecen fuera del repositorio.
+
+## Transformaciones y preparación
+
+Se repitieron los cuatro recorridos añadiendo transformación desde la carta, fuerza y protecciones, apertura directa del Castillo y botones bloqueados tras repartir. Pasaron las 43 pruebas del motor, incluidas reversión al próximo turno, Oro sin habilidad y reloj total que conserva su límite al pasar turno. Una prueba adicional de navegador agotó un reloj de diez segundos y verificó que la alarma se generase una sola vez. TypeScript, compilación y revisión estática pasaron.

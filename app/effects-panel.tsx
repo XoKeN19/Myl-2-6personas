@@ -190,6 +190,7 @@ export default function Effects({
 
   busy,
   selectedCard,
+  onCastle,
 }: {
   room: R;
 
@@ -198,6 +199,7 @@ export default function Effects({
   busy: boolean;
 
   selectedCard?: C;
+  onCastle?: () => void;
 }) {
   const [open, setOpen] = useState(false),
     [reason, setReason] = useState(''),
@@ -214,6 +216,7 @@ export default function Effects({
     [cardType, setCardType] = useState('Arma'),
     [strength, setStrength] = useState(0),
     [effect, setEffect] = useState(''),
+    [traits, setTraits] = useState<string[]>([]),
     [hostId, setHostId] = useState(''),
     [recipient, setRecipient] = useState(''),
     [limit, setLimit] = useState(1),
@@ -265,6 +268,28 @@ export default function Effects({
 
     setReason(selectedCard.name);
 
+    if (preset === 'castillo' && onCastle) {
+      onCastle();
+      return;
+    }
+    if (preset === 'transform') {
+      setPlayerId(room.me || '');
+      setZone(selectedCard.zone);
+      setIds([selectedCard.id]);
+      setOperation('transform');
+      const grifo = /grifo/i.test(selectedCard.name);
+      setCardType(
+        grifo
+          ? 'Aliado'
+          : /orical/i.test(selectedCard.name)
+            ? 'Arma'
+            : selectedCard.type,
+      );
+      setStrength(grifo ? 4 : selectedCard.strength);
+      setEffect(grifo ? 'Indestructible. Indesterrable.' : selectedCard.effect);
+      setTraits(grifo ? ['indestructible', 'indesterrable'] : []);
+      setUntil(grifo ? 'nextTurn' : 'permanent');
+    }
     if (preset === 'castillo') {
       setPlayerId(room.me || '');
       setZone('castillo');
@@ -295,6 +320,9 @@ export default function Effects({
           <strong>{selectedCard.name}</strong>
           <div className="actions">
             <button onClick={() => openSelected()}>Resolver esta carta</button>
+            <button onClick={() => openSelected('transform')}>
+              Transformar esta carta
+            </button>
             {selectedText.includes('roba') &&
               [1, 2, 3].map((amount) => (
                 <button
@@ -718,7 +746,7 @@ export default function Effects({
             </>
           )}
 
-          {['strength', 'status'].includes(operation) && (
+          {['strength', 'status', 'transform'].includes(operation) && (
             <Pick
               label="Duración"
 
@@ -736,7 +764,7 @@ export default function Effects({
             />
           )}
 
-          {['strength', 'status'].includes(operation) &&
+          {['strength', 'status', 'transform'].includes(operation) &&
             until === 'nextTurn' && (
               <Pick
                 label="Hasta el próximo turno de"
@@ -748,6 +776,24 @@ export default function Effects({
 
           {operation === 'transform' && (
             <>
+              <div className="actions">
+                {Object.entries(statuses).map(([key, label]) => (
+                  <label key={key}>
+                    <input
+                      type="checkbox"
+                      checked={traits.includes(key)}
+                      onChange={(e) =>
+                        setTraits(
+                          e.target.checked
+                            ? [...traits, key]
+                            : traits.filter((x) => x !== key),
+                        )
+                      }
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
               <Pick
                 label="Nuevo tipo"
 
@@ -780,7 +826,7 @@ export default function Effects({
               </label>
 
               <label>
-                Nuevo efecto
+                Nuevo efecto (vacío para quedar sin habilidad)
                 <textarea
                   value={effect}
 
@@ -886,6 +932,7 @@ export default function Effects({
 
                 enabled: enabled === 'yes',
 
+                traits,
                 cardType,
 
                 strength,

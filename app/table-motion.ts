@@ -38,20 +38,40 @@ export function useTableMotion(revision: number, latestEvent: string) {
     [],
   );
   const play = useCallback(
-    (kind: 'pick' | 'drop' | 'draw' | 'shuffle' | 'turn' | 'request') => {
+    (
+      kind:
+        | 'pick'
+        | 'drop'
+        | 'draw'
+        | 'shuffle'
+        | 'turn'
+        | 'request'
+        | 'alarm'
+        | 'grave'
+        | 'banish'
+        | 'attack',
+    ) => {
       if (!sound) return;
       try {
         audio.current ??= new AudioContext();
         const ctx = audio.current;
         void ctx.resume();
         const notes =
-          kind === 'shuffle'
-            ? [180, 220, 170, 250]
-            : kind === 'turn'
-              ? [392, 523, 659]
-              : kind === 'request'
-                ? [523, 784]
-                : [kind === 'pick' ? 330 : kind === 'draw' ? 620 : 220];
+          kind === 'alarm'
+            ? [880, 660, 880, 660, 880]
+            : kind === 'grave'
+              ? [220, 140]
+              : kind === 'banish'
+                ? [440, 880, 1100]
+                : kind === 'attack'
+                  ? [180, 360, 240]
+                  : kind === 'shuffle'
+                    ? [180, 220, 170, 250]
+                    : kind === 'turn'
+                      ? [392, 523, 659]
+                      : kind === 'request'
+                        ? [523, 784]
+                        : [kind === 'pick' ? 330 : kind === 'draw' ? 620 : 220];
         notes.forEach((frequency, i) => {
           const oscillator = ctx.createOscillator(),
             gain = ctx.createGain();
@@ -145,6 +165,9 @@ export function useTableMotion(revision: number, latestEvent: string) {
         latestEvent.includes('mano inicial')
       )
         play('draw');
+      else if (/destierro|desterr|banish/i.test(latestEvent)) play('banish');
+      else if (/cementerio|destroy/i.test(latestEvent)) play('grave');
+      else if (/ataque|atacó/i.test(latestEvent)) play('attack');
       else if (latestEvent.includes('turno')) play('turn');
       else if (latestEvent.includes('pidió')) play('request');
       else if (latestEvent.includes('movió')) play('drop');
