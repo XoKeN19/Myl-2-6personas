@@ -44,8 +44,41 @@ body {
 }
 button,
 input,
+select,
 textarea {
   font: inherit;
+}
+/* Native option menus need explicit colors on Windows, including in dialogs. */
+select {
+  color-scheme: dark;
+  color: #e6e9e5;
+  background-color: #18272e;
+  border: 1px solid #52666f;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+select option,
+select optgroup {
+  color: #e6e9e5;
+  background-color: #18272e;
+}
+select option:checked {
+  color: #ffffff;
+  background-color: #365660;
+}
+select:focus-visible {
+  outline: 2px solid #dcc08a;
+  outline-offset: 2px;
+}
+[data-slot='select-content'] {
+  color: #e6e9e5;
+  background-color: #202c32;
+  border-color: #52666f;
+}
+[data-slot='select-item'][data-highlighted],
+[data-slot='select-item']:focus {
+  color: #ffffff;
+  background-color: #365660;
 }
 button {
   cursor: pointer;
