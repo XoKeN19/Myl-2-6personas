@@ -24,3 +24,7 @@ Las pruebas usan Chromium local y emulación móvil, no teléfonos físicos ni t
 ## Transformaciones y preparación
 
 Se repitieron los cuatro recorridos añadiendo transformación desde la carta, fuerza y protecciones, apertura directa del Castillo y botones bloqueados tras repartir. Pasaron las 43 pruebas del motor, incluidas reversión al próximo turno, Oro sin habilidad y reloj total que conserva su límite al pasar turno. Una prueba adicional de navegador agotó un reloj de diez segundos y verificó que la alarma se generase una sola vez. TypeScript, compilación y revisión estática pasaron.
+
+## Orden del Castillo
+
+Debajo de cada carta consultada, Antes y Después cambian su posición. Guardar orden en el Castillo aplica el orden sin barajar y conserva los lugares de las cartas no consultadas. La posición 1 es la primera entre las cartas consultadas. Mover a… permite trasladar una carta usando el destino elegido en la ventana. Se probaron guardado y robo posterior en el motor y guardado desde escritorio y móvil.

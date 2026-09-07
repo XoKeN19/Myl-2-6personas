@@ -190,7 +190,34 @@ export default function Arena({
   const pileCards = hasInspection
     ? room.privateCards
     : pileOwner?.cards.filter((c) => c.zone === pile?.zone) || [];
-  const visible = pileCards.filter(
+  const [castleDraft, setCastleDraft] = useState<{
+    key: string;
+    ids: string[];
+  }>({ key: '', ids: [] });
+  const consultationKey = `${pile?.player}:${pile?.zone}:${room.privateCards.map((c) => c.id).join(',')}`;
+  const castleOrder =
+    castleDraft.key === consultationKey ? castleDraft.ids : [];
+  const setCastleOrder = (ids: string[]) =>
+    setCastleDraft({ key: consultationKey, ids });
+  const orderedCards = castleOrder.length
+    ? [...pileCards].sort(
+        (a, b) => castleOrder.indexOf(a.id) - castleOrder.indexOf(b.id),
+      )
+    : pileCards;
+  const canOrder =
+    hasInspection &&
+    pile?.player === room.me &&
+    pile?.zone === 'castillo' &&
+    !spectator;
+  function shiftCastle(id: string, delta: number) {
+    const ids = orderedCards.map((c) => c.id),
+      index = ids.indexOf(id),
+      target = index + delta;
+    if (target < 0 || target >= ids.length) return;
+    [ids[index], ids[target]] = [ids[target], ids[index]];
+    setCastleOrder(ids);
+  }
+  const visible = orderedCards.filter(
     (c) =>
       !c.hidden &&
       `${c.name} ${c.type} ${c.race}`
@@ -978,21 +1005,69 @@ export default function Arena({
                       >
                         {face(c, pileOwner!, false, false)}
                         {!spectator && (
-                          <button
-                            className="select-card"
-                            aria-pressed={selectedIds.includes(c.id)}
-                            onClick={() =>
-                              setChosen((old) =>
-                                old.includes(c.id)
-                                  ? old.filter((id) => id !== c.id)
-                                  : [...old, c.id],
-                              )
-                            }
-                          >
-                            {selectedIds.includes(c.id)
-                              ? '✓ Elegida'
-                              : 'Seleccionar'}
-                          </button>
+                          <>
+                            <button
+                              className="select-card"
+                              aria-pressed={selectedIds.includes(c.id)}
+                              onClick={() =>
+                                setChosen((old) =>
+                                  old.includes(c.id)
+                                    ? old.filter((id) => id !== c.id)
+                                    : [...old, c.id],
+                                )
+                              }
+                            >
+                              {selectedIds.includes(c.id)
+                                ? '✓ Elegida'
+                                : 'Seleccionar'}
+                            </button>
+                            {canOrder && (
+                              <div className="actions">
+                                <span>
+                                  Posición{' '}
+                                  {orderedCards.findIndex(
+                                    (x) => x.id === c.id,
+                                  ) + 1}
+                                </span>
+                                <button
+                                  aria-label={`Antes: ${c.name}`}
+                                  disabled={
+                                    busy ||
+                                    !!search ||
+                                    orderedCards[0]?.id === c.id
+                                  }
+                                  onClick={() => shiftCastle(c.id, -1)}
+                                >
+                                  ← Antes
+                                </button>
+                                <button
+                                  aria-label={`Después: ${c.name}`}
+                                  disabled={
+                                    busy ||
+                                    !!search ||
+                                    orderedCards.at(-1)?.id === c.id
+                                  }
+                                  onClick={() => shiftCastle(c.id, 1)}
+                                >
+                                  Después →
+                                </button>
+                              </div>
+                            )}
+                            <button
+                              className="select-card"
+                              disabled={busy}
+                              onClick={() =>
+                                void move(
+                                  c,
+                                  pile.player,
+                                  destination,
+                                  recipient || pile.player,
+                                )
+                              }
+                            >
+                              Mover a {zones[destination]}
+                            </button>
+                          </>
                         )}
                       </div>
                     ))}
@@ -1000,6 +1075,29 @@ export default function Arena({
               {!pileCards.length && <p>Esta zona está vacía.</p>}
               {!locked && !spectator && (
                 <div className="pile-footer">
+                  {canOrder && (
+                    <div>
+                      <button
+                        disabled={busy || !castleOrder.length}
+                        onClick={async () => {
+                          if (
+                            await act({
+                              type: 'orderCastle',
+                              ids: orderedCards.map((c) => c.id),
+                            })
+                          )
+                            setCastleOrder([]);
+                        }}
+                      >
+                        Guardar orden en el Castillo
+                      </button>
+                      <small>
+                        La posición 1 va primero. Conserva las cartas no
+                        consultadas en su lugar. Limpia la búsqueda para
+                        ordenar.
+                      </small>
+                    </div>
+                  )}
                   <div className="actions">
                     <button onClick={() => setChosen(visible.map((c) => c.id))}>
                       Seleccionar todas
