@@ -53,7 +53,7 @@ test('Las fases sugeridas acompañan la jugada sin bloquear ni cambiar el turno 
     sourcePlayerId: p.id,
     zone: 'ataque',
   });
-  assert.equal(r.phase, 'Guerra de Talismanes');
+  assert.equal(r.phase, 'Ataque');
   const d = q.cards[1];
   d.zone = 'mano';
   action(r, q.token, {
@@ -62,7 +62,7 @@ test('Las fases sugeridas acompañan la jugada sin bloquear ni cambiar el turno 
     sourcePlayerId: q.id,
     zone: 'defensa',
   });
-  assert.equal(r.phase, 'Guerra de Talismanes');
+  assert.equal(r.phase, 'Ataque');
 });
 import { createRoom as makeRoom, action as actRoom } from '../lib/game.mjs';
 test('Ordenar consulta conserva resto del Castillo y determina el siguiente robo', () => {
@@ -97,3 +97,4 @@ test('Ordenar consulta conserva resto del Castillo y determina el siguiente robo
     [ids[2], ids[1]],
   );
 });
+

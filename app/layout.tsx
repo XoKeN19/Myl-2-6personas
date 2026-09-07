@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './arena.css';
+import './tavern.css';
 export const metadata: Metadata = {
   title: 'Mesa Imperio — Mitos y Leyendas',
   description:

@@ -37,7 +37,8 @@ Formato compatible: una lista de cartas, o `{ "version": 1, "name": "Mi mazo", "
 - Las fases son una guía visible y cualquier jugador puede elegirlas libremente. La mesa no bloquea una jugada por la fase actual.
 - Robar y pasar turno son libres. Los jugadores resuelven costes, límites de mano, daño y agrupación manualmente.
 - Arrastra cartas a las zonas o pulsa una carta para abrir sus acciones, coste, fuerza y efecto. Arrastrar un arma sobre un aliado permite equiparla.
-- Jugar desde la mano sugiere Vigilia. Mover al ataque abre Guerra de Talismanes como atajo de la casa; pueden corregir la fase. La secuencia oficial distingue declaración de ataque, bloqueo y guerra.
+- Jugar desde la mano sugiere Vigilia. Mover un aliado a la línea de ataque marca Ataque; pueden corregir la fase. Oro pagado está arriba y Reserva debajo.
+- **♫ Música** activa una melodía original de taberna, generada en el navegador sin descargas. Su volumen se ajusta en Opciones de partida y es independiente de los efectos de sonido. Se pausa al ocultar la pestaña y se detiene al salir de la mesa.
 - Pulsa Castillo para robar primera o última, barajar, mirar, buscar y colocar cartas arriba o abajo. Las opciones de cantidades están plegadas.
 - Las manos rivales muestran reversos. Solicitar una consulta abre una ventana de aceptación al propietario; sólo el solicitante obtiene acceso. Un espectador no recibe ese contenido privado.
 - El temporizador compartido se puede iniciar, pausar y reiniciar. Llegar a cero no fuerza acciones. El sonido es opcional mediante el icono del altavoz.

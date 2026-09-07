@@ -672,8 +672,8 @@ export default function Home() {
             cualquier jugador puede elegir otra fase y terminar el turno sin que
             la mesa compruebe las condiciones. Robar permite resolver libremente
             los efectos. La agrupación se resuelve manualmente. Jugar desde la
-            mano sugiere Vigilia; mover a Ataque sugiere Guerra de Talismanes
-            como atajo de la casa. Pueden corregir la fase en cualquier momento.
+            mano sugiere Vigilia; mover un aliado a la línea de ataque marca
+            Ataque. Pueden corregir la fase en cualquier momento.
           </p>
           <p>
             Arrastra tus cartas entre cualquier zona. Comprueben entre ustedes

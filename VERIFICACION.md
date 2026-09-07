@@ -36,3 +36,7 @@ Las cartas consultadas se pueden arrastrar sobre otra posición, o mover pulsand
 ## Consulta simplificada
 
 Se sustituyeron los controles repetidos de cada carta por una barra compartida: destino, mover y cambiar posición. Las acciones adicionales están plegadas. El menú del Castillo se oculta durante la consulta y sólo la lista de cartas se desplaza; la barra permanece visible. Se comprobaron cuatro tamaños de pantalla y se inspeccionaron las capturas.
+
+## Taberna, música y distribución
+
+Se incorporó una apariencia cálida de madera y latón, música instrumental original con activación manual, pausa y volumen independiente. El audio se programa en fragmentos cortos y deja de programarse al ocultar la pestaña. La reserva aparece debajo del oro pagado; un aliado llevado al ataque marca la fase Ataque. Se verificaron inicio y pausa musical, orden de las zonas, cuatro tamaños de pantalla y las 44 pruebas del motor.

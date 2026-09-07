@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import Effects from './effects-panel';
 import { useTableMotion } from './table-motion';
+import { useTavernMusic } from './tavern-music';
 import type { Card, Player, Room } from './page';
 
 const zones: Record<string, string> = {
@@ -106,6 +107,7 @@ export default function Arena({
   onCreate: () => void;
   onInvite: (watch?: boolean) => void;
 }) {
+  const music = useTavernMusic();
   const [handWarning, setHandWarning] = useState(false);
   const me = room.players.find((p) => p.id === room.me),
     spectator = !me;
@@ -514,6 +516,13 @@ export default function Arena({
         >
           {sound ? <Volume2 size={18} /> : <VolumeX size={18} />}
         </button>
+        <button
+          onClick={music.toggle}
+          aria-pressed={music.playing}
+          title="Música de taberna"
+        >
+          {music.playing ? '♫ Pausar' : '♫ Música'}
+        </button>
         <button onClick={() => setLogOpen(true)} title="Bitácora">
           <History size={18} />
         </button>
@@ -641,8 +650,8 @@ export default function Arena({
               </div>
               <div className="arena-support">
                 {zone(p, 'apoyo')}
-                {zone(p, 'reserva')}
                 {zone(p, 'pagado')}
+                {zone(p, 'reserva')}
               </div>
               <div className="arena-piles">
                 {zone(p, 'castillo')}
@@ -1358,6 +1367,20 @@ export default function Arena({
             />{' '}
             Sonidos de la mesa
           </label>
+          <label>
+            Volumen de la taberna · {music.volume}%
+            <input
+              aria-label="Volumen de música"
+              type="range"
+              min="0"
+              max="100"
+              value={music.volume}
+              onChange={(e) => music.setVolume(Number(e.target.value))}
+            />
+          </label>
+          <button onClick={music.toggle}>
+            {music.playing ? 'Pausar música' : 'Escuchar música de taberna'}
+          </button>
           <label>
             Minutos
             <input

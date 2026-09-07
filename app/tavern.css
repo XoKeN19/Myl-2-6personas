@@ -1,0 +1,229 @@
+/* Wood grain and warm brass, rendered without image downloads. */
+:root,
+.dark {
+  --background: #21170f;
+  --foreground: #f0e4c9;
+  --popover: #35271b;
+  --border: #715638;
+  --primary: #dbb66c;
+  --accent: #4b3824;
+  --muted-foreground: #c2ae8e;
+}
+body {
+  background:
+    radial-gradient(ellipse at 50% 0, #72502c55, transparent 65%),
+    repeating-linear-gradient(
+      2deg,
+      #281c12 0px,
+      #281c12 5px,
+      #2d2015 6px,
+      #21170f 8px
+    );
+}
+.topbar {
+  background: #261b12;
+  border-bottom: 1px solid #997341;
+  box-shadow: 0 3px 15px #0006;
+}
+.brand {
+  color: #ebd6a5;
+}
+button {
+  background: #42301f;
+  border-color: #795c36;
+  color: #f0e4c9;
+}
+button:hover {
+  background: #5b4228;
+  border-color: #cba05f;
+}
+input,
+textarea,
+select,
+select option,
+select optgroup {
+  background-color: #281d14;
+  color: #f0e4c9;
+  border-color: #806440;
+}
+select option:checked,
+[data-slot='select-item'][data-highlighted] {
+  background: #70512e;
+  color: #fff7e3;
+}
+[data-slot='select-content'] {
+  background: #35271b;
+  color: #f0e4c9;
+  border-color: #806440;
+}
+.modal,
+.panel {
+  background-color: #302318;
+  border-color: #785b38;
+}
+body:has(.arena) {
+  background: #21170f;
+}
+.arena {
+  background:
+    radial-gradient(ellipse at 48% 5%, #bb803426, transparent 60%),
+    repeating-linear-gradient(
+      0deg,
+      #271c13 0,
+      #322316 3px,
+      #2c1e13 6px,
+      #271c13 9px
+    );
+}
+.arena-room > strong,
+.arena-player strong {
+  color: #f5dfb2;
+}
+.arena-room > span,
+.arena-room small,
+.arena-viewbar > span,
+.arena-status {
+  color: #d0b78b;
+}
+.arena-board {
+  background: linear-gradient(130deg, #533c25e8, #35251bee);
+  border: 1px solid #9c7546;
+  box-shadow:
+    inset 0 0 0 3px #23170e88,
+    0 5px 16px #0006;
+}
+.arena-board.self {
+  background: linear-gradient(130deg, #5a432be8, #3c2b1dee);
+  border-color: #cc9c58;
+}
+.arena-board.active-board {
+  box-shadow:
+    inset 0 2px #f1cf82,
+    0 0 14px #b8812822;
+}
+.arena-zone {
+  background: #21190fcc;
+  border-color: #8d704044;
+}
+.az-ataque {
+  background: #42231caa;
+}
+.az-defensa {
+  background: #263329bb;
+}
+.az-reserva {
+  background: #59431c66;
+}
+.az-pagado {
+  background: #352a1c99;
+}
+.arena-zone > header button {
+  color: #e2cda7;
+}
+.arena-zone > header span,
+.drop-hint {
+  color: #c3aa80;
+}
+.arena-player span,
+.tcg-foot {
+  color: #c8bda1;
+}
+.arena .pile-deck {
+  background: #38291c;
+  border-color: #967244;
+  color: #f0d6a0;
+}
+.arena .card-back,
+.card-back,
+.arena .deck-back {
+  background: repeating-linear-gradient(
+    45deg,
+    #33251a 0,
+    #33251a 5px,
+    #604527 6px,
+    #33251a 7px
+  );
+  border-color: #c29a53;
+  color: #e9c98c;
+}
+.arena .tcg-card {
+  background: linear-gradient(145deg, #4c5740, #283329);
+  border-color: #a1a47a;
+  color: #f4ead5;
+}
+.arena .tcg-Oro {
+  background: linear-gradient(140deg, #88692e, #403019);
+  border-color: #d4af64;
+}
+.arena .tcg-Arma {
+  background: linear-gradient(140deg, #62523e, #352e25);
+  border-color: #bb9d75;
+}
+.arena .tcg-Talismán {
+  background: linear-gradient(140deg, #655064, #342533);
+  border-color: #b093ab;
+}
+.arena .tcg-Tótem {
+  background: linear-gradient(140deg, #52664a, #293726);
+  border-color: #a3b287;
+}
+.arena-setup,
+.pile-footer {
+  background: #352718;
+  border-color: #8c6c3e;
+}
+.consult-banner {
+  background: #3b4930;
+  color: #f1e6c8;
+}
+.pile-more-menu {
+  background: #35271b;
+  border-color: #927348;
+}
+.arena .pass-turn {
+  background: linear-gradient(130deg, #e4c783, #b78b49);
+  color: #291d10;
+}
+.detail-face .tcg-card,
+.pile-card-grid .tcg-card {
+  background: linear-gradient(145deg, #575a40, #302b1e);
+  color: #f2e7cf;
+  border-color: #af925d;
+}
+.arena-toolbar {
+  flex-wrap: wrap;
+}
+.arena-pile-modal {
+  width: min(1000px, calc(100vw - 24px)) !important;
+}
+@media (max-width: 1100px) and (min-width: 701px) {
+  .arena-room {
+    min-width: 150px;
+  }
+  .arena-boards.players-3,
+  .arena-boards.players-4 {
+    overflow: auto;
+    grid-auto-rows: minmax(330px, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .topbar {
+    gap: 6px;
+  }
+  .arena-toolbar .arena-room {
+    flex-basis: calc(100% - 150px);
+  }
+  .hand-limit-warning {
+    flex-wrap: wrap;
+  }
+  .arena-viewbar {
+    flex-wrap: wrap;
+  }
+  .arena-board {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 65px;
+  }
+  .modal {
+    max-width: calc(100vw - 20px);
+  }
+}
+.arena .tcg-card.card-back { background:repeating-linear-gradient(45deg,#33251a 0,#33251a 5px,#604527 6px,#33251a 7px);border-color:#c29a53;color:#e9c98c; }
