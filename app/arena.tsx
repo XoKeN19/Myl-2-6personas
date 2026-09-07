@@ -209,14 +209,6 @@ export default function Arena({
     pile?.player === room.me &&
     pile?.zone === 'castillo' &&
     !spectator;
-  function shiftCastle(id: string, delta: number) {
-    const ids = orderedCards.map((c) => c.id),
-      index = ids.indexOf(id),
-      target = index + delta;
-    if (target < 0 || target >= ids.length) return;
-    [ids[index], ids[target]] = [ids[target], ids[index]];
-    setCastleOrder(ids);
-  }
   const [placingCard, setPlacingCard] = useState<string | null>(null);
   const consultationGesture = useRef<{
     id: string;
@@ -1063,7 +1055,9 @@ export default function Arena({
                           const g = consultationGesture.current;
                           consultationGesture.current = null;
                           if (!g?.moved) return;
-                          setTimeout(() => { consultationClick.current = false; }, 0);
+                          setTimeout(() => {
+                            consultationClick.current = false;
+                          }, 0);
                           e.stopPropagation();
                           setDrag(null);
                           const target = document
@@ -1111,64 +1105,19 @@ export default function Arena({
                                 ? '✓ Elegida'
                                 : 'Seleccionar'}
                             </button>
-                            {canOrder && (
-                              <div className="actions">
-                                <button
-                                  disabled={busy || !!search}
-                                  onClick={() =>
-                                    placingCard
-                                      ? void placeCastle(placingCard, c.id)
-                                      : setPlacingCard(c.id)
-                                  }
-                                >
-                                  {placingCard
-                                    ? `Colocar aquí · ${orderedCards.findIndex((x) => x.id === c.id) + 1}`
-                                    : 'Mover de lugar'}
-                                </button>
-                                <span>
-                                  Posición{' '}
-                                  {orderedCards.findIndex(
-                                    (x) => x.id === c.id,
-                                  ) + 1}
-                                </span>
-                                <button
-                                  aria-label={`Antes: ${c.name}`}
-                                  disabled={
-                                    busy ||
-                                    !!search ||
-                                    orderedCards[0]?.id === c.id
-                                  }
-                                  onClick={() => shiftCastle(c.id, -1)}
-                                >
-                                  ← Antes
-                                </button>
-                                <button
-                                  aria-label={`Después: ${c.name}`}
-                                  disabled={
-                                    busy ||
-                                    !!search ||
-                                    orderedCards.at(-1)?.id === c.id
-                                  }
-                                  onClick={() => shiftCastle(c.id, 1)}
-                                >
-                                  Después →
-                                </button>
-                              </div>
+                            {canOrder && placingCard && (
+                              <button
+                                className="select-card"
+                                disabled={busy}
+                                onClick={() =>
+                                  void placeCastle(placingCard, c.id)
+                                }
+                              >
+                                Colocar aquí ·{' '}
+                                {orderedCards.findIndex((x) => x.id === c.id) +
+                                  1}
+                              </button>
                             )}
-                            <button
-                              className="select-card"
-                              disabled={busy}
-                              onClick={() =>
-                                void move(
-                                  c,
-                                  pile.player,
-                                  destination,
-                                  recipient || pile.player,
-                                )
-                              }
-                            >
-                              Mover a {zones[destination]}
-                            </button>
                           </>
                         )}
                       </div>
@@ -1177,61 +1126,23 @@ export default function Arena({
               {!pileCards.length && <p>Esta zona está vacía.</p>}
               {!locked && !spectator && (
                 <div className="pile-footer">
-                  {canOrder && (
-                    <div>
-                      <p>
-                        Arrastra una carta sobre otra para intercambiarlas, o
-                        pulsa «Mover de lugar» y elige su posición. El cambio se
-                        guarda al colocarla.
-                      </p>
-                      {placingCard && (
-                        <button onClick={() => setPlacingCard(null)}>
-                          Cancelar movimiento
-                        </button>
-                      )}
-                      <button
-                        disabled={busy || !castleOrder.length}
-                        onClick={async () => {
-                          if (
-                            await act({
-                              type: 'orderCastle',
-                              ids: orderedCards.map((c) => c.id),
-                            })
-                          )
-                            setCastleOrder([]);
-                        }}
-                      >
-                        Guardar orden en el Castillo
-                      </button>
-                      <small>
-                        La posición 1 va primero. Conserva las cartas no
-                        consultadas en su lugar. Limpia la búsqueda para
-                        ordenar.
-                      </small>
-                    </div>
-                  )}
-                  <div className="actions">
-                    <button onClick={() => setChosen(visible.map((c) => c.id))}>
-                      Seleccionar todas
-                    </button>
-                    <button onClick={() => setChosen([])}>Limpiar</button>
-                    <span>{selectedIds.length} elegidas</span>
-                  </div>
-                  <div className="fields">
-                    <Pick
-                      label="Mesa de destino"
-                      value={recipient || pile.player}
-                      options={owners}
-                      onChange={setRecipient}
-                    />
-                    <Pick
-                      label="Zona de destino"
+                  <div className="pile-main-actions">
+                    <span>
+                      {selectedIds.length
+                        ? selectedIds.length + ' elegidas'
+                        : 'Selecciona una carta'}
+                    </span>
+                    <select
+                      aria-label="Destino de cartas"
                       value={destination}
-                      options={zones}
-                      onChange={setDestination}
-                    />
-                  </div>
-                  <div className="actions">
+                      onChange={(e) => setDestination(e.target.value)}
+                    >
+                      {Object.entries(zones).map(([id, label]) => (
+                        <option key={id} value={id}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       className="primary"
                       disabled={busy || !selectedIds.length}
@@ -1239,35 +1150,68 @@ export default function Arena({
                     >
                       Mover seleccionadas
                     </button>
-                    <button
-                      disabled={busy || !selectedIds.length}
-                      onClick={() => void batch('reveal')}
-                    >
-                      Mostrar
-                    </button>
-                    <button
-                      disabled={busy || !selectedIds.length}
-                      onClick={() => void batch('shuffle')}
-                    >
-                      Devolver y barajar
-                    </button>
-                    <button
-                      disabled={busy || !selectedIds.length}
-                      onClick={() => void batch('top')}
-                    >
-                      Poner al tope
-                    </button>
-                    <button
-                      disabled={busy || !selectedIds.length}
-                      onClick={() => void batch('bottom')}
-                    >
-                      Poner al fondo
-                    </button>
+                    {canOrder && (
+                      <button
+                        disabled={busy || selectedIds.length !== 1}
+                        onClick={() =>
+                          setPlacingCard(placingCard ? null : selectedIds[0])
+                        }
+                      >
+                        {placingCard ? 'Cancelar' : 'Cambiar posición'}
+                      </button>
+                    )}
+                    <details className="pile-more">
+                      <summary>Más acciones</summary>
+                      <div className="pile-more-menu">
+                        <button
+                          onClick={() => setChosen(visible.map((c) => c.id))}
+                        >
+                          Seleccionar todas
+                        </button>
+                        <button onClick={() => setChosen([])}>
+                          Limpiar selección
+                        </button>
+                        <label>
+                          Mesa de destino
+                          <select
+                            value={recipient || pile.player}
+                            onChange={(e) => setRecipient(e.target.value)}
+                          >
+                            {Object.entries(owners).map(([id, name]) => (
+                              <option key={id} value={id}>
+                                {name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        {(['reveal', 'shuffle', 'top', 'bottom'] as const).map(
+                          (op, i) => (
+                            <button
+                              key={op}
+                              disabled={busy || !selectedIds.length}
+                              onClick={() => void batch(op)}
+                            >
+                              {
+                                [
+                                  'Mostrar',
+                                  'Devolver y barajar',
+                                  'Poner al tope',
+                                  'Poner al fondo',
+                                ][i]
+                              }
+                            </button>
+                          ),
+                        )}
+                      </div>
+                    </details>
                   </div>
-                  <small>
-                    Tope y fondo respetan el orden de selección. Los efectos
-                    sobre cartas ajenas se solicitan a su controlador.
-                  </small>
+                  {canOrder && (
+                    <small>
+                      {placingCard
+                        ? 'Pulsa el lugar de destino.'
+                        : 'Arrastra para intercambiar posiciones. Se guarda automáticamente.'}
+                    </small>
+                  )}
                 </div>
               )}
             </>

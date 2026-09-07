@@ -876,3 +876,98 @@ body:has(.arena) .banner {
     transition: none !important;
   }
 }
+/* Consultation keeps one shared action bar visible while cards scroll. */
+.arena-pile-modal {
+  display: flex !important;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px) !important;
+  overflow: auto;
+  gap: 12px;
+}
+.arena-pile-modal:has(.pile-footer) {
+  overflow: visible;
+}
+.arena-pile-modal > :not(.pile-card-grid) {
+  flex-shrink: 0;
+}
+.arena-pile-modal .pile-card-grid {
+  min-height: 100px;
+  max-height: 45dvh;
+  flex: 1 1 260px;
+  grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+  align-content: start;
+}
+.arena-pile-modal .pile-card-grid .tcg-card {
+  height: 155px;
+  padding: 9px;
+  gap: 5px;
+}
+.arena-pile-modal .pile-card-grid .tcg-emblem {
+  min-height: 12px;
+}
+.arena-pile-modal .pile-card-grid .tcg-card > strong {
+  font-size: 15px;
+  min-height: 35px;
+}
+.arena-pile-modal .pile-footer {
+  padding: 10px;
+  gap: 6px;
+  position: relative;
+}
+.pile-main-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pile-main-actions > span {
+  font-size: 13px;
+  margin-right: auto;
+}
+.pile-main-actions select {
+  width: auto;
+  margin: 0;
+  min-height: 36px;
+  font-size: 14px;
+}
+.pile-main-actions button {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.pile-more summary {
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px;
+}
+.pile-more-menu {
+  position: absolute;
+  right: 8px;
+  bottom: calc(100% - 5px);
+  z-index: 5;
+  background: #182a31;
+  border: 1px solid #64776e;
+  padding: 10px;
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  box-shadow: 0 8px 25px #0009;
+  max-height: 45dvh;
+  overflow: auto;
+}
+.pile-more-menu select {
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .arena-pile-modal {
+    padding: 14px !important;
+    gap: 8px;
+  }
+  .arena-pile-modal .pile-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pile-main-actions > span {
+    width: 100%;
+  }
+}
+.arena-pile-modal:has(.consult-banner) .castle-menu,
+.arena-pile-modal:has(.consult-banner) .more-actions { display:none; }

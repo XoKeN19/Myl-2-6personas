@@ -32,3 +32,7 @@ Debajo de cada carta consultada, Antes y Después cambian su posición. Guardar 
 ## Intercambio directo en la consulta
 
 Las cartas consultadas se pueden arrastrar sobre otra posición, o mover pulsando Mover de lugar y luego Colocar aquí. El intercambio se guarda automáticamente. Al sacar una carta de la consulta, las restantes siguen disponibles para ordenar sin consultar cartas adicionales. Se verificó el intercambio en cuatro tamaños de mesa y se mantuvieron las 44 pruebas del motor.
+
+## Consulta simplificada
+
+Se sustituyeron los controles repetidos de cada carta por una barra compartida: destino, mover y cambiar posición. Las acciones adicionales están plegadas. El menú del Castillo se oculta durante la consulta y sólo la lista de cartas se desplaza; la barra permanece visible. Se comprobaron cuatro tamaños de pantalla y se inspeccionaron las capturas.
