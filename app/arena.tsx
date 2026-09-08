@@ -114,6 +114,7 @@ export default function Arena({
   const [requestMode, setRequestMode] = useState('all');
   const [costFilter, setCostFilter] = useState('');
   const [handWarning, setHandWarning] = useState(false);
+  const [handOpen, setHandOpen] = useState(false);
   const [enlarged, setEnlarged] = useState(false);
   const me = room.players.find((p) => p.id === room.me),
     spectator = !me;
@@ -503,7 +504,7 @@ export default function Arena({
     );
   }
   return (
-    <div ref={root} className={`arena ${drag ? 'is-dragging' : ''}`}>
+    <div ref={root} className={`arena fixed-table ${drag ? 'is-dragging' : ''}`}>
       <div className="arena-toolbar">
         <div className="arena-room">
           <span>MESA LIBRE · {room.code}</span>
@@ -664,6 +665,7 @@ export default function Arena({
                   {p.id === room.me ? 'Tú' : spectator ? 'Jugador' : 'Rival'} ·{' '}
                   {p.ready ? 'Preparado' : 'Preparando'}
                 </span>
+                {p.id !== room.me && <button onClick={() => openPile(p, 'mano')}>Mano · {p.cards.filter(c => c.zone === 'mano').length}</button>}
                 {p.id === room.active && <i>SU TURNO</i>}
               </header>
               <div className="arena-battle">
@@ -689,10 +691,17 @@ export default function Arena({
                 {zone(p, 'cementerio')}
                 {zone(p, 'destierro')}
               </div>
-              {zone(p, 'mano')}
             </article>
           ))}
       </div>
+      {me && <div className={`hand-drawer ${handOpen ? 'open' : ''} ${drag ? 'dragging-hand' : ''}`}>
+        <button className="hand-drawer-toggle" aria-expanded={handOpen} aria-controls="my-hand-tray" onClick={() => setHandOpen(!handOpen)} data-drop-zone="mano" data-drop-player={me.id}>
+          {handOpen ? '⌄ Ocultar mano' : '⌃ Mi mano'} · {me.cards.filter(c => c.zone === 'mano').length} cartas
+        </button>
+        <div id="my-hand-tray" className="hand-drawer-content" inert={!handOpen}>
+          {zone(me, 'mano')}
+        </div>
+      </div>}
       <div className="arena-status">
         <span>{room.log[0]?.message || 'Mesa preparada'}</span>
         <button disabled={spectator} onClick={onCreate}>

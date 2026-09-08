@@ -407,3 +407,32 @@ body {
 @media(max-width:700px){.arena .arena-board{min-height:850px;}}
 .arena .arena-boards{grid-auto-rows:minmax(850px,1fr);}
 @media(max-width:700px){.arena-detail .detail-face{display:block;width:140px;margin:0 auto 12px;}}
+/* Fixed play surface, with a separate hand tray. */
+body:has(.fixed-table){height:100dvh;overflow:hidden;}
+.arena.fixed-table{height:calc(100dvh - 58px);min-height:0;padding-bottom:48px;--table-card-height:clamp(68px,calc((100dvh - 360px)/2 - 42px),145px);}
+.fixed-table .arena-boards{display:grid;grid-template-columns:repeat(2,minmax(340px,1fr));grid-auto-rows:minmax(0,1fr);overflow-x:auto;overflow-y:hidden;align-items:stretch;}
+.fixed-table .arena-boards.players-1{grid-template-columns:1fr;}
+.fixed-table .arena-boards.players-3{grid-template-columns:repeat(3,minmax(340px,1fr));}
+.fixed-table .arena-boards.players-4{grid-template-columns:repeat(4,minmax(340px,1fr));}
+.fixed-table .arena-boards.players-5{grid-template-columns:repeat(5,minmax(340px,1fr));}
+.fixed-table .arena-boards.players-6{grid-template-columns:repeat(6,minmax(340px,1fr));}
+.arena.fixed-table .arena-board{height:100%;min-height:0;grid-template-rows:30px minmax(0,1fr);grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 65px;}
+.arena.fixed-table .arena-support{grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));padding-bottom:23px;}
+.fixed-table .arena-support .az-apoyo{grid-row:1/3;}
+.fixed-table .arena-support .az-pagado{grid-column:2;grid-row:1;}
+.fixed-table .arena-support .az-reserva{grid-column:2;grid-row:2;}
+.arena.fixed-table .arena-board .tcg-card{height:var(--table-card-height);width:calc(var(--table-card-height)*.685);}
+.arena.fixed-table .arena-board .arena-cards{overflow:auto;}
+.fixed-table .arena-status{flex-shrink:0;}
+.hand-drawer{position:fixed;bottom:0;left:14px;right:14px;z-index:65;pointer-events:none;}
+.hand-drawer-toggle{pointer-events:auto;display:block;margin:0 auto!important;background:#594022!important;color:#ffe4aa!important;border:1px solid #cca963!important;}
+.hand-drawer-content{pointer-events:auto;height:0;overflow:hidden;visibility:hidden;background:#241b12f5;border-radius:12px 12px 0 0;transition:height .18s ease,opacity .12s ease;}
+.hand-drawer.open .hand-drawer-content{height:225px;visibility:visible;border:1px solid #b89a60;padding:8px;}
+.arena.fixed-table .hand-drawer .az-mano{height:100%;}
+.arena.fixed-table .hand-drawer .tcg-card{width:112px;height:164px;}
+.hand-drawer.dragging-hand .hand-drawer-content{opacity:0;pointer-events:none;}
+.hand-drawer.dragging-hand{pointer-events:none;}
+.hand-drawer.dragging-hand .hand-drawer-toggle{position:fixed;bottom:0;left:40%;}
+@media(max-width:700px){.arena.fixed-table{height:calc(100dvh - 64px);min-height:0;padding:5px 5px 43px;gap:4px;}.fixed-table .arena-toolbar,.fixed-table .arena-setup,.fixed-table .arena-viewbar{flex-wrap:nowrap;overflow-x:auto;flex-shrink:0;}.fixed-table .arena-room{min-width:110px;}.arena.fixed-table .arena-board{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 46px;padding:4px;gap:4px;}.hand-drawer{left:4px;right:4px;}.fixed-table .arena-player{overflow:auto;}.fixed-table .arena-player>button{white-space:nowrap;}.fixed-table .arena-status>span{display:none;}}
+@media(prefers-reduced-motion:reduce){.hand-drawer-content{transition:none;}}
+@media(max-width:700px){body:has(.fixed-table) .topbar{height:54px;min-height:54px;flex-wrap:nowrap;overflow-x:auto;padding:5px 8px;}body:has(.fixed-table) .topbar>*{flex-shrink:0;}.arena.fixed-table{height:calc(100dvh - 54px);}.fixed-table .arena-setup>*{flex-shrink:0;white-space:nowrap;}.fixed-table .arena-setup{max-height:58px;}}
