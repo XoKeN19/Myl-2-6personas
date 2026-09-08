@@ -406,3 +406,4 @@ body {
 .arena .arena-board{min-height:850px;grid-template-rows:30px 580px 210px;}
 @media(max-width:700px){.arena .arena-board{min-height:850px;}}
 .arena .arena-boards{grid-auto-rows:minmax(850px,1fr);}
+@media(max-width:700px){.arena-detail .detail-face{display:block;width:140px;margin:0 auto 12px;}}
