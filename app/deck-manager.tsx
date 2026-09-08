@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import CardPhoto from './card-photo';
+import DeckGallery from './deck-gallery';
 import { deckStorage } from './deck-storage';
 import {
   Dialog,
@@ -78,6 +79,7 @@ export default function DeckManager({
   importRoom?: (d: Deck) => Promise<boolean>;
 }) {
   const [text, setText] = useState('[]'),
+    [personalize, setPersonalize] = useState(true),
     [editing, setEditing] = useState<number | null>(null),
     [name, setName] = useState('Mi mazo'),
     [library, setLibrary] = useState<Deck[]>([]),
@@ -141,6 +143,19 @@ export default function DeckManager({
           JSON completo. La lista nunca revela el orden del Castillo en juego.
         </DialogDescription>
         {message && <output className="deck-message">{message}</output>}
+        <div className="actions">
+          <button
+            onClick={() => document.getElementById('deck-json-import')?.click()}
+          >
+            Importar mi mazo JSON
+          </button>
+          <button
+            aria-pressed={personalize}
+            onClick={() => setPersonalize(!personalize)}
+          >
+            {personalize ? 'Ocultar vista de cartas' : 'Personalizar mazo'}
+          </button>
+        </div>
         <label>
           Nombre del mazo
           <input
@@ -217,6 +232,35 @@ export default function DeckManager({
               ))}
             </div>
           </section>
+        )}
+        {personalize && count > 0 && (
+          <DeckGallery
+            cards={current().cards}
+            onSave={async (index, card, all) => {
+              const d = current();
+              const original = d.cards[index];
+              d.cards = d.cards.map((c, i) =>
+                i === index
+                  ? card
+                  : all &&
+                      c.name === original.name &&
+                      c.type === original.type &&
+                      c.effect === original.effect
+                    ? { ...c, image: card.image }
+                    : c,
+              );
+              const saved = [
+                d,
+                ...library.filter((x) => x.name !== d.name),
+              ].slice(0, 30);
+              await deckStorage(saved);
+              setLibrary(saved);
+              fill(d);
+              setMessage(
+                `«${d.name}» guardado con sus fotos en este navegador`,
+              );
+            }}
+          />
         )}
         <label>
           Editar una carta del mazo
@@ -377,6 +421,7 @@ export default function DeckManager({
           <input
             type="file"
             accept=".json"
+            id="deck-json-import"
             onChange={async (e) => {
               const f = e.target.files?.[0];
               if (!f) return;
