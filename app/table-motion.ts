@@ -13,7 +13,7 @@ export function useTableMotion(revision: number, latestEvent: string) {
   const previous = useRef(new Map<string, DOMRect>());
   const previousEvent = useRef('');
   const audio = useRef<AudioContext | null>(null);
-  const [sound, updateSound] = useState(false);
+  const [sound, updateSound] = useState(true);
   const setSound = (enabled: boolean) => {
     updateSound(enabled);
     if (enabled) {
@@ -23,6 +23,20 @@ export function useTableMotion(revision: number, latestEvent: string) {
       } catch {}
     }
   };
+  useEffect(() => {
+    const unlock = () => {
+      if (sound) {
+        audio.current ??= new AudioContext();
+        void audio.current.resume();
+      }
+    };
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, [sound]);
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     const query = matchMedia('(prefers-reduced-motion: reduce)');

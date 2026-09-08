@@ -30,6 +30,7 @@ import {
 import Effects from './effects-panel';
 import { useTableMotion } from './table-motion';
 import { useTavernMusic } from './tavern-music';
+import { BattlePanel, BattleNotice } from './battle-panel';
 import type { Card, Player, Room } from './page';
 
 const zones: Record<string, string> = {
@@ -108,6 +109,8 @@ export default function Arena({
   onInvite: (watch?: boolean) => void;
 }) {
   const music = useTavernMusic();
+  const [battleOpen, setBattleOpen] = useState(false);
+  const [requestMode, setRequestMode] = useState('all');
   const [handWarning, setHandWarning] = useState(false);
   const me = room.players.find((p) => p.id === room.me),
     spectator = !me;
@@ -447,6 +450,18 @@ export default function Arena({
         <header>
           <button onClick={() => openPile(p, z)}>{zones[z]}</button>
           <span>{cards.length}</span>
+          {z === 'ataque' && p.id === room.me && !spectator && (
+            <button
+              className="attack-total"
+              onClick={() => setBattleOpen(true)}
+            >
+              Atacar con{' '}
+              {cards
+                .filter((c) => c.type === 'Aliado')
+                .reduce((n, c) => n + c.strength, 0)}{' '}
+              ⚔
+            </button>
+          )}
         </header>
         {stack ? (
           <button
@@ -574,13 +589,13 @@ export default function Arena({
             Repartir 8
           </button>
           <button
-            disabled={true}
+            disabled={busy || spectator || !me?.ready}
             onClick={() => void act({ type: 'mulligan' })}
           >
             Mulligan
           </button>
           <button
-            disabled={true}
+            disabled={busy || spectator || !me?.ready || me?.houseMulligan}
             onClick={() => void act({ type: 'houseMulligan' })}
           >
             Volver a 8
@@ -949,13 +964,45 @@ export default function Arena({
                   </div>
                 )}
               {locked && !spectator && pile.player !== room.me && (
-                <button
-                  className="primary"
-                  disabled={busy || pending}
-                  onClick={() => void look('all')}
-                >
-                  {pending ? 'Esperando respuesta…' : 'Pedir ver estas cartas'}
-                </button>
+                <>
+                  <div className="consult-controls">
+                    <label>
+                      Cuántas cartas
+                      <select
+                        value={requestMode}
+                        onChange={(e) => setRequestMode(e.target.value)}
+                      >
+                        <option value="all">Todas ({pileCards.length})</option>
+                        <option value="top">Sólo algunas</option>
+                      </select>
+                    </label>
+                    {requestMode === 'top' && (
+                      <label>
+                        Cantidad
+                        <input
+                          type="number"
+                          min={1}
+                          max={Math.max(1, pileCards.length)}
+                          value={amount}
+                          onChange={(e) => setAmount(Number(e.target.value))}
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <button
+                    className="primary"
+                    disabled={busy || pending}
+                    onClick={() =>
+                      void look(requestMode === 'all' ? 'all' : 'top')
+                    }
+                  >
+                    {pending
+                      ? 'Esperando respuesta…'
+                      : requestMode === 'all'
+                        ? 'Pedir ver todas (' + pileCards.length + ')'
+                        : 'Pedir ver ' + amount + ' cartas'}
+                  </button>
+                </>
               )}
               {!spectator && (
                 <details className="more-actions">
@@ -1261,6 +1308,14 @@ export default function Arena({
         </DialogContent>
       </Dialog>
 
+      <BattlePanel
+        room={room}
+        open={battleOpen}
+        onOpenChange={setBattleOpen}
+        act={act}
+        busy={busy}
+      />
+      <BattleNotice room={room} play={() => play('attack')} />
       <Dialog open={handWarning && !incoming} onOpenChange={setHandWarning}>
         <DialogContent className="modal">
           <DialogTitle>Revisa tu mano antes de terminar</DialogTitle>
@@ -1308,7 +1363,7 @@ export default function Arena({
           <p>{incoming?.reason}</p>
           <strong>
             {incoming?.kind === 'look'
-              ? `${incoming.mode === 'top' ? `Primeras ${incoming.count} cartas de ` : ''}${zones[incoming.zone || ''] || incoming.zone}`
+              ? `${incoming.mode === 'top' ? `Sólo ${incoming.count} cartas de ` : 'Todas las cartas de '}${zones[incoming.zone || ''] || incoming.zone}`
               : `${incoming?.operation} · ${incoming?.count} cartas`}
           </strong>
           <p>

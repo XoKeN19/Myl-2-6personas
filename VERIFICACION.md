@@ -40,3 +40,9 @@ Se sustituyeron los controles repetidos de cada carta por una barra compartida: 
 ## Taberna, música y distribución
 
 Se incorporó una apariencia cálida de madera y latón, música instrumental original con activación manual, pausa y volumen independiente. El audio se programa en fragmentos cortos y deja de programarse al ocultar la pestaña. La reserva aparece debajo del oro pagado; un aliado llevado al ataque marca la fase Ataque. Se verificaron inicio y pausa musical, orden de las zonas, cuatro tamaños de pantalla y las 44 pruebas del motor.
+
+## Fondos, combate y consultas · 8 de septiembre
+
+Se usan las dos imágenes entregadas como fondos de inicio y mesa. Se restauró mulligan después de repartir y Volver a ocho una vez antes de comenzar, conservando el bloqueo de importación. El nuevo panel de ataque asigna aliados a rivales, suma su fuerza para daño directo, impide repetir un aliado en el turno y envía un aviso con sonido/animación y cantidad efectiva botada. Bloqueos y prevenciones se resuelven manualmente antes de este botón.
+
+Pasaron 46 pruebas del motor y cuatro recorridos de interfaz (dos jugadores, seis jugadores y móvil), incluyendo el aviso al rival, el sonido, la consulta de sólo dos cartas y la privacidad del resto. La música utiliza un reproductor de YouTube a volumen inicial 15; la reproducción requiere disponibilidad externa y puede exigir interacción por las restricciones del navegador. Se corrigió la pausa mientras la API de YouTube todavía carga.

@@ -51,6 +51,17 @@ export type Player = {
   temporaryGold?: number;
 };
 export type Room = {
+  struck?: string[];
+  combatEvents?: {
+    id: string;
+    attacker: string;
+    attackerName: string;
+    target: string;
+    targetName: string;
+    damage: number;
+    cards: number;
+    turn: number;
+  }[];
   revision: number;
   serverTime: number;
   timer: {
@@ -663,8 +674,9 @@ export default function Home() {
           <h3>Preparación y turno</h3>
           <p>
             Mazo de 50 cartas, incluyendo el Oro inicial. Se roba una mano de 8.
-            En esta mesa la mano queda fijada al repartir: no puedes recargar el
-            mazo, hacer mulligan ni volver a ocho. Es la configuración de la casa.
+            Después de repartir puedes hacer mulligan para robar una carta
+            menos, y Volver a ocho una vez. Al comenzar se cierran estas opciones;
+            la recarga del mazo sigue bloqueada tras repartir.
           </p>
           <p>
             Agrupación → Vigilia → Batalla Mitológica (Ataque, Bloqueo, Guerra

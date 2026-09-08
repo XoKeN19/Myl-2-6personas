@@ -51,18 +51,13 @@ test('No permite editar cartas ajenas ni sesiones falsas', () => {
   assert.throws(() => view(r, 'falso'));
   assert.throws(() => exportDeck(r, 'falso'));
 });
-test('Repartir bloquea recarga y todos los mulligan', () => {
-  const [r, p] = setup();
-  action(r, p.token, { type: 'setup' });
-  for (const type of [
-    'mulligan',
-    'houseMulligan',
-    'freeMulligan',
-    'import',
-    'setup',
-  ])
-    assert.throws(() => action(r, p.token, { type }));
-  assert.equal(p.cards.filter((c) => c.zone === 'mano').length, 8);
+test('Repartir permite mulligan y volver a ocho, pero no recargar el mazo',()=>{
+ const [r,p,q]=setup();action(r,p.token,{type:'setup'});
+ assert.throws(()=>action(r,p.token,{type:'import'}));
+ action(r,p.token,{type:'mulligan'});assert.equal(p.cards.filter(c=>c.zone==='mano').length,7);
+ action(r,p.token,{type:'houseMulligan'});assert.equal(p.cards.filter(c=>c.zone==='mano').length,8);
+ assert.throws(()=>action(r,p.token,{type:'houseMulligan'}));
+ action(r,q.token,{type:'setup'});action(r,p.token,{type:'start'});assert.throws(()=>action(r,p.token,{type:'mulligan'}));
 });
 test('Robo normal conserva su guía y el turno puede cerrarse libremente', () => {
   const [r, p, q] = setup();

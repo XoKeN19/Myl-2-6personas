@@ -31,14 +31,15 @@ Formato compatible: una lista de cartas, o `{ "version": 1, "name": "Mi mazo", "
 ## Preparación y reglas
 
 - Cada jugador empieza con un Oro inicial y 49 cartas sin definir si no importa un mazo. Preparar mano reparte 8.
-- Al repartir ocho se bloquean la recarga del mazo, los mulligan y Volver a ocho. Es la configuración de la casa solicitada; los movimientos por efectos siguen siendo libres.
+- Después de repartir se permite mulligan (una carta menos) y Volver a ocho una vez, hasta comenzar la partida. Recargar el mazo permanece bloqueado.
 - **Transformar esta carta** permite elegir tipo, fuerza, efecto (vacío para quitarlo), protecciones y duración. Gema del grifo propone Aliado de fuerza 4, Indestructible e Indesterrable hasta tu próximo turno. Los jugadores comprueban las condiciones antes de aplicarlo.
 - **Opciones de partida** permite configurar minutos por turno o para toda la partida y guardar el reloj para que arranque al comenzar. El tiempo total no se reinicia al pasar turno. Los sonidos incluyen alarma, ataque, Cementerio, Destierro y barajado.
 - Las fases son una guía visible y cualquier jugador puede elegirlas libremente. La mesa no bloquea una jugada por la fase actual.
 - Robar y pasar turno son libres. Los jugadores resuelven costes, límites de mano, daño y agrupación manualmente.
 - Arrastra cartas a las zonas o pulsa una carta para abrir sus acciones, coste, fuerza y efecto. Arrastrar un arma sobre un aliado permite equiparla.
 - Jugar desde la mano sugiere Vigilia. Mover un aliado a la línea de ataque marca Ataque; pueden corregir la fase. Oro pagado está arriba y Reserva debajo.
-- **♫ Música** activa una melodía original de taberna, generada en el navegador sin descargas. Su volumen se ajusta en Opciones de partida y es independiente de los efectos de sonido. Se pausa al ocultar la pestaña y se detiene al salir de la mesa.
+- **♫ Música** controla el video de YouTube indicado, inicialmente al 15 %. Se solicita reproducción automática; si el navegador o YouTube la bloquean, pulsa Reproducir. Requiere Internet y disponibilidad del video para inserción. El reproductor permanece visible mientras reproduce y no se descarga ni extrae el audio. Los sonidos de cartas comienzan activados y se desbloquean con la primera interacción.
+- **Atacar con…**, junto al contador de Ataque, permite seleccionar aliados y asignar un rival a cada uno. Aplicar daño bota la suma de fuerza seleccionada; los bloqueos y prevenciones se resuelven manualmente antes. Cada aliado se puede resolver una vez por turno. El rival recibe aviso con sonido y animación y la cantidad real botada.
 - Pulsa Castillo para robar primera o última, barajar, mirar, buscar y colocar cartas arriba o abajo. Las opciones de cantidades están plegadas.
 - Las manos rivales muestran reversos. Solicitar una consulta abre una ventana de aceptación al propietario; sólo el solicitante obtiene acceso. Un espectador no recibe ese contenido privado.
 - El temporizador compartido se puede iniciar, pausar y reiniciar. Llegar a cero no fuerza acciones. El sonido es opcional mediante el icono del altavoz.
