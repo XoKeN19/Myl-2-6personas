@@ -31,6 +31,7 @@ import Effects from './effects-panel';
 import { useTableMotion } from './table-motion';
 import { useTavernMusic } from './tavern-music';
 import { BattlePanel, BattleNotice } from './battle-panel';
+import ResponseTools from './response-tools';
 import type { Card, Player, Room } from './page';
 
 const zones: Record<string, string> = {
@@ -111,6 +112,7 @@ export default function Arena({
   const music = useTavernMusic();
   const [battleOpen, setBattleOpen] = useState(false);
   const [requestMode, setRequestMode] = useState('all');
+  const [costFilter, setCostFilter] = useState('');
   const [handWarning, setHandWarning] = useState(false);
   const me = room.players.find((p) => p.id === room.me),
     spectator = !me;
@@ -239,6 +241,7 @@ export default function Arena({
   const visible = orderedCards.filter(
     (c) =>
       !c.hidden &&
+      (costFilter === '' || c.cost === Number(costFilter)) &&
       `${c.name} ${c.type} ${c.race}`
         .toLocaleLowerCase()
         .includes(search.toLocaleLowerCase()),
@@ -261,6 +264,7 @@ export default function Arena({
     setSelected(null);
     setChosen([]);
     setSearch('');
+    setCostFilter('');
     setRecipient(room.me || p.id);
   };
   const move = async (c: Card, p: string, z: string, to = room.me || p) => {
@@ -667,6 +671,15 @@ export default function Arena({
                 {zone(p, 'apoyo')}
                 {zone(p, 'pagado')}
                 {zone(p, 'reserva')}
+                {p.id === room.me && !spectator && (
+                  <button
+                    className="quick-gold"
+                    disabled={busy}
+                    onClick={() => void act({ type: 'groupGold' })}
+                  >
+                    ↧ Agrupar oros
+                  </button>
+                )}
               </div>
               <div className="arena-piles">
                 {zone(p, 'castillo')}
@@ -950,6 +963,12 @@ export default function Arena({
                     <button disabled={busy} onClick={() => void look('all')}>
                       Buscar carta
                     </button>
+                    <button
+                      disabled={busy}
+                      onClick={() => void act({ type: 'revealUntil' })}
+                    >
+                      Mostrar hasta Aliado
+                    </button>
                     <button disabled={busy} onClick={() => void look('top')}>
                       Mirar primeras {amount}
                     </button>
@@ -1090,6 +1109,29 @@ export default function Arena({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
+              )}
+              {!locked && (
+                <label className="cost-filter">
+                  Coste
+                  <select
+                    value={costFilter}
+                    aria-label="Filtrar por coste"
+                    onChange={(e) => setCostFilter(e.target.value)}
+                  >
+                    <option value="">Todos los costes</option>
+                    {[
+                      ...new Set(
+                        pileCards.filter((c) => !c.hidden).map((c) => c.cost),
+                      ),
+                    ]
+                      .sort((a, b) => a - b)
+                      .map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                  </select>
+                </label>
               )}
               <div className="pile-card-grid">
                 {locked
@@ -1316,6 +1358,7 @@ export default function Arena({
         busy={busy}
       />
       <BattleNotice room={room} play={() => play('attack')} />
+      <ResponseTools room={room} act={act} busy={busy} play={play} />
       <Dialog open={handWarning && !incoming} onOpenChange={setHandWarning}>
         <DialogContent className="modal">
           <DialogTitle>Revisa tu mano antes de terminar</DialogTitle>

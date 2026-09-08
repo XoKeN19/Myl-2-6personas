@@ -33,9 +33,9 @@ export function BattlePanel({
       <DialogContent className="modal battle-panel">
         <DialogTitle>Atacar con aliados</DialogTitle>
         <DialogDescription>
-          Elige quién ataca a cada rival. Se botarán cartas según la fuerza
-          seleccionada. Resuelvan bloqueos y prevenciones antes de aplicar este
-          daño directo.
+          Elige quién ataca a cada rival. El defensor puede bloquear o cancelar
+          antes de confirmar. Fuerza seleccionada. Resuelvan bloqueos y
+          prevenciones antes de aplicar este daño directo.
         </DialogDescription>
         <div className="battle-choices">
           {cards.map((c) => (
@@ -104,7 +104,7 @@ export function BattlePanel({
             }
           }}
         >
-          Aplicar daño · {selected.reduce((n, c) => n + c.strength, 0)}
+          Declarar ataque · {selected.reduce((n, c) => n + c.strength, 0)}
         </button>
       </DialogContent>
     </Dialog>

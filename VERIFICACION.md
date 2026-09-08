@@ -46,3 +46,9 @@ Se incorporó una apariencia cálida de madera y latón, música instrumental or
 Se usan las dos imágenes entregadas como fondos de inicio y mesa. Se restauró mulligan después de repartir y Volver a ocho una vez antes de comenzar, conservando el bloqueo de importación. El nuevo panel de ataque asigna aliados a rivales, suma su fuerza para daño directo, impide repetir un aliado en el turno y envía un aviso con sonido/animación y cantidad efectiva botada. Bloqueos y prevenciones se resuelven manualmente antes de este botón.
 
 Pasaron 46 pruebas del motor y cuatro recorridos de interfaz (dos jugadores, seis jugadores y móvil), incluyendo el aviso al rival, el sonido, la consulta de sólo dos cartas y la privacidad del resto. La música utiliza un reproductor de YouTube a volumen inicial 15; la reproducción requiere disponibilidad externa y puede exigir interacción por las restricciones del navegador. Se corrigió la pausa mientras la API de YouTube todavía carga.
+
+## Respuestas de combate y consulta · 8 de septiembre
+
+El ataque queda pendiente para que cada defensor elija bloqueadores, ajuste daño por atacante o cancele antes de resolver. Puede cerrar el diálogo para jugar efectos y volver con Responder. Las bajas son manuales. Se añadieron filtro por coste, revelado público hasta encontrar Aliado, agrupación de oros pagados y pantalla de derrota con sonido original.
+
+Pasaron 48 pruebas del motor. Cuatro recorridos de navegador cubrieron dos y seis jugadores, escritorio y móvil con movimiento reducido, respuesta al ataque, consultas privadas, revelado a jugadores y espectador, agrupación y derrota. Una comprobación adicional verificó la selección real de un bloqueador y el filtro por coste. Compilación, TypeScript y revisión estática pasaron. Estas comprobaciones no sustituyen pruebas en todos los dispositivos ni automatizan los textos de las cartas.

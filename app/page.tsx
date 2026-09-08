@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import DeckManager from './deck-manager';
 import Arena from './arena';
-import {useTavernMusic} from './tavern-music';
+import { useTavernMusic } from './tavern-music';
 import {
   Shield,
   Swords,
@@ -52,6 +52,22 @@ export type Player = {
   temporaryGold?: number;
 };
 export type Room = {
+  defeated?: { id: string; name: string }[];
+  revealEvent?: {
+    id: string;
+    player: string;
+    name: string;
+    cards: Card[];
+    found: boolean;
+  };
+  pendingBattles?: {
+    id: string;
+    attacker: string;
+    attackerName: string;
+    target: string;
+    turn: number;
+    rows: { cardId: string; name: string; strength: number }[];
+  }[];
   struck?: string[];
   combatEvents?: {
     id: string;
@@ -155,7 +171,7 @@ function Choice({
 }
 const options = (a: string[]) => a.map((v) => ({ value: v, label: v }));
 export default function Home() {
-  const music=useTavernMusic();
+  const music = useTavernMusic();
   const [name, setName] = useState(''),
     [code, setCode] = useState(''),
     [capacity, setCapacity] = useState('2'),
@@ -392,7 +408,11 @@ export default function Home() {
   return (
     <>
       <header className="topbar">
-        {!room && <button title={music.status} onClick={music.toggle}>{music.playing ? "♫ Pausar música" : "♫ Reproducir música"}</button>}
+        {!room && (
+          <button title={music.status} onClick={music.toggle}>
+            {music.playing ? '♫ Pausar música' : '♫ Reproducir música'}
+          </button>
+        )}
         <div className="brand">
           <Shield size={26} />
           <span>
@@ -678,8 +698,8 @@ export default function Home() {
           <p>
             Mazo de 50 cartas, incluyendo el Oro inicial. Se roba una mano de 8.
             Después de repartir puedes hacer mulligan para robar una carta
-            menos, y Volver a ocho una vez. Al comenzar se cierran estas opciones;
-            la recarga del mazo sigue bloqueada tras repartir.
+            menos, y Volver a ocho una vez. Al comenzar se cierran estas
+            opciones; la recarga del mazo sigue bloqueada tras repartir.
           </p>
           <p>
             Agrupación → Vigilia → Batalla Mitológica (Ataque, Bloqueo, Guerra

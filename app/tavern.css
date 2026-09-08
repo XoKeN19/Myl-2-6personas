@@ -380,3 +380,13 @@ body {
 }
 .background-music-frame { position:fixed;left:-10000px;top:0;width:320px;height:200px;overflow:hidden;pointer-events:none; }
 .background-music-frame iframe { width:320px;height:200px; }
+.arena-support {position:relative;padding-bottom:24px;}.quick-gold{position:absolute;bottom:0;right:0;font-size:11px!important;padding:2px 7px!important;}
+.pending-response {position:fixed;top:60px;right:16px;z-index:100;background:#824329;color:#ffe5b4;}
+.waiting-battle {position:fixed;bottom:10px;left:15px;z-index:40;background:#352519;padding:7px;border:1px solid #b69158;border-radius:6px;font-size:13px;}
+.defend-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-bottom:1px solid #795b36;padding:8px;}.defend-row>strong{grid-column:1/-1;}.defend-row label{margin:0;}.defend-row select{width:100%;}
+.revealed-display{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;max-height:55vh;overflow:auto;}.revealed-display article{display:grid;gap:6px;background:#453522;border:1px solid #b0955b;padding:12px;border-radius:8px;}.revealed-display p{font-size:12px;margin:0;}
+.cost-filter{display:flex;align-items:center;gap:8px;margin:0;}.cost-filter select{width:auto;}
+.game-over{position:fixed;inset:0;z-index:300;background:radial-gradient(ellipse,#6b292be6,#080b13f5);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#e7c69a;text-align:center;animation:defeat-arrive .8s ease-out;}.game-over h1{font-size:clamp(42px,9vw,110px);letter-spacing:8px;text-shadow:0 0 35px #a73121;margin:12px;}.game-over small{letter-spacing:5px;}
+@keyframes defeat-arrive{from{opacity:0;transform:scale(1.06);}to{opacity:1;transform:scale(1);}}
+@media(prefers-reduced-motion:reduce){.game-over{animation:none;}}
+.waiting-battles{position:fixed;bottom:10px;left:15px;z-index:40;display:flex;flex-direction:column;gap:5px;max-width:calc(100vw - 30px);max-height:25vh;overflow:auto;}.waiting-battles:empty{display:none;}.waiting-battles .waiting-battle{position:static;}

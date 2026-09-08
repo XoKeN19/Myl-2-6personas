@@ -61,6 +61,7 @@ export function useTableMotion(revision: number, latestEvent: string) {
         | 'turn'
         | 'request'
         | 'alarm'
+        | 'defeat'
         | 'grave'
         | 'banish'
         | 'attack',
@@ -71,25 +72,33 @@ export function useTableMotion(revision: number, latestEvent: string) {
         const ctx = audio.current;
         void ctx.resume();
         const notes =
-          kind === 'alarm'
-            ? [880, 660, 880, 660, 880]
-            : kind === 'grave'
-              ? [220, 140]
-              : kind === 'banish'
-                ? [440, 880, 1100]
-                : kind === 'attack'
-                  ? [180, 360, 240]
-                  : kind === 'shuffle'
-                    ? [180, 220, 170, 250]
-                    : kind === 'turn'
-                      ? [392, 523, 659]
-                      : kind === 'request'
-                        ? [523, 784]
-                        : [kind === 'pick' ? 330 : kind === 'draw' ? 620 : 220];
+          kind === 'defeat'
+            ? [196, 146.83, 110, 73.42]
+            : kind === 'alarm'
+              ? [880, 660, 880, 660, 880]
+              : kind === 'grave'
+                ? [220, 140]
+                : kind === 'banish'
+                  ? [440, 880, 1100]
+                  : kind === 'attack'
+                    ? [180, 360, 240]
+                    : kind === 'shuffle'
+                      ? [180, 220, 170, 250]
+                      : kind === 'turn'
+                        ? [392, 523, 659]
+                        : kind === 'request'
+                          ? [523, 784]
+                          : [
+                              kind === 'pick'
+                                ? 330
+                                : kind === 'draw'
+                                  ? 620
+                                  : 220,
+                            ];
         notes.forEach((frequency, i) => {
           const oscillator = ctx.createOscillator(),
             gain = ctx.createGain();
-          const t = ctx.currentTime + i * 0.065;
+          const t = ctx.currentTime + i * (kind === 'defeat' ? 0.25 : 0.065);
           oscillator.type = 'sine';
           oscillator.frequency.setValueAtTime(frequency, t);
           oscillator.frequency.exponentialRampToValueAtTime(
@@ -98,11 +107,14 @@ export function useTableMotion(revision: number, latestEvent: string) {
           );
           gain.gain.setValueAtTime(0.0001, t);
           gain.gain.exponentialRampToValueAtTime(0.045, t + 0.008);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+          gain.gain.exponentialRampToValueAtTime(
+            0.0001,
+            t + (kind === 'defeat' ? 0.9 : 0.16),
+          );
           oscillator.connect(gain);
           gain.connect(ctx.destination);
           oscillator.start(t);
-          oscillator.stop(t + 0.18);
+          oscillator.stop(t + (kind === 'defeat' ? 0.95 : 0.18));
         });
       } catch {
         /* Audio is optional on browsers without Web Audio. */
