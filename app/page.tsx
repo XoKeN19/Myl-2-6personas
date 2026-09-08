@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import DeckManager from './deck-manager';
 import Arena from './arena';
+import {useTavernMusic} from './tavern-music';
 import {
   Shield,
   Swords,
@@ -154,6 +155,7 @@ function Choice({
 }
 const options = (a: string[]) => a.map((v) => ({ value: v, label: v }));
 export default function Home() {
+  const music=useTavernMusic();
   const [name, setName] = useState(''),
     [code, setCode] = useState(''),
     [capacity, setCapacity] = useState('2'),
@@ -390,6 +392,7 @@ export default function Home() {
   return (
     <>
       <header className="topbar">
+        {!room && <button title={music.status} onClick={music.toggle}>{music.playing ? "♫ Pausar música" : "♫ Reproducir música"}</button>}
         <div className="brand">
           <Shield size={26} />
           <span>

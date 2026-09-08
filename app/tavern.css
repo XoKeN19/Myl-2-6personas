@@ -378,3 +378,5 @@ body {
     flex-wrap: wrap;
   }
 }
+.background-music-frame { position:fixed;left:-10000px;top:0;width:320px;height:200px;overflow:hidden;pointer-events:none; }
+.background-music-frame iframe { width:320px;height:200px; }

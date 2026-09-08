@@ -24,6 +24,7 @@ declare global {
   }
 }
 const MusicContext = createContext({
+  status: "",
   playing: true,
   volume: 15,
   setVolume: (_n: number) => {},
@@ -120,50 +121,15 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     <MusicContext.Provider
       value={{
         playing,
+        status,
         volume,
         setVolume,
         toggle: () => setPlaying((v) => !v),
       }}
     >
       {children}
-      <aside
-        className={'youtube-music ' + (!playing ? 'music-paused' : '')}
-        aria-label="Música de YouTube"
-      >
-        <div className="music-controls">
-          <button
-            onClick={() => {
-              if (playing) setPlaying(false);
-              else {
-                setPlaying(true);
-                player.current?.playVideo?.();
-              }
-            }}
-          >
-            {playing ? 'Pausar música' : 'Reproducir música'}
-          </button>
-          <label>
-            Volumen {volume}%
-            <input
-              aria-label="Volumen de YouTube"
-              type="range"
-              min="0"
-              max="100"
-              value={volume}
-              onChange={(e) => setVolume(Number(e.target.value))}
-            />
-          </label>
-        </div>
-        <div className="youtube-frame" ref={host} />
-        <small>{status}</small>
-        <a
-          href="https://www.youtube.com/watch?v=vyg5jJrZ42s"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Abrir en YouTube
-        </a>
-      </aside>
+      <div className="background-music-frame" ref={host} aria-hidden="true" />
+
     </MusicContext.Provider>
   );
 }
