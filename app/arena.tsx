@@ -114,6 +114,7 @@ export default function Arena({
   const [requestMode, setRequestMode] = useState('all');
   const [costFilter, setCostFilter] = useState('');
   const [handWarning, setHandWarning] = useState(false);
+  const [enlarged, setEnlarged] = useState(false);
   const me = room.players.find((p) => p.id === room.me),
     spectator = !me;
   const [selected, setSelected] = useState<{
@@ -720,7 +721,14 @@ export default function Arena({
       >
         <DialogContent className="modal arena-detail">
           <DialogTitle>{card?.name || 'Carta'}</DialogTitle>
-          {card?.image && <details className="scan-reader"><summary>Ampliar foto y leer habilidades</summary><img src={card.image} alt={card.name}/></details>}
+          <Dialog open={enlarged && !!card?.image} onOpenChange={setEnlarged}>
+            <DialogContent className="modal enlarged-card-modal">
+              <DialogTitle>{card?.name}</DialogTitle>
+              <DialogDescription>Imagen ampliada para leer las habilidades.</DialogDescription>
+              <img src={card?.image} alt={card?.name} />
+              <button onClick={() => setEnlarged(false)}>Volver a la carta</button>
+            </DialogContent>
+          </Dialog>
           <DialogDescription>
             {owner?.name} · {card?.type} · Coste {card?.cost}{' '}
             {card?.race && `· ${card.race}`}
@@ -729,7 +737,7 @@ export default function Arena({
             <>
               <div className="detail-body">
                 <div className="detail-face">
-                  {face(card, owner, false, false)}
+                  {card.image ? <button className="detail-photo-button" aria-label="Ampliar imagen de la carta" onClick={() => setEnlarged(true)}><img src={card.image} alt={card.name}/><span>Pulsa para ampliar</span></button> : face(card, owner, false, false)}
                 </div>
                 <div>
                   <p className="full-effect">
