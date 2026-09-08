@@ -62,6 +62,7 @@ export function useTableMotion(revision: number, latestEvent: string) {
         | 'request'
         | 'alarm'
         | 'defeat'
+        | 'victory'
         | 'grave'
         | 'banish'
         | 'attack',
@@ -72,7 +73,7 @@ export function useTableMotion(revision: number, latestEvent: string) {
         const ctx = audio.current;
         void ctx.resume();
         const notes =
-          kind === 'defeat'
+          kind === 'victory' ? [392, 523.25, 659.25, 783.99, 1046.5] : kind === 'defeat'
             ? [196, 146.83, 110, 73.42]
             : kind === 'alarm'
               ? [880, 660, 880, 660, 880]
@@ -98,23 +99,24 @@ export function useTableMotion(revision: number, latestEvent: string) {
         notes.forEach((frequency, i) => {
           const oscillator = ctx.createOscillator(),
             gain = ctx.createGain();
-          const t = ctx.currentTime + i * (kind === 'defeat' ? 0.25 : 0.065);
+          const finale = kind === 'defeat' || kind === 'victory';
+          const t = ctx.currentTime + i * (finale ? 0.25 : 0.065);
           oscillator.type = 'sine';
           oscillator.frequency.setValueAtTime(frequency, t);
           oscillator.frequency.exponentialRampToValueAtTime(
-            frequency * 0.6,
+            frequency * (kind === 'victory' ? 1 : 0.6),
             t + 0.1,
           );
           gain.gain.setValueAtTime(0.0001, t);
           gain.gain.exponentialRampToValueAtTime(0.045, t + 0.008);
           gain.gain.exponentialRampToValueAtTime(
             0.0001,
-            t + (kind === 'defeat' ? 0.9 : 0.16),
+            t + (finale ? 0.9 : 0.16),
           );
           oscillator.connect(gain);
           gain.connect(ctx.destination);
           oscillator.start(t);
-          oscillator.stop(t + (kind === 'defeat' ? 0.95 : 0.18));
+          oscillator.stop(t + (finale ? 0.95 : 0.18));
         });
       } catch {
         /* Audio is optional on browsers without Web Audio. */
