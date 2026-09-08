@@ -1,5 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
+import CardPhoto from './card-photo';
+import { deckStorage } from './deck-storage';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +16,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 type Entry = {
+  image?: string;
   name: string;
   type: string;
   effect: string;
@@ -75,6 +78,7 @@ export default function DeckManager({
   importRoom?: (d: Deck) => Promise<boolean>;
 }) {
   const [text, setText] = useState('[]'),
+    [editing, setEditing] = useState<number | null>(null),
     [name, setName] = useState('Mi mazo'),
     [library, setLibrary] = useState<Deck[]>([]),
     [draft, setDraft] = useState(empty),
@@ -82,9 +86,11 @@ export default function DeckManager({
     [message, setMessage] = useState('');
   useEffect(() => {
     if (open)
-      queueMicrotask(() => {
+      queueMicrotask(async () => {
         try {
-          const saved = JSON.parse(localStorage.getItem(key) || '[]');
+          const saved =
+            (await deckStorage()) ??
+            JSON.parse(localStorage.getItem(key) || '[]');
           setLibrary(Array.isArray(saved) ? saved : []);
         } catch {
           setMessage(
@@ -104,6 +110,7 @@ export default function DeckManager({
     }
   }
   function fill(d: Deck) {
+    setEditing(null);
     setName(d.name);
     setText(JSON.stringify(d.cards, null, 2));
     setMessage(`${d.cards.length} cartas cargadas`);
@@ -164,18 +171,20 @@ export default function DeckManager({
             </button>
           )}
           <button
-            onClick={() =>
-              run(() => {
+            onClick={async () => {
+              try {
                 const d = current();
                 const saved = [
                   d,
                   ...library.filter((x) => x.name !== d.name),
                 ].slice(0, 30);
-                localStorage.setItem(key, JSON.stringify(saved));
+                await deckStorage(saved);
                 setLibrary(saved);
                 setMessage(`«${d.name}» guardado en este navegador`);
-              })
-            }
+              } catch (e) {
+                setMessage((e as Error).message);
+              }
+            }}
           >
             Guardar en mis mazos
           </button>
@@ -209,8 +218,43 @@ export default function DeckManager({
             </div>
           </section>
         )}
-        <details>
-          <summary>Añadir cartas al mazo</summary>
+        <label>
+          Editar una carta del mazo
+          <select
+            aria-label="Editar carta del mazo"
+            value={editing ?? ''}
+            onChange={(e) =>
+              run(() => {
+                const index = e.target.value;
+                setEditing(index === '' ? null : Number(index));
+                setDraft(index === '' ? empty : current().cards[Number(index)]);
+              })
+            }
+          >
+            <option value="">Añadir una carta nueva</option>
+            {(() => {
+              try {
+                return current().cards.map((c, i) => (
+                  <option key={i} value={i}>
+                    {i + 1}. {c.name}
+                  </option>
+                ));
+              } catch {
+                return null;
+              }
+            })()}
+          </select>
+        </label>
+        <details open={editing !== null || undefined}>
+          <summary>
+            {editing !== null
+              ? 'Editar carta seleccionada'
+              : 'Añadir cartas al mazo'}
+          </summary>
+          <CardPhoto
+            value={draft.image}
+            onChange={(image) => setDraft({ ...draft, image })}
+          />
           <label>
             Nombre
             <input
@@ -303,6 +347,15 @@ export default function DeckManager({
                 )
                   throw Error('Usa de 1 a 50 copias');
                 const d = current();
+                if (editing !== null) {
+                  d.cards[editing] = { ...draft };
+                  fill(d);
+                  setMessage(
+                    'Carta actualizada. Guarda el mazo para conservarla.',
+                  );
+                  setDraft(empty);
+                  return;
+                }
                 fill({
                   ...d,
                   cards: [
@@ -314,7 +367,9 @@ export default function DeckManager({
               })
             }
           >
-            Añadir al mazo
+            {editing !== null
+              ? 'Guardar cambios de la carta'
+              : 'Añadir al mazo'}
           </button>
         </details>
         <label>
@@ -325,7 +380,7 @@ export default function DeckManager({
             onChange={async (e) => {
               const f = e.target.files?.[0];
               if (!f) return;
-              if (f.size > 450000) {
+              if (f.size > 20000000) {
                 setMessage('El archivo supera el tamaño permitido');
                 return;
               }

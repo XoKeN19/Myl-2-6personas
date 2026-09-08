@@ -149,3 +149,7 @@ La vista se actualiza aproximadamente cada segundo. Muestra zonas públicas, car
 Para pedirle a ChatGPT un archivo de mazo, usa [el formato de dictado](docs/formato-mazos.md).
 
 El estado No puede jugarse sirve para restricciones como Chakram. Para efectos hasta tu próximo turno, el selector permite elegir el jugador cuyo siguiente turno termina la duración, incluso si la carta afectada pertenece al rival.
+
+## Fotos de cartas
+
+Mis mazos permite seleccionar una carta existente, editarla y subir una foto o tomarla desde un dispositivo compatible. El encuadre incluye giro y recorte manual; no realiza OCR ni corrección automática de perspectiva. Guarda los cambios de la carta y después el mazo. Las fotos comprimidas viajan dentro del JSON exportado. La biblioteca utiliza IndexedDB para alojar fotos y recupera los mazos locales anteriores. Al abrir una carta en juego, Ampliar foto permite leer la imagen completa. Las cartas ocultas utilizan el reverso facilitado por el usuario y nunca envían su foto al rival.

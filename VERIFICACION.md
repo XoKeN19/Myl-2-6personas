@@ -52,3 +52,7 @@ Pasaron 46 pruebas del motor y cuatro recorridos de interfaz (dos jugadores, sei
 El ataque queda pendiente para que cada defensor elija bloqueadores, ajuste daño por atacante o cancele antes de resolver. Puede cerrar el diálogo para jugar efectos y volver con Responder. Las bajas son manuales. Se añadieron filtro por coste, revelado público hasta encontrar Aliado, agrupación de oros pagados y pantalla de derrota con sonido original.
 
 Pasaron 48 pruebas del motor. Cuatro recorridos de navegador cubrieron dos y seis jugadores, escritorio y móvil con movimiento reducido, respuesta al ataque, consultas privadas, revelado a jugadores y espectador, agrupación y derrota. Una comprobación adicional verificó la selección real de un bloqueador y el filtro por coste. Compilación, TypeScript y revisión estática pasaron. Estas comprobaciones no sustituyen pruebas en todos los dispositivos ni automatizan los textos de las cartas.
+
+## Fotos y reverso
+
+Probado en navegador: subir foto, girar, recortar, editar una carta, guardar biblioteca y recuperar su imagen tras recargar. Prueba del motor para preservar imagen al editar texto y ocultarla al rival. Compilación y TypeScript correctos. El recorte es manual y no transcribe habilidades. La captura por cámara depende del dispositivo.

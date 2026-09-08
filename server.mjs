@@ -95,7 +95,7 @@ const server = http.createServer(async (req, res) => {
       req.setEncoding('utf8');
       for await (const chunk of req) {
         text += chunk;
-        if (text.length > 500000) {
+        if (text.length > 20000000) {
           send(413, { error: 'Archivo demasiado grande' });
           return;
         }

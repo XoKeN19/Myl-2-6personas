@@ -27,6 +27,7 @@ import {
   LogOut,
 } from 'lucide-react';
 export type Card = {
+  image?: string;
   id: string;
   name: string;
   type: string;

@@ -407,6 +407,8 @@ export default function Arena({
             <span>IMPERIO</span>
             <i>MITOS · LEYENDAS</i>
           </>
+        ) : c.image ? (
+          <><img className="card-scan" src={c.image} alt={c.name} draggable={false}/><span className="scan-stats">{c.cost} ◈ {c.type === 'Aliado' ? `· ${c.strength} ⚔` : ''}</span></>
         ) : (
           <>
             <div className="tcg-heading">
@@ -718,6 +720,7 @@ export default function Arena({
       >
         <DialogContent className="modal arena-detail">
           <DialogTitle>{card?.name || 'Carta'}</DialogTitle>
+          {card?.image && <details className="scan-reader"><summary>Ampliar foto y leer habilidades</summary><img src={card.image} alt={card.name}/></details>}
           <DialogDescription>
             {owner?.name} · {card?.type} · Coste {card?.cost}{' '}
             {card?.race && `· ${card.race}`}
