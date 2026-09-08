@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import CardPhoto from './card-photo';
+import { useState, useEffect, useRef } from 'react';
+import CardPhoto, { type CardPhotoHandle } from './card-photo';
 import DeckGallery from './deck-gallery';
 import { deckStorage } from './deck-storage';
 import {
@@ -86,6 +86,7 @@ export default function DeckManager({
     [draft, setDraft] = useState(empty),
     [quantity, setQuantity] = useState(1),
     [message, setMessage] = useState('');
+  const photo = useRef<CardPhotoHandle>(null);
   useEffect(() => {
     if (open)
       queueMicrotask(async () => {
@@ -296,6 +297,7 @@ export default function DeckManager({
               : 'Añadir cartas al mazo'}
           </summary>
           <CardPhoto
+            ref={photo}
             value={draft.image}
             onChange={(image) => setDraft({ ...draft, image })}
           />
@@ -382,8 +384,12 @@ export default function DeckManager({
           </label>
           <button
             disabled={!draft.name.trim()}
-            onClick={() =>
-              run(() => {
+            onClick={async () => {
+              try {
+                const updated = {
+                  ...draft,
+                  image: await photo.current?.prepare(),
+                };
                 if (
                   !Number.isInteger(quantity) ||
                   quantity < 1 ||
@@ -392,7 +398,7 @@ export default function DeckManager({
                   throw Error('Usa de 1 a 50 copias');
                 const d = current();
                 if (editing !== null) {
-                  d.cards[editing] = { ...draft };
+                  d.cards[editing] = updated;
                   fill(d);
                   setMessage(
                     'Carta actualizada. Guarda el mazo para conservarla.',
@@ -404,12 +410,14 @@ export default function DeckManager({
                   ...d,
                   cards: [
                     ...d.cards,
-                    ...Array.from({ length: quantity }, () => ({ ...draft })),
+                    ...Array.from({ length: quantity }, () => ({ ...updated })),
                   ],
                 });
                 setDraft(empty);
-              })
-            }
+              } catch (e) {
+                setMessage((e as Error).message);
+              }
+            }}
           >
             {editing !== null
               ? 'Guardar cambios de la carta'

@@ -1,12 +1,15 @@
 'use client';
 /* eslint-disable @next/next/no-img-element -- Local compressed data URLs do not use a remote image optimizer. */
-import { useState } from 'react';
+import { useState, useImperativeHandle, type Ref } from 'react';
+export type CardPhotoHandle = { prepare: () => Promise<string | undefined> };
 export default function CardPhoto({
   value,
   onChange,
+  ref,
 }: {
   value?: string;
   onChange: (v: string) => void;
+  ref?: Ref<CardPhotoHandle>;
 }) {
   const [source, setSource] = useState(''),
     [zoom, setZoom] = useState(1),
@@ -63,10 +66,15 @@ export default function CardPhoto({
       onChange(photo);
       setSource('');
       setError('');
+      return photo;
     } catch (e) {
       setError((e as Error).message);
+      throw e;
     }
   }
+  useImperativeHandle(ref, () => ({
+    prepare: async () => (source ? save() : value),
+  }));
   return (
     <section className="photo-editor">
       <strong>Foto de la carta</strong>
@@ -154,7 +162,9 @@ export default function CardPhoto({
             >
               Girar
             </button>
-            <button onClick={() => void save()}>Usar foto recortada</button>
+            <button onClick={() => void save().catch(() => {})}>
+              Usar foto recortada
+            </button>
             <button onClick={() => setSource('')}>Cancelar foto</button>
           </div>
         </>

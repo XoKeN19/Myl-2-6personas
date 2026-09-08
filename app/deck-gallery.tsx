@@ -1,13 +1,13 @@
 'use client';
 /* eslint-disable @next/next/no-img-element -- Photos are locally compressed data URLs. */
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import CardPhoto from './card-photo';
+import CardPhoto, { type CardPhotoHandle } from './card-photo';
 type Card = {
   name: string;
   type: string;
@@ -24,6 +24,7 @@ export default function DeckGallery({
   cards: Card[];
   onSave: (index: number, card: Card, all: boolean) => Promise<void>;
 }) {
+  const photo = useRef<CardPhotoHandle>(null);
   const [index, setIndex] = useState<number | null>(null),
     [draft, setDraft] = useState<Card | null>(null),
     [all, setAll] = useState(true),
@@ -85,6 +86,7 @@ export default function DeckGallery({
           {draft && (
             <>
               <CardPhoto
+                ref={photo}
                 key={index}
                 value={draft.image}
                 onChange={(image) => setDraft({ ...draft, image })}
@@ -105,7 +107,8 @@ export default function DeckGallery({
                 onClick={async () => {
                   setBusy(true);
                   try {
-                    await onSave(index!, draft, all);
+                    const image = await photo.current?.prepare();
+                    await onSave(index!, { ...draft, image }, all);
                     setIndex(null);
                   } catch (e) {
                     setError((e as Error).message);
