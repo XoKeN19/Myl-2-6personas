@@ -13,9 +13,9 @@ export default function InitiativeBanner({ room }: { room: Room }) {
   if (!event || now > event.endsAt) return null;
   const round = Math.min(
       event.rounds.length - 1,
-      Math.max(0, Math.floor((now - event.startedAt) / 3200)),
+      Math.max(0, Math.floor((now - event.startedAt) / 4400)),
     ),
-    settled = now - event.startedAt - round * 3200 >= 2500,
+    settled = now - event.startedAt - round * 4400 >= 3400,
     done = settled && round === event.rounds.length - 1;
   return (
     <div className="initiative-overlay" aria-live="polite">

@@ -169,28 +169,32 @@ export function initiativeDice(scene: Scene, shadows: ShadowGenerator) {
         return false;
       }
       const elapsed = Math.max(0, now - event.startedAt),
-        round = Math.min(event.rounds.length - 1, Math.floor(elapsed / 3200)),
+        round = Math.min(event.rounds.length - 1, Math.floor(elapsed / 4400)),
         nextKey = event.id + ':' + round;
       if (key !== nextKey) {
         key = nextKey;
         build(event.rounds[round]);
       }
-      const t = reduced ? 1 : Math.min(1, (elapsed - round * 3200) / 2500);
+      // Un solo arco y un giro continuo: el anterior usaba tres rebotes y por
+      // eso daba la sensación de que el dado repetía el mismo movimiento.
+      const t = reduced ? 1 : Math.min(1, (elapsed - round * 4400) / 3400);
       for (const d of dice) {
         d.body.position.set(
           d.x - 3 * (1 - t),
           d.height +
             3 * (1 - t) +
-            Math.abs(Math.sin(t * Math.PI * 3)) * 3 * (1 - t),
+            Math.sin(t * Math.PI) * 2.4 * (1 - t),
           -4 * (1 - t),
         );
         const spin = Quaternion.FromEulerAngles(
-          Math.min(t, 0.8) * 22,
-          Math.min(t, 0.8) * 15,
-          Math.min(t, 0.8) * 19,
+          Math.min(t, 0.84) * 15.7,
+          Math.min(t, 0.84) * 12.6,
+          Math.min(t, 0.84) * 18.8,
         );
         d.body.rotationQuaternion =
-          t < 0.8 ? spin : Quaternion.Slerp(spin, d.settle, (t - 0.8) / 0.2);
+          t < 0.84
+            ? spin
+            : Quaternion.Slerp(spin, d.settle, (t - 0.84) / 0.16);
         if (
           d.player === event.winner &&
           t === 1 &&

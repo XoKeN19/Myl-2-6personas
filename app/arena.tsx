@@ -58,6 +58,8 @@ const phases = [
   'Asignación de daño',
   'Final',
 ];
+const phaseLabel = (phase: string) =>
+  phase === 'Asignación de daño' || phase === 'Final' ? 'Daño / Final' : phase;
 type Act = (a: Record<string, unknown>) => Promise<Room | undefined>;
 function Pick({
   label,
@@ -560,7 +562,7 @@ export default function Arena({
           {hudPanel && <button aria-label="Cerrar panel" onClick={()=>setHudPanel(null)}>×</button>}
         </nav>
         <div className="table-room-badge">MESA IMPERIO <span>{room.code}</span></div>
-        <div className="table-turn-hud"><button onClick={()=>setHudPanel(hudPanel==='turn'?null:'turn')}><small>{room.players.find(p=>p.id===room.active)?.name} · Turno {room.turn}</small><strong>{room.phase}</strong><span>{clock}</span></button><button disabled={busy||spectator||room.active!==room.me} onClick={()=>{if((me?.cards.filter(c=>c.zone==='mano').length||0)>8)setHandWarning(true);else void act({type:'next'});}}>Pasar turno ›</button></div>
+        <div className="table-turn-hud"><button onClick={()=>setHudPanel(hudPanel==='turn'?null:'turn')}><small>{room.players.find(p=>p.id===room.active)?.name} · Turno {room.turn}</small><strong>{phaseLabel(room.phase)}</strong><span>{clock}</span></button><button disabled={busy||spectator||room.active!==room.me} onClick={()=>{if((me?.cards.filter(c=>c.zone==='mano').length||0)>8)setHandWarning(true);else void act({type:'next'});}}>Pasar turno ›</button></div>
       </>}
       <div className="arena-toolbar">
         <div className="arena-room">
@@ -576,7 +578,7 @@ export default function Arena({
           options={Object.fromEntries(
             phases.map((p) => [
               p,
-              p === 'Vigilia' ? 'Vigilia · preparar mesa' : p,
+              p === 'Vigilia' ? 'Vigilia · preparar mesa' : phaseLabel(p),
             ]),
           )}
           onChange={(phase) => void act({ type: 'phase', phase })}
@@ -641,6 +643,21 @@ export default function Arena({
       {!room.started && (
         <div className="arena-setup">
           <span>Preparación de la partida</span>
+          <div className="setup-readiness" aria-live="polite">
+            <strong>Esperando a que los jugadores armen sus mazos</strong>
+            {room.players.map((player) => (
+              <span
+                key={player.id}
+                className={player.ready || player.deckLoaded ? 'ready' : ''}
+              >
+                {player.name}: {player.ready || player.deckLoaded ? 'mazo listo' : 'preparando mazo'}
+              </span>
+            ))}
+            {room.players.length < room.capacity && (
+              <span>Faltan {room.capacity - room.players.length} jugador(es) por entrar.</span>
+            )}
+            {!spectator && !me?.ready && <button onClick={onDeck}>Ir a Mis mazos</button>}
+          </div>
           <button disabled={spectator || me?.ready} onClick={onDeck}>
             Cargar mazo
           </button>

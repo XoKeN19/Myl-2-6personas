@@ -14,7 +14,7 @@ test('d20: el mayor gana y sólo los empatados repiten', () => {
     { player: 'b', value: 2 },
     { player: 'c', value: 15 },
   ]);
-  assert.equal(result.endsAt, 9700);
+  assert.equal(result.endsAt, 12100);
 });
 test('Iniciativa del servidor: anfitrión, mazos, mano inicial, bloqueo y resultado compartido', () => {
   const room = createRoom('A', 2),
@@ -25,6 +25,7 @@ test('Iniciativa del servidor: anfitrión, mazos, mano inicial, bloqueo y result
   a.deckLoaded = b.deckLoaded = true;
   assert.throws(() => action(room, b.token, { type: 'start' }));
   action(room, a.token, { type: 'start' });
+  assert.ok(room.timer.deadline > Date.now());
   for (const p of [a, b]) {
     assert.equal(p.cards.filter((c) => c.zone === 'mano').length, 8);
     assert.equal(p.ready, true);

@@ -151,6 +151,19 @@ body:has(.arena) .banner {
   border-radius: 6px;
   font-size: 14px;
 }
+.setup-readiness {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 8px;
+  border-left: 1px solid #8d7138;
+  color: #d8c8a2;
+}
+.setup-readiness strong { color: #f0d68e; font-size: 12px; }
+.setup-readiness span { font-size: 12px; opacity: .72; }
+.setup-readiness span.ready { color: #8cdaa0; opacity: 1; }
+.setup-readiness button { padding: 4px 8px; font-size: 12px; }
 .arena-viewbar {
   display: flex;
   gap: 8px;

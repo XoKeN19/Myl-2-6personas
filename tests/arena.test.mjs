@@ -171,7 +171,7 @@ test('Las cartas transferidas pueden devolverse y el mazo exportado no cambia', 
   assert.equal(p.cards.length + q.cards.length, 100);
   assert.deepEqual(exportDeck(r, q.token), before);
 });
-test('Temporizador compartido pausa, continúa y reinicia al pasar turno sin agrupar cartas', () => {
+test('Temporizador compartido pausa, continúa y agrupa al jugador que recibe el turno', () => {
   const [r, p, q] = table();
   action(r, p.token, { type: 'timer', command: 'start', seconds: 60 });
   assert.equal(view(r, q.token).timer.deadline, r.timer.deadline);
@@ -185,7 +185,7 @@ test('Temporizador compartido pausa, continúa y reinicia al pasar turno sin agr
   c.zone = 'pagado';
   action(r, p.token, { type: 'next' });
   assert.equal(r.active, q.id);
-  assert.equal(c.zone, 'pagado');
+  assert.equal(c.zone, 'reserva');
   assert.equal(r.timer.remaining, 60000);
   action(r, q.token, { type: 'timer', command: 'reset' });
   assert.equal(r.timer.deadline, null);

@@ -106,8 +106,8 @@ export default function TableFeedback({
             <span>
               {phase === 'Guerra de Talismanes'
                 ? 'Guerra'
-                : phase === 'Asignación de daño'
-                  ? 'Daño'
+                : phase === 'Asignación de daño' || phase === 'Final'
+                  ? 'Daño / Final'
                   : phase}
             </span>
             <i />
