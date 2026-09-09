@@ -437,3 +437,16 @@ body:has(.fixed-table){height:100dvh;overflow:hidden;}
 @media(prefers-reduced-motion:reduce){.hand-drawer-content{transition:none;}}
 @media(max-width:700px){body:has(.fixed-table) .topbar{height:54px;min-height:54px;flex-wrap:nowrap;overflow-x:auto;padding:5px 8px;}body:has(.fixed-table) .topbar>*{flex-shrink:0;}.arena.fixed-table{height:calc(100dvh - 54px);}.fixed-table .arena-setup>*{flex-shrink:0;white-space:nowrap;}.fixed-table .arena-setup{max-height:58px;}}
 .game-over.victory-result{background:radial-gradient(ellipse,#735e20ec,#092b32fa);color:#ffe4a0;}.game-over.victory-result h1{text-shadow:0 0 35px #edc859;}
+/* Original lightweight 3D playmat. It does not change the game's hit targets. */
+.table-3d-stage{position:relative;flex:1;min-height:0;perspective:1200px;overflow:visible;isolation:isolate;}
+.table-3d-surface{height:100%;min-height:0;transition:transform .28s cubic-bezier(.2,.7,.2,1),filter .28s ease;transform-origin:50% 56%;}
+.table-3d-stage.enabled .table-3d-surface{transform:rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)) translateZ(0);filter:drop-shadow(0 30px 24px #0008);}
+.table-3d-stage.enabled .table-3d-surface::before{content:'';position:absolute;inset:-8px;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,#d68a3922,transparent 42%),linear-gradient(120deg,#ffffff09,transparent 30%,#0007);border-radius:20px;}
+.table-3d-atmosphere{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;mix-blend-mode:screen;opacity:.72;}
+.table-3d-stage.enabled .arena-board{background:linear-gradient(135deg,#26342ae8,#17231ce8);box-shadow:inset 0 1px #ffe3a126,0 12px 22px #0009;}
+.table-3d-stage.enabled .tcg-card{box-shadow:0 8px 12px #000a,0 0 0 1px #ffe2a016;}
+.arena-viewbar button[aria-pressed='true']{border-color:#f0c76d;background:#5d3a1a;color:#ffe4a0;}
+.block-mode.active{border-color:#f3a95c!important;background:#673329!important;color:#ffe2b7!important;}
+.combat-lines{position:fixed;inset:0;width:100vw;height:100vh;z-index:55;pointer-events:none;overflow:visible;}.combat-line-shadow{stroke:#190908;stroke-width:9;opacity:.7;}.combat-line{stroke:#e88447;stroke-width:3;stroke-linecap:round;stroke-dasharray:8 7;animation:combat-dash .7s linear infinite;filter:drop-shadow(0 0 4px #ffb057);}.combat-line::after{content:'';}@keyframes combat-dash{to{stroke-dashoffset:-15;}}
+@media(max-width:700px){.table-3d-stage{perspective:none;}.table-3d-stage.enabled .table-3d-surface{transform:none;filter:none;}.table-3d-atmosphere{opacity:.45;}}
+@media(prefers-reduced-motion:reduce){.table-3d-surface{transition:none;}.table-3d-stage.enabled .table-3d-surface{transform:none;filter:none;}.table-3d-atmosphere{display:none;}}

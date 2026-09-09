@@ -154,6 +154,10 @@ El estado No puede jugarse sirve para restricciones como Chakram. Para efectos h
 
 Mis mazos permite seleccionar una carta existente, editarla y subir una foto o tomarla desde un dispositivo compatible. El encuadre incluye giro y recorte manual; no realiza OCR ni corrección automática de perspectiva. Guarda los cambios de la carta y después el mazo. Las fotos comprimidas viajan dentro del JSON exportado. La biblioteca utiliza IndexedDB para alojar fotos y recupera los mazos locales anteriores. Al abrir una carta en juego, Ampliar foto permite leer la imagen completa. Las cartas ocultas utilizan el reverso facilitado por el usuario y nunca envían su foto al rival.
 
+## Mesa 3D e interacción directa
+
+El botón **Vista 3D** activa una perspectiva original de la mesa, luz cálida y partículas ligeras. Se guarda por navegador y se puede apagar para priorizar rendimiento; en móvil y con reducción de movimiento evita la inclinación. Las cartas siguen siendo controles normales: arrastra para mover, haz doble clic en una carta de Mano para jugarla en la zona sugerida, clic derecho para abrir sus acciones y mantén pulsada una carta en móvil para verla. El modo **Bloqueo** permite elegir un atacante rival y luego un Aliado propio en Defensa; una línea ámbar muestra la asignación a ambos jugadores.
+
 ### Personalizar mazos existentes
 
 Importa tu JSON desde Mis mazos: la vista de cartas permite pulsar cualquier carta y añadir su foto. Guardar carta y mazo guarda también la biblioteca del navegador. Puedes aplicar la foto a las copias con el mismo nombre, tipo y efecto. Exportar JSON completo conserva las imágenes para otro equipo. Se verificó importación de 50 cartas, personalización y recuperación tras recargar en escritorio y móvil.

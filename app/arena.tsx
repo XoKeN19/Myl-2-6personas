@@ -32,6 +32,8 @@ import { useTableMotion } from './table-motion';
 import { useTavernMusic } from './tavern-music';
 import { BattlePanel, BattleNotice } from './battle-panel';
 import ResponseTools from './response-tools';
+import Table3D from './table-3d';
+import CombatLines from './combat-lines';
 import type { Card, Player, Room } from './page';
 
 const zones: Record<string, string> = {
@@ -115,6 +117,11 @@ export default function Arena({
   const [costFilter, setCostFilter] = useState('');
   const [handWarning, setHandWarning] = useState(false);
   const [handOpen, setHandOpen] = useState(false);
+  const [table3d, setTable3d] = useState(
+    () => typeof window !== 'undefined' && localStorage.getItem('imperio-table-3d') === 'on',
+  );
+  const [blockMode, setBlockMode] = useState(false);
+  const [blockSource, setBlockSource] = useState<string | null>(null);
   const [enlarged, setEnlarged] = useState(false);
   const me = room.players.find((p) => p.id === room.me),
     spectator = !me;
@@ -152,6 +159,7 @@ export default function Arena({
     moved: boolean;
   } | null>(null);
   const suppressClick = useRef(false);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { root, sound, setSound, play } = useTableMotion(
     room.revision,
     room.log[0]?.id + ' ' + room.log[0]?.message,
@@ -339,6 +347,15 @@ export default function Arena({
           };
           e.currentTarget.setPointerCapture(e.pointerId);
           suppressClick.current = false;
+          if (e.pointerType === 'touch') {
+            holdTimer.current = setTimeout(() => {
+              if (!gesture.current?.moved) {
+                suppressClick.current = true;
+                setSelected({ id: c.id, player: p.id });
+                setPile(null);
+              }
+            }, 520);
+          }
         }}
         onPointerMove={(e) => {
           const g = gesture.current;
@@ -346,6 +363,7 @@ export default function Arena({
           if (!g.moved && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 7)
             return;
           if (!g.moved) play('pick');
+          if (holdTimer.current) clearTimeout(holdTimer.current);
           g.moved = true;
           suppressClick.current = true;
           setDrag({
@@ -356,10 +374,12 @@ export default function Arena({
           });
         }}
         onPointerCancel={() => {
+          if (holdTimer.current) clearTimeout(holdTimer.current);
           gesture.current = null;
           setDrag(null);
         }}
         onPointerUp={(e) => {
+          if (holdTimer.current) clearTimeout(holdTimer.current);
           const g = gesture.current;
           gesture.current = null;
           setDrag(null);
@@ -399,8 +419,31 @@ export default function Arena({
             openPile(p, c.zone);
             return;
           }
+          if (blockMode) {
+            if (c.zone === 'ataque' && p.id !== room.me) {
+              setBlockSource(c.id);
+              return;
+            }
+            if (c.zone === 'defensa' && p.id === room.me && blockSource) {
+              void act({ type: 'block', cardId: c.id, attacker: blockSource });
+              setBlockSource(null);
+              return;
+            }
+          }
           setSelected({ id: c.id, player: p.id });
           setPile(null);
+        }}
+        onDoubleClick={() => {
+          if (hidden || spectator || p.id !== room.me || c.zone !== 'mano') return;
+          const zone = c.type === 'Aliado' ? 'defensa' : c.type === 'Oro' ? 'reserva' : c.type === 'Talismán' ? 'cementerio' : 'apoyo';
+          void move(c, p.id, zone, p.id);
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          if (!hidden) {
+            setSelected({ id: c.id, player: p.id });
+            setPile(null);
+          }
         }}
       >
         {hidden ? (
@@ -634,6 +677,20 @@ export default function Arena({
         <span>
           <Hand size={14} /> Arrastra para jugar · Clic para ver acciones
         </span>
+        <button
+          aria-pressed={table3d}
+          title="Perspectiva, luz y partículas. Puedes desactivarlo si prefieres rendimiento."
+          onClick={() => {
+            const next = !table3d;
+            setTable3d(next);
+            localStorage.setItem('imperio-table-3d', next ? 'on' : 'off');
+          }}
+        >
+          {table3d ? '◈ 3D activo' : '◈ Vista 3D'}
+        </button>
+        {!spectator && <button className={blockMode ? 'block-mode active' : 'block-mode'} onClick={() => { setBlockMode(!blockMode); setBlockSource(null); }}>
+          {blockMode ? (blockSource ? 'Bloquear: elige defensor' : 'Bloquear: elige atacante') : '⌁ Bloqueo'}
+        </button>}
         {me && (
           <button
             disabled={busy}
@@ -648,6 +705,7 @@ export default function Arena({
           </button>
         )}
       </div>
+      <Table3D enabled={table3d}>
       <div
         className={`arena-boards players-${focus === 'all' ? room.players.length : 1}`}
       >
@@ -694,6 +752,8 @@ export default function Arena({
             </article>
           ))}
       </div>
+      </Table3D>
+      <CombatLines revision={room.revision} blocks={room.players.flatMap(player => player.cards.filter(card => card.blocks).map(card => ({ defender: card.id, attacker: card.blocks! })))} />
       {me && <div className={`hand-drawer ${handOpen ? 'open' : ''} ${drag ? 'dragging-hand' : ''}`}>
         <button className="hand-drawer-toggle" aria-expanded={handOpen} aria-controls="my-hand-tray" onClick={() => setHandOpen(!handOpen)} data-drop-zone="mano" data-drop-player={me.id}>
           {handOpen ? '⌄ Ocultar mano' : '⌃ Mi mano'} · {me.cards.filter(c => c.zone === 'mano').length} cartas
