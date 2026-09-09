@@ -1,4 +1,5 @@
 'use client';
+/* oxlint-disable next/no-img-element -- Deck photos are local data URLs, already compressed on import. */
 
 import { useEffect, useRef, useState } from 'react';
 import type { Card, Player, Room } from './page';
@@ -15,8 +16,11 @@ export type TableCallbacks = {
   ) => Promise<unknown>;
   playCard: (card: Card, player: Player) => void;
   draw: () => void;
+  shuffle: () => void;
+  attack: (player: Player) => void;
   attach: (card: Card, host: Card) => void;
-  sound: (kind: 'pick' | 'drop' | 'draw') => void;
+  sound: (kind: 'pick' | 'drop' | 'draw' | 'hover') => void;
+  hover?: (card: Card | null) => void;
 };
 
 export default function BabylonTable({
@@ -39,6 +43,7 @@ export default function BabylonTable({
   const [status, setStatus] = useState('Preparando la mesa…');
   const [error, setError] = useState('');
   const [hand, setHand] = useState(true);
+  const [preview, setPreview] = useState<Card | null>(null);
   useEffect(() => {
     current.current = callbacks;
   }, [callbacks]);
@@ -54,7 +59,7 @@ export default function BabylonTable({
         try {
           const table = createTable(
             canvas.current,
-            () => current.current,
+            () => ({ ...current.current, hover: setPreview }),
             (message) => {
               if (!disposed) setError(message);
             },
@@ -83,6 +88,28 @@ export default function BabylonTable({
   const me = room.players.find((p) => p.id === room.me);
   return (
     <section className="babylon-stage" aria-label="Mesa de cartas 3D">
+      {preview && !preview.hidden && (
+        <aside
+          className="card-hover-preview"
+          aria-label="Vista ampliada de carta"
+        >
+          <strong>{preview.name}</strong>
+          {preview.image ? (
+            <img src={preview.image} alt={preview.name} />
+          ) : (
+            <div className="card-preview-text">
+              <b>
+                {preview.type} · {preview.race}
+              </b>
+              <p>{preview.effect || 'Sin habilidad'}</p>
+            </div>
+          )}
+          <footer>
+            Coste {preview.cost}{' '}
+            {preview.type === 'Aliado' && ' · Fuerza ' + preview.strength}
+          </footer>
+        </aside>
+      )}
       <canvas
         ref={canvas}
         className="babylon-canvas"

@@ -14,3 +14,7 @@ Revisión de pantalla completa: canvas de al menos 1590×990 en ventana de 1600�
 Además: 49 pruebas de servidor/reglas aprobadas, TypeScript sin errores, compilación completa y análisis estático de los nuevos archivos 3D aprobado. La compilación advierte del tamaño del módulo gráfico; se carga de forma diferida al abrir la partida.
 
 Límites: las pruebas gráficas utilizan renderizado por software y no acreditan rendimiento en todas las GPU. En móvil o con seis jugadores conviene enfocar una mesa y ampliar cartas para leer habilidades. El juego conserva la resolución manual de efectos y daños; no se ha incorporado Colyseus ni un motor de físicas.
+
+## Sonidos y accesos directos
+
+Se comprobaron cuatro grupos adicionales en Chromium: botón Barajar y cambio entre fotogramas con diez pulsos de audio de papel; sonido de monedas, aviso de fase y Atacar sobre el rival con destino correcto; daño manual con sacudida y alerta de nueve cartas, sin repeticiones por sincronización; ampliación al pasar el cursor, un sonido por entrada y respeto del silencio. El audio se verificó instrumentando los nodos Web Audio, no mediante escucha física. Las 49 pruebas existentes siguen pasando.

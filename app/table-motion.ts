@@ -1,4 +1,5 @@
 'use client';
+import { playFoley } from './table-foley';
 import {
   useCallback,
   useEffect,
@@ -13,6 +14,7 @@ export function useTableMotion(revision: number, latestEvent: string) {
   const previous = useRef(new Map<string, DOMRect>());
   const previousEvent = useRef('');
   const audio = useRef<AudioContext | null>(null);
+  const lastHoverSound = useRef(0);
   const [sound, updateSound] = useState(true);
   const setSound = (enabled: boolean) => {
     updateSound(enabled);
@@ -55,6 +57,9 @@ export function useTableMotion(revision: number, latestEvent: string) {
     (
       kind:
         | 'pick'
+        | 'hover'
+        | 'coins'
+        | 'low'
         | 'drop'
         | 'draw'
         | 'shuffle'
@@ -68,10 +73,12 @@ export function useTableMotion(revision: number, latestEvent: string) {
         | 'attack',
     ) => {
       if (!sound) return;
+      if(kind==='hover'){const now=performance.now();if(now-lastHoverSound.current<110)return;lastHoverSound.current=now;}
       try {
         audio.current ??= new AudioContext();
         const ctx = audio.current;
         void ctx.resume();
+        if(playFoley(ctx,kind))return;
         const notes =
           kind === 'victory' ? [392, 523.25, 659.25, 783.99, 1046.5] : kind === 'defeat'
             ? [196, 146.83, 110, 73.42]
@@ -193,6 +200,7 @@ export function useTableMotion(revision: number, latestEvent: string) {
         latestEvent.includes('mano inicial')
       )
         play('draw');
+      else if (/a pagado|oro pagado|pagó.*oro/i.test(latestEvent)) play('coins');
       else if (/destierro|desterr|banish/i.test(latestEvent)) play('banish');
       else if (/cementerio|destroy/i.test(latestEvent)) play('grave');
       else if (/ataque|atacó/i.test(latestEvent)) play('attack');

@@ -49,6 +49,7 @@ type Visual = {
   zone: string;
   player: string;
   flip: boolean;
+  shuffleEnd: number;
 };
 const slots: Record<string, Slot> = {
   ataque: { x: 2.5, z: 3, w: 9.1, h: 2.7 },
@@ -82,7 +83,7 @@ export function createTable(
     preserveDrawingBuffer: false,
     powerPreference: 'high-performance',
   });
-  engine.setHardwareScalingLevel(Math.max(1, devicePixelRatio / 1.5));
+  engine.setHardwareScalingLevel(1 / Math.min(devicePixelRatio, 2));
   const scene = new Scene(engine);
   scene.clearColor = new Color4(0.018, 0.026, 0.028, 1);
   scene.ambientColor = new Color3(0.28, 0.25, 0.21);
@@ -384,6 +385,20 @@ export function createTable(
       playerLabel.disabled = true;
       playerLabel.className = 'scene-zone-label scene-player-label';
       labelsRoot.appendChild(playerLabel);
+      if (state.room.me && seat.player.id !== state.room.me) {
+        const attack = document.createElement('button');
+        attack.type = 'button';
+        attack.className = 'scene-zone-label rival-attack';
+        attack.dataset.action = 'attack';
+        attack.setAttribute('aria-label', 'Atacar a ' + seat.player.name);
+        attack.addEventListener('click', () => callbacks().attack(seat.player));
+        labelsRoot.appendChild(attack);
+        screenLabels.push({
+          element: attack,
+          position: world(seat, -6.65, 4.35, 0.08),
+          key: seat.player.id + ':attack',
+        });
+      }
       screenLabels.push({
         element: playerLabel,
         position: world(seat, -6.65, 3.3, 0.06),
@@ -443,6 +458,28 @@ export function createTable(
           callbacks().pile(seat.player, zone),
         );
         labelsRoot.appendChild(button);
+        if (zone === 'castillo' && seat.player.id === state.room.me) {
+          const shuffle = document.createElement('button');
+          shuffle.type = 'button';
+          shuffle.className = 'scene-zone-label castle-shuffle';
+          shuffle.dataset.action = 'shuffle';
+          shuffle.setAttribute('aria-label', 'Barajar mi Castillo');
+          shuffle.title = 'Barajar mi Castillo';
+          shuffle.addEventListener('click', () => {
+            if (!state?.busy) callbacks().shuffle();
+          });
+          labelsRoot.appendChild(shuffle);
+          screenLabels.push({
+            element: shuffle,
+            position: world(
+              seat,
+              s.x + s.w / 2 - 0.4,
+              s.z - s.h / 2 + 0.38,
+              0.15,
+            ),
+            key: seat.player.id + ':shuffle',
+          });
+        }
         screenLabels.push({
           element: button,
           position: world(seat, s.x, s.z + s.h / 2 + 0.08, 0.06),
@@ -489,6 +526,7 @@ export function createTable(
         },
       );
       m.emissiveTexture = m.diffuseTexture;
+      m.diffuseTexture.anisotropicFilteringLevel = 8;
       return m;
     }
     const texture = new DynamicTexture(
@@ -621,6 +659,7 @@ export function createTable(
       zone: card.zone,
       player,
       flip: !!origin && card.zone === 'mano',
+      shuffleEnd: 0,
     };
     mesh.position.copyFrom(v.from);
     visuals.set(key, v);
@@ -681,7 +720,9 @@ export function createTable(
         card.zone === 'mano' && player === state!.room.me
           ? 1
           : seats.find((s) => s.player.id === player)?.scale || 1;
-      v.mesh.scaling.setAll(cardScale);
+      v.mesh.scaling.setAll(
+        cardScale * (card.type === 'Aliado' && card.zone !== 'mano' ? 1.16 : 1),
+      );
       v.shadow.scaling.setAll(cardScale);
       v.mesh.setEnabled(
         card.zone !== 'mano' || player !== state!.room.me || handVisible,
@@ -891,6 +932,9 @@ export function createTable(
       const nextHover = meta?.kind === 'card' ? meta.cardId : '';
       if (nextHover !== hoverCard) {
         hoverCard = nextHover;
+        const card = meta ? current(meta).card : undefined;
+        callbacks().hover?.(card && !card.hidden ? card : null);
+        if (card && !card.hidden) callbacks().sound('hover');
         needsFrames = 10;
       }
       canvas.style.cursor = hit?.hit ? 'grab' : '';
@@ -1027,6 +1071,8 @@ export function createTable(
     if (meta) click(meta);
   }
   canvas.addEventListener('pointerdown', down);
+  const leave=()=>{if(!drag){hoverCard='';callbacks().hover?.(null);needsFrames=10;}};
+  canvas.addEventListener('pointerleave',leave);
   canvas.addEventListener('pointermove', moving);
   canvas.addEventListener('pointerup', up);
   canvas.addEventListener('pointercancel', cancel);
@@ -1116,6 +1162,20 @@ export function createTable(
         v.mesh.rotation.x = hovered && !reduced.matches ? -0.1 : 0;
       }
       v.mesh.rotation.y = v.angle;
+      if (v.shuffleEnd > now) {
+        const wave = Math.sin(((v.shuffleEnd - now) / 780) * Math.PI * 6);
+        v.mesh.position.x =
+          v.target.x +
+          wave *
+            (v.mesh.name.endsWith('0') || v.mesh.name.endsWith('2')
+              ? -0.65
+              : 0.65);
+        v.mesh.position.y = v.target.y + Math.abs(wave) * 0.15;
+        movingNow = true;
+      } else if (v.shuffleEnd) {
+        v.mesh.position.copyFrom(v.target);
+        v.shuffleEnd = 0;
+      }
     }
     if (movingNow || needsFrames > 0 || scene.getWaitingItemsCount() > 0) {
       const aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
@@ -1144,13 +1204,28 @@ export function createTable(
         item.element.style.left = (p.x / engine.getRenderWidth()) * 100 + '%';
         item.element.style.top = (p.y / engine.getRenderHeight()) * 100 + '%';
         item.element.hidden = p.z < 0 || p.z > 1;
-        item.element.textContent = countLabels.get(item.key)?.last || '';
+        item.element.textContent =
+          item.element.dataset.action === 'shuffle'
+            ? '⤨'
+            : countLabels.get(item.key)?.last || '';
+        if (item.element.dataset.action === 'shuffle')
+          item.element.disabled = !!state?.busy;
         item.element.style.display =
           seats.length > 3 &&
           !item.key.endsWith(':name') &&
           !item.key.startsWith(state?.room.me + ':')
             ? 'none'
             : '';
+        if (item.element.dataset.action === 'attack') {
+          item.element.textContent = '⚔ Atacar';
+          item.element.style.display = state?.room.players
+            .find((p) => p.id === state?.room.me)
+            ?.cards.some((c) => c.zone === 'ataque' && c.type === 'Aliado')
+            ? ''
+            : 'none';
+          item.element.disabled =
+            !!state?.busy || state?.room.active !== state?.room.me;
+        }
       }
       needsFrames = Math.max(0, needsFrames - 1);
     }
@@ -1186,7 +1261,8 @@ export function createTable(
                 v.from
                   .copyFrom(v.target)
                   .addInPlace(new Vector3(layer % 2 ? 0.75 : -0.75, 0.15, 0));
-                v.progress = 0;
+                v.progress = 1;
+                v.shuffleEnd = performance.now() + 780;
               }
             }
         }
@@ -1213,6 +1289,7 @@ export function createTable(
       observer.disconnect();
       labelsRoot.remove();
       canvas.removeEventListener('pointerdown', down);
+      canvas.removeEventListener('pointerleave',leave);
       canvas.removeEventListener('pointermove', moving);
       canvas.removeEventListener('pointerup', up);
       canvas.removeEventListener('pointercancel', cancel);

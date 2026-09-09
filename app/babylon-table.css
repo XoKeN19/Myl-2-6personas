@@ -279,6 +279,226 @@ body:has(.immersive-table.hud-menu) .game-topbar .format {
   pointer-events: none;
   overflow: hidden;
 }
+.arena .scene-zone-label.rival-attack {
+  background: #66291be8;
+  color: #ffe2a0;
+  border: 1px solid #d39555;
+  padding: 4px 12px;
+  font-weight: bold;
+  box-shadow: 0 3px 12px #0008;
+}
+.arena .scene-zone-label.castle-shuffle {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #cfaa62;
+  border-radius: 50%;
+  font-size: 23px;
+  padding: 0;
+  background: #2a1a0de8;
+  color: #ffe2a0;
+  box-shadow: 0 3px 8px #0007;
+}
+.arena .scene-zone-label.castle-shuffle:hover {
+  background: #8f622b;
+}
+.table-feedback {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 22;
+}
+.phase-timeline {
+  position: absolute;
+  right: 18px;
+  top: 22%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 16px 10px;
+  background: #17100bc4;
+  border-radius: 24px;
+}
+.phase-timeline > div {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  height: 46px;
+  color: #a18b6e;
+  font-size: 11px;
+}
+.phase-timeline i {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #a17b47;
+  border-radius: 50%;
+  background: #21150e;
+  z-index: 1;
+}
+.phase-timeline > div:not(:last-child):after {
+  content: '';
+  position: absolute;
+  right: 5px;
+  top: 29px;
+  height: 34px;
+  width: 2px;
+  background: #80603a;
+}
+.phase-timeline .current {
+  color: #ffe6ab;
+  font-weight: bold;
+}
+.phase-timeline .current i {
+  background: #ffe1a0;
+  box-shadow: 0 0 15px #ffd079;
+}
+.phase-timeline .past i {
+  background: #86613c;
+}
+.phase-announcement {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 60px;
+  min-width: 320px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #21140ff2 15%,
+    #21140ff2 85%,
+    transparent
+  );
+  border-block: 1px solid #dab16b;
+  color: #ffe3a4;
+  text-shadow: 0 2px 12px #000;
+  animation: phase-arrive 1.8s both;
+}
+.phase-announcement small {
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+.phase-announcement strong {
+  font: 32px Georgia;
+  text-align: center;
+}
+.castle-damage {
+  position: absolute;
+  left: 31%;
+  top: 38%;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 28px;
+  background: #2d1110e8;
+  border: 1px solid #bd694c;
+  text-align: center;
+  color: #ffe8c5;
+  animation: phase-arrive 1.8s both;
+}
+.castle-damage strong {
+  font-size: 42px;
+}
+.castle-low {
+  position: absolute;
+  left: 50%;
+  bottom: 63px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border: 1px solid #a55436;
+  border-radius: 10px;
+  background: #30150feb;
+  color: #ffc292;
+  font-size: 12px;
+}
+@keyframes phase-arrive {
+  0% {
+    opacity: 0;
+    scale: 0.9;
+  }
+  15%,
+  75% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.03;
+  }
+}
+.card-hover-preview {
+  position: absolute;
+  left: 100px;
+  top: 20px;
+  width: 230px;
+  max-height: 70vh;
+  overflow: hidden;
+  z-index: 24;
+  pointer-events: none;
+  background: #21170ff5;
+  border: 1px solid #d0a66b;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 16px 45px #000a;
+}
+.card-hover-preview img {
+  width: 100%;
+  max-height: 48vh;
+  object-fit: contain;
+  display: block;
+  margin: 8px 0;
+}
+.card-hover-preview strong {
+  font: 18px Georgia;
+  color: #ffe1a4;
+}
+.card-hover-preview footer {
+  font-weight: bold;
+  color: #e1b872;
+  padding-top: 8px;
+}
+.card-preview-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #f5e2bc;
+  padding: 16px 0;
+}
+@media (max-width: 700px) {
+  .phase-timeline {
+    right: 5px;
+    top: 18%;
+    padding: 8px 5px;
+  }
+  .phase-timeline > div {
+    height: 32px;
+    font-size: 8px;
+    gap: 5px;
+  }
+  .phase-timeline > div:not(:last-child):after {
+    top: 20px;
+    height: 25px;
+  }
+  .phase-announcement {
+    min-width: 230px;
+    padding: 18px 25px;
+  }
+  .phase-announcement strong {
+    font-size: 24px;
+  }
+  .card-hover-preview {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .phase-announcement,
+  .castle-damage {
+    animation: none;
+  }
+}
 .arena .scene-zone-label {
   position: absolute;
   transform: translate(-50%, -50%);

@@ -33,6 +33,7 @@ import { useTavernMusic } from './tavern-music';
 import { BattlePanel, BattleNotice } from './battle-panel';
 import ResponseTools from './response-tools';
 import BabylonTable from './babylon-table';
+import TableFeedback from './table-feedback';
 import CombatLines from './combat-lines';
 import type { Card, Player, Room } from './page';
 
@@ -113,6 +114,7 @@ export default function Arena({
 }) {
   const music = useTavernMusic();
   const [battleOpen, setBattleOpen] = useState(false);
+  const [battleTarget,setBattleTarget] = useState<string | null>(null);
   const [requestMode, setRequestMode] = useState('all');
   const [costFilter, setCostFilter] = useState('');
   const [handWarning, setHandWarning] = useState(false);
@@ -159,7 +161,7 @@ export default function Arena({
   } | null>(null);
   const suppressClick = useRef(false);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { root, sound, setSound, play } = useTableMotion(
+  const { root, sound, setSound, play, reduced } = useTableMotion(
     room.revision,
     room.log[0]?.id + ' ' + room.log[0]?.message,
   );
@@ -548,6 +550,7 @@ export default function Arena({
   return (
     <div ref={root} className={`arena fixed-table ${table3d ? 'babylon-arena immersive-table' : ''} ${hudPanel ? 'hud-' + hudPanel : ''} ${drag ? 'is-dragging' : ''}`}>
       {table3d && <>
+        <TableFeedback room={room} play={play} reduced={reduced}/>
         <nav className="table-dock" aria-label="Controles de la partida">
           {[['menu','☰','Menú'],['setup','♧','Preparación'],['actions','⚔','Acciones'],['turn','◷','Turno y sonido']].map(([id,icon,label])=><button key={id} title={label} aria-label={label} aria-expanded={hudPanel===id} className={hudPanel===id?'active':''} onClick={()=>setHudPanel(hudPanel===id?null:id)}><span>{icon}</span><small>{label}</small></button>)}
           <button title="Ver mi mano" aria-label="Ver mi mano" disabled={!me} onClick={()=>me&&openPile(me,'mano')}><Eye size={21}/><small>Mi mano</small></button>
@@ -720,6 +723,8 @@ export default function Arena({
           else {setSelected({id:c.id,player:p.id});setPile(null);}
         },
         draw: () => {if(!busy&&me)void act({type:'freeDraw',count:1});},
+        shuffle: () => {if(!busy&&me)void act({type:'shuffle'});},
+        attack: (p) => {setBattleTarget(p.id);setBattleOpen(true);},
         attach: (c,h) => {if(!busy)void act({type:'attach',cardId:c.id,hostId:h.id});},
         sound: play,
       }}/> : <>
@@ -1448,6 +1453,8 @@ export default function Arena({
       </Dialog>
 
       <BattlePanel
+        key={(battleTarget||'all')+String(battleOpen)}
+        preferredTarget={battleTarget||undefined}
         room={room}
         open={battleOpen}
         onOpenChange={setBattleOpen}

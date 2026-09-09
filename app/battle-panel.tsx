@@ -13,12 +13,14 @@ export function BattlePanel({
   onOpenChange,
   act,
   busy,
+  preferredTarget,
 }: {
   room: Room;
   open: boolean;
   onOpenChange: (v: boolean) => void;
   act: (a: Record<string, unknown>) => Promise<unknown>;
   busy: boolean;
+  preferredTarget?: string;
 }) {
   const [picked, setPicked] = useState<Record<string, string>>({});
   const me = room.players.find((p) => p.id === room.me),
@@ -31,7 +33,11 @@ export function BattlePanel({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal battle-panel">
-        <DialogTitle>Atacar con aliados</DialogTitle>
+        <DialogTitle>
+          {preferredTarget
+            ? 'Atacar a ' + rivals.find((p) => p.id === preferredTarget)?.name
+            : 'Atacar con aliados'}
+        </DialogTitle>
         <DialogDescription>
           Elige quién ataca a cada rival. El defensor puede bloquear o cancelar
           antes de confirmar. Fuerza seleccionada. Resuelvan bloqueos y
@@ -49,7 +55,7 @@ export function BattlePanel({
                     setPicked({
                       ...picked,
                       [c.id]: e.target.checked
-                        ? c.target || rivals[0]?.id || ''
+                        ? preferredTarget || c.target || rivals[0]?.id || ''
                         : '',
                     })
                   }
@@ -60,7 +66,7 @@ export function BattlePanel({
               <select
                 aria-label={`Objetivo de ${c.name}`}
                 disabled={!picked[c.id] || busy || room.struck?.includes(c.id)}
-                value={picked[c.id] || rivals[0]?.id || ''}
+                value={picked[c.id] || preferredTarget || rivals[0]?.id || ''}
                 onChange={(e) =>
                   setPicked({ ...picked, [c.id]: e.target.value })
                 }
