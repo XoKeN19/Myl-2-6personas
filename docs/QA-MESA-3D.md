@@ -1,6 +1,6 @@
 # Verificación de mesa cenital — 9 de septiembre de 2026
 
-Babylon.js 9.25.0, cámara ortográfica vertical. Se preserva el servidor existente.
+Babylon.js 9.25.0, cámara con perspectiva suave desde arriba. Se preserva el servidor existente.
 
 Verificaciones realizadas sobre la compilación de producción, con Chromium y WebGL mediante SwiftShader:
 
@@ -8,6 +8,8 @@ Verificaciones realizadas sobre la compilación de producción, con Chromium y W
 2. Dos sesiones independientes ven el movimiento público; las manos rivales no contienen nombres ni imágenes en la respuesta. Los menús de Mano y Castillo abren correctamente. Una foto de prueba con rótulos ARRIBA/ABAJO se ve derecha y permite ampliar la imagen.
 3. Vista a 1600×1000, 1280×720 y 390×844, sin desbordamiento horizontal de la página. Sala de seis jugadores y cambios repetidos de enfoque sin errores de ejecución.
 4. Con WebGL deshabilitado aparece recuperación a la vista clásica, sin perder la sala.
+
+Revisión de pantalla completa: canvas de al menos 1590×990 en ventana de 1600×1000; cabecera general oculta durante la partida. Menú lateral abre mazos; Preparación muestra Mulligan; Acciones muestra la selección de mesa. Se repitieron arrastre, equipar, pagar Oro, robo, privacidad, fotos y tamaños de pantalla tras el cambio de cámara y sombras.
 
 Además: 49 pruebas de servidor/reglas aprobadas, TypeScript sin errores, compilación completa y análisis estático de los nuevos archivos 3D aprobado. La compilación advierte del tamaño del módulo gráfico; se carga de forma diferida al abrir la partida.
 

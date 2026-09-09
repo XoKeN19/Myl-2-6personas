@@ -5,6 +5,230 @@
     linear-gradient(#23170fdd, #120d09ee),
     url('/backgrounds/taberna-cenital.png') center/cover;
 }
+.arena.babylon-arena.immersive-table {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  padding: 0;
+  display: block;
+  z-index: 10;
+}
+.immersive-table .babylon-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+body:has(.immersive-table) .game-topbar {
+  display: none;
+}
+body:has(.immersive-table) .banner,
+body:has(.immersive-table) .connection-state {
+  position: fixed;
+  z-index: 45;
+  right: 15px;
+  top: 115px;
+  max-width: 360px;
+}
+body:has(.immersive-table.hud-menu) .game-topbar {
+  display: flex;
+  position: fixed;
+  z-index: 35;
+  left: 100px;
+  top: 90px;
+  width: min(340px, calc(100vw - 115px));
+  height: auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid #987046;
+  border-radius: 14px;
+  background: #21180ff5;
+}
+body:has(.immersive-table.hud-menu) .game-topbar .format {
+  display: none;
+}
+.immersive-table .arena-toolbar,
+.immersive-table .arena-setup,
+.immersive-table .arena-viewbar,
+.immersive-table .arena-status {
+  display: none;
+  position: absolute;
+  z-index: 25;
+  left: 100px;
+  top: 90px;
+  max-height: calc(100dvh - 190px);
+  overflow: auto;
+  width: min(350px, calc(100vw - 115px));
+  padding: 18px;
+  gap: 10px;
+  border: 1px solid #987046;
+  border-radius: 14px;
+  background: #21180ff2;
+  box-shadow: 0 12px 45px #0009;
+}
+.immersive-table.hud-turn .arena-toolbar,
+.immersive-table.hud-setup .arena-setup,
+.immersive-table.hud-actions .arena-viewbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.immersive-table.hud-actions .arena-status {
+  display: flex;
+  top: auto;
+  bottom: 100px;
+  flex-wrap: wrap;
+}
+.immersive-table .arena-status > span {
+  display: none;
+}
+.immersive-table .hand-limit-warning {
+  position: absolute;
+  z-index: 20;
+  right: 15px;
+  bottom: 70px;
+  max-width: 310px;
+  font-size: 12px;
+  background: #302211e8;
+}
+.table-dock {
+  position: absolute;
+  z-index: 30;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid #a780493b;
+  border-radius: 32px;
+  background: #17140fea;
+  box-shadow: 0 10px 30px #0007;
+}
+.arena .table-dock button {
+  width: 57px;
+  min-height: 52px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  color: #d6b383;
+}
+.table-dock button > span {
+  font-size: 24px;
+  line-height: 25px;
+}
+.table-dock small {
+  font-size: 9px;
+}
+.arena .table-dock button:hover,
+.arena .table-dock button.active {
+  background: #83603555;
+  color: #ffdf9c;
+}
+.table-room-badge {
+  position: absolute;
+  z-index: 20;
+  right: 20px;
+  top: 15px;
+  padding: 12px 20px;
+  background: #17140fdc;
+  border: 1px solid #90713d55;
+  border-radius: 16px;
+  color: #d8bd86;
+  letter-spacing: 2px;
+  font-size: 12px;
+}
+.table-room-badge span {
+  margin-left: 14px;
+  color: #a7987d;
+  font-size: 10px;
+}
+.table-turn-hud {
+  position: absolute;
+  z-index: 20;
+  left: 15px;
+  bottom: 15px;
+  display: flex;
+  gap: 5px;
+  background: #17140fec;
+  border: 1px solid #99744366;
+  border-radius: 14px;
+  padding: 8px;
+}
+.arena .table-turn-hud button {
+  background: transparent;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 12px;
+  color: #e3c99b;
+}
+.table-turn-hud small {
+  font-size: 10px;
+}
+.table-turn-hud strong {
+  font-size: 17px;
+}
+.table-turn-hud span {
+  font-size: 12px;
+}
+.immersive-table .scene-camera {
+  top: 68px;
+  right: 20px;
+}
+.immersive-table .scene-hint {
+  display: none;
+}
+.immersive-table .scene-hand-controls {
+  bottom: 17px;
+}
+@media (max-width: 700px) {
+  .table-dock {
+    left: 5px;
+    padding: 4px;
+  }
+  .arena .table-dock button {
+    width: 42px;
+    min-height: 43px;
+  }
+  .table-dock small {
+    font-size: 8px;
+  }
+  .table-turn-hud {
+    left: 5px;
+    bottom: 60px;
+  }
+  .table-room-badge {
+    right: 5px;
+    top: 5px;
+  }
+  .immersive-table .arena-toolbar,
+  .immersive-table .arena-setup,
+  .immersive-table .arena-viewbar,
+  .immersive-table .arena-status {
+    left: 60px;
+    width: calc(100vw - 70px);
+  }
+  body:has(.immersive-table.hud-menu) .game-topbar {
+    left: 60px;
+    width: calc(100vw - 70px);
+  }
+  .immersive-table .scene-hand-controls {
+    bottom: 7px;
+  }
+}
 .babylon-stage {
   position: relative;
   flex: 1;

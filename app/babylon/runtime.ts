@@ -38,6 +38,7 @@ type Seat = {
 };
 type Visual = {
   mesh: Mesh;
+  shadow: Mesh;
   face: Mesh;
   material: StandardMaterial;
   signature: string;
@@ -88,7 +89,7 @@ export function createTable(
   const camera = new FreeCamera('table-camera', new Vector3(0, 40, -1), scene);
   camera.upVector = new Vector3(0, 0, 1);
   camera.setTarget(new Vector3(0, 0, -1));
-  camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
+  camera.mode = Camera.PERSPECTIVE_CAMERA;
   camera.minZ = 0.5;
   camera.maxZ = 300;
   camera.fov = 0.72;
@@ -125,6 +126,7 @@ export function createTable(
     hold: ReturnType<typeof setTimeout> | undefined;
   let lastClick = { key: '', time: 0 };
   let lastEvent = '';
+  let hoverCard = '';
   let dropOutline: Mesh | undefined,
     dropKey = '';
   function showDrop(meta?: ZoneMeta) {
@@ -182,6 +184,25 @@ export function createTable(
     return m;
   };
   const edge = mat('card-edge', '#bca879');
+  const shadowTexture = new DynamicTexture(
+    'contact-shadow',
+    { width: 128, height: 192 },
+    scene,
+    true,
+  );
+  const shadowContext = shadowTexture.getContext() as CanvasRenderingContext2D;
+  shadowContext.shadowColor = '#000';
+  shadowContext.shadowBlur = 15;
+  shadowContext.fillStyle = '#000';
+  shadowContext.fillRect(20, 20, 88, 152);
+  shadowTexture.hasAlpha = true;
+  shadowTexture.update();
+  const contactMaterial = new StandardMaterial('soft-contact', scene);
+  contactMaterial.diffuseTexture = shadowTexture;
+  contactMaterial.useAlphaFromDiffuseTexture = true;
+  contactMaterial.disableLighting = true;
+  contactMaterial.emissiveColor = Color3.Black();
+  contactMaterial.alpha = 0.38;
   const zoneMats: Record<string, StandardMaterial> = {};
   for (const z of Object.keys(names)) {
     zoneMats[z] = mat(
@@ -542,7 +563,7 @@ export function createTable(
       position.y,
       position.z,
       1.55,
-      0.055,
+      0.16,
       2.24,
       edge,
     );
@@ -555,7 +576,7 @@ export function createTable(
       scene,
     );
     face.parent = mesh;
-    face.position.y = 0.045;
+    face.position.y = 0.09;
     face.rotation.x = Math.PI / 2;
     face.isPickable = true;
     face.metadata = meta;
@@ -567,13 +588,22 @@ export function createTable(
       scene,
     );
     underside.parent = mesh;
-    underside.position.y = -0.029;
+    underside.position.y = -0.09;
     underside.rotation.x = -Math.PI / 2;
     underside.material = back;
     underside.isPickable = false;
     shadows.addShadowCaster(mesh, true);
+    const shadow = MeshBuilder.CreatePlane(
+      'shadow-' + key,
+      { width: 2.1, height: 2.95 },
+      scene,
+    );
+    shadow.rotation.x = Math.PI / 2;
+    shadow.material = contactMaterial;
+    shadow.isPickable = false;
     const v = {
       mesh,
+      shadow,
       face,
       material,
       signature: JSON.stringify([
@@ -599,6 +629,7 @@ export function createTable(
   function disposeVisual(v: Visual) {
     shadows.removeShadowCaster(v.mesh, true);
     v.mesh.dispose();
+    v.shadow.dispose();
     if (v.material !== back) v.material.dispose(true, true);
   }
   function updateCards() {
@@ -651,9 +682,11 @@ export function createTable(
           ? 1
           : seats.find((s) => s.player.id === player)?.scale || 1;
       v.mesh.scaling.setAll(cardScale);
+      v.shadow.scaling.setAll(cardScale);
       v.mesh.setEnabled(
         card.zone !== 'mano' || player !== state!.room.me || handVisible,
       );
+      v.shadow.setEnabled(v.mesh.isEnabled());
     }
     for (const seat of seats) {
       const player = state.room.players.find((p) => p.id === seat.player.id)!;
@@ -688,7 +721,7 @@ export function createTable(
                   zone,
                 },
                 player.id,
-                world(seat, s.x + j * 0.008, s.z, 0.075 + j * 0.047),
+                world(seat, s.x + j * 0.035, s.z - j * 0.025, 0.13 + j * 0.13),
                 seat.angle,
                 { kind: 'pile', player: player.id, zone },
               );
@@ -853,7 +886,14 @@ export function createTable(
   }
   function moving(event: PointerEvent) {
     if (!drag) {
-      canvas.style.cursor = pick(event)?.hit ? 'grab' : '';
+      const hit = pick(event),
+        meta = hit?.pickedMesh?.metadata as Meta | undefined;
+      const nextHover = meta?.kind === 'card' ? meta.cardId : '';
+      if (nextHover !== hoverCard) {
+        hoverCard = nextHover;
+        needsFrames = 10;
+      }
+      canvas.style.cursor = hit?.hit ? 'grab' : '';
       return;
     }
     const { player, card } = current(drag.meta);
@@ -879,7 +919,11 @@ export function createTable(
     }
     if (drag.mesh) {
       drag.mesh.position.copyFrom(point(event));
-      drag.mesh.rotation.x = -0.08;
+      drag.mesh.rotation.x = -0.2;
+      drag.mesh.rotation.z = Math.max(
+        -0.14,
+        Math.min(0.14, (event.clientX - drag.startX) / 1000),
+      );
     }
     canvas.style.cursor = 'grabbing';
     showDrop(pick(event, true)?.pickedMesh?.metadata as ZoneMeta | undefined);
@@ -900,6 +944,7 @@ export function createTable(
       const { card, player } = current(d.meta);
       if (d.mesh) {
         d.mesh.rotation.x = 0;
+        d.mesh.rotation.z = 0;
         const v = card && visuals.get(card.id);
         if (v) {
           v.from.copyFrom(d.mesh.position);
@@ -1037,16 +1082,18 @@ export function createTable(
       dt = Math.min((now - last) / 1000, 0.05);
     last = now;
     let movingNow = false;
-    if (
-      Math.abs(camera.position.z - desiredTarget.z) > 0.01 ||
-      Math.abs(currentRadius - desiredRadius) > 0.01
-    ) {
-      camera.position.z += (desiredTarget.z - camera.position.z) * 0.14;
-      camera.setTarget(new Vector3(0, 0, camera.position.z));
+    if (Math.abs(currentRadius - desiredRadius) > 0.01) {
       currentRadius += (desiredRadius - currentRadius) * 0.14;
       movingNow = true;
     }
     for (const v of visuals.values()) {
+      const elevation = Math.max(0, v.mesh.position.y);
+      v.shadow.position.set(
+        v.mesh.position.x + 0.1 + elevation * 0.2,
+        0.035,
+        v.mesh.position.z - 0.1 - elevation * 0.16,
+      );
+      v.shadow.rotation.y = v.mesh.rotation.y;
       if (drag?.mesh === v.mesh && drag.moved) continue;
       if (v.progress < 1) {
         v.progress = reduced.matches ? 1 : Math.min(1, v.progress + dt / 0.36);
@@ -1059,6 +1106,15 @@ export function createTable(
           : -Math.sin(t * Math.PI) * 0.09;
         movingNow = true;
       }
+      if (v.progress >= 1) {
+        const hovered = v.mesh.metadata?.cardId === hoverCard;
+        const height = v.target.y + (hovered && !reduced.matches ? 0.25 : 0);
+        if (Math.abs(v.mesh.position.y - height) > 0.003) {
+          v.mesh.position.y += (height - v.mesh.position.y) * 0.3;
+          movingNow = true;
+        }
+        v.mesh.rotation.x = hovered && !reduced.matches ? -0.1 : 0;
+      }
       v.mesh.rotation.y = v.angle;
     }
     if (movingNow || needsFrames > 0 || scene.getWaitingItemsCount() > 0) {
@@ -1067,6 +1123,9 @@ export function createTable(
       camera.orthoRight = currentRadius * aspect;
       camera.orthoTop = currentRadius;
       camera.orthoBottom = -currentRadius;
+      const altitude = currentRadius / Math.tan(camera.fov / 2);
+      camera.position.set(0, altitude, desiredTarget.z - altitude * 0.07);
+      camera.setTarget(desiredTarget);
       tabletop.scaling.set(resetRadius * aspect, resetRadius, 1);
       tabletop.position.z = desiredTarget.z;
       updateLines();

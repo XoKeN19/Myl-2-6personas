@@ -408,7 +408,7 @@ export default function Home() {
   }
   return (
     <>
-      <header className="topbar">
+      <header className={`topbar ${room ? 'game-topbar' : ''}`}>
         {!room && (
           <button title={music.status} onClick={music.toggle}>
             {music.playing ? '♫ Pausar música' : '♫ Reproducir música'}

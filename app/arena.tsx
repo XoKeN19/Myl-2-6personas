@@ -118,6 +118,7 @@ export default function Arena({
   const [handWarning, setHandWarning] = useState(false);
   const [handOpen, setHandOpen] = useState(false);
   const [table3d, setTable3d] = useState(true);
+  const [hudPanel, setHudPanel] = useState<string | null>(null);
   const [blockMode, setBlockMode] = useState(false);
   const [blockSource, setBlockSource] = useState<string | null>(null);
   const [enlarged, setEnlarged] = useState(false);
@@ -545,7 +546,16 @@ export default function Arena({
     );
   }
   return (
-    <div ref={root} className={`arena fixed-table ${table3d ? 'babylon-arena' : ''} ${drag ? 'is-dragging' : ''}`}>
+    <div ref={root} className={`arena fixed-table ${table3d ? 'babylon-arena immersive-table' : ''} ${hudPanel ? 'hud-' + hudPanel : ''} ${drag ? 'is-dragging' : ''}`}>
+      {table3d && <>
+        <nav className="table-dock" aria-label="Controles de la partida">
+          {[['menu','☰','Menú'],['setup','♧','Preparación'],['actions','⚔','Acciones'],['turn','◷','Turno y sonido']].map(([id,icon,label])=><button key={id} title={label} aria-label={label} aria-expanded={hudPanel===id} className={hudPanel===id?'active':''} onClick={()=>setHudPanel(hudPanel===id?null:id)}><span>{icon}</span><small>{label}</small></button>)}
+          <button title="Ver mi mano" aria-label="Ver mi mano" disabled={!me} onClick={()=>me&&openPile(me,'mano')}><Eye size={21}/><small>Mi mano</small></button>
+          {hudPanel && <button aria-label="Cerrar panel" onClick={()=>setHudPanel(null)}>×</button>}
+        </nav>
+        <div className="table-room-badge">MESA IMPERIO <span>{room.code}</span></div>
+        <div className="table-turn-hud"><button onClick={()=>setHudPanel(hudPanel==='turn'?null:'turn')}><small>{room.players.find(p=>p.id===room.active)?.name} · Turno {room.turn}</small><strong>{room.phase}</strong><span>{clock}</span></button><button disabled={busy||spectator||room.active!==room.me} onClick={()=>{if((me?.cards.filter(c=>c.zone==='mano').length||0)>8)setHandWarning(true);else void act({type:'next'});}}>Pasar turno ›</button></div>
+      </>}
       <div className="arena-toolbar">
         <div className="arena-room">
           <span>MESA LIBRE · {room.code}</span>

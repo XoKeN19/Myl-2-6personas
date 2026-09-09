@@ -156,7 +156,9 @@ Mis mazos permite seleccionar una carta existente, editarla y subir una foto o t
 
 ## Mesa 3D e interacción directa
 
-La partida abre una escena WebGL de **Babylon.js**, con cámara cenital ortográfica, cartas con frente y reverso, luz y sombras. Tu mesa se muestra grande y los rivales arriba, reducidos; puedes enfocar cualquier jugador. El fondo de taberna fue proporcionado por el usuario. La cámara permanece fija al mover el ratón; usa acercar, alejar o centrar para ajustar la vista. El motor se carga al entrar en una partida y reduce el renderizado cuando la escena permanece quieta. La vista clásica sólo se ofrece como recuperación si falla WebGL.
+La partida abre una escena WebGL de **Babylon.js** a pantalla completa, con perspectiva suave desde arriba, cartas con grosor, frente, reverso y sombras de contacto. Tu mesa se muestra grande y los rivales arriba, reducidos; puedes enfocar cualquier jugador. El fondo de taberna fue proporcionado por el usuario. La cámara permanece fija al mover el ratón; las cartas se elevan al apuntarlas y se inclinan al arrastrar. Usa acercar, alejar o centrar para ajustar la vista. El motor se carga al entrar en una partida y reduce el renderizado cuando la escena permanece quieta. La vista clásica sólo se ofrece como recuperación si falla WebGL.
+
+El lateral abre Menú (mazos, ayuda y salir), Preparación, Acciones y Turno y sonido. Los controles flotan sobre la mesa sin reducir su superficie. La fase, el reloj y Pasar turno permanecen en la esquina inferior izquierda.
 
 Arrastra las cartas entre zonas; suéltalas sobre un Aliado para equipar un Arma. Haz doble clic en una carta de Mano para jugarla en la zona sugerida, o en un Oro para pagarlo/agruparlo. Doble clic en tu Castillo roba una carta. Clic simple, clic derecho o pulsación larga abre las acciones. La mano puede ocultarse y también abrirse en una ventana. **Atacar** conserva la asignación por rival y la respuesta del defensor. **Bloqueo** permite elegir un atacante rival y luego un Aliado propio en Defensa; una línea ámbar muestra la asignación.
 
