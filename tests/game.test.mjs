@@ -15,8 +15,11 @@ const setup = () => {
   return [r, r.players[0], r.players[1]];
 };
 const start = (r) => {
+  r.capacity = r.players.length;
   for (const p of r.players) action(r, p.token, { type: 'setup' });
   action(r, r.players[0].token, { type: 'start' });
+  // These rule tests start after initiative, on Ana's turn.
+  r.initiative.endsAt=0;r.active=r.players[0].id;
 };
 const phase = (r, p, v) => action(r, p.token, { type: 'phase', phase: v });
 test('Preparación conserva 50 cartas: 8 mano, 41 Castillo, 1 Oro', () => {
@@ -57,7 +60,7 @@ test('Repartir permite mulligan y volver a ocho, pero no recargar el mazo',()=>{
  action(r,p.token,{type:'mulligan'});assert.equal(p.cards.filter(c=>c.zone==='mano').length,7);
  action(r,p.token,{type:'houseMulligan'});assert.equal(p.cards.filter(c=>c.zone==='mano').length,8);
  assert.throws(()=>action(r,p.token,{type:'houseMulligan'}));
- action(r,q.token,{type:'setup'});action(r,p.token,{type:'start'});assert.throws(()=>action(r,p.token,{type:'mulligan'}));
+ action(r,q.token,{type:'setup'});r.capacity=2;action(r,p.token,{type:'start'});assert.throws(()=>action(r,p.token,{type:'mulligan'}));
 });
 test('Robo normal conserva su guía y el turno puede cerrarse libremente', () => {
   const [r, p, q] = setup();

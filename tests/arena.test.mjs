@@ -60,6 +60,7 @@ test('Tiempo de partida se configura antes de comenzar y no reinicia al pasar tu
   assert.equal(r.timer.deadline, null);
   for (const x of [p, q]) action(r, x.token, { type: 'setup' });
   action(r, p.token, { type: 'start' });
+  r.initiative.endsAt=0;r.active=p.id;
   const deadline = r.timer.deadline;
   assert.ok(deadline > Date.now());
   action(r, p.token, { type: 'next' });

@@ -18,3 +18,8 @@ Límites: las pruebas gráficas utilizan renderizado por software y no acreditan
 ## Sonidos y accesos directos
 
 Se comprobaron cuatro grupos adicionales en Chromium: botón Barajar y cambio entre fotogramas con diez pulsos de audio de papel; sonido de monedas, aviso de fase y Atacar sobre el rival con destino correcto; daño manual con sacudida y alerta de nueve cartas, sin repeticiones por sincronización; ampliación al pasar el cursor, un sonido por entrada y respeto del silencio. El audio se verificó instrumentando los nodos Web Audio, no mediante escucha física. Las 49 pruebas existentes siguen pasando.
+
+
+## Dados y salas completas
+
+52 pruebas automatizadas aprobadas, incluyendo espera del tercer jugador, sorteo del servidor, desempate, reparto inicial y bloqueo durante la animación. Comprobación de tipos y compilación aprobadas. Navegador: inicio compartido con dos y seis jugadores (incluido desempate); revisión posterior con tres jugadores y reserva de nueve oros. Una captura a alta resolución en renderizado por software perdió el contexto gráfico; la comprobación repetida a 1100×760 completó la animación. No equivale a una prueba en todas las GPU.

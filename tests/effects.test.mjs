@@ -200,6 +200,7 @@ test('Tope y fondo preservan el orden elegido', () => {
 test('Fuerza y estados temporales expiran al terminar turno y afectan combate', () => {
   const [r, p, q] = setup();
   action(r, p.token, { type: 'start' });
+  r.initiative.endsAt=0;r.active=p.id;
   const c = p.cards.find((c) => c.zone === 'mano');
   effect(r, p, 'move', [c.id], { zone: 'defensa' });
   effect(r, p, 'strength', [c.id], { delta: 2, until: 'endTurn' });
@@ -264,6 +265,7 @@ test('Cambio de controlador conserva propietario y devuelve al cementerio correc
 test('Uso hasta tres veces y oro temporal reinician por turno', () => {
   const [r, p] = setup();
   action(r, p.token, { type: 'start' });
+  r.initiative.endsAt=0;r.active=p.id;
   const c = p.cards.find((c) => c.zone === 'mano');
   for (let i = 0; i < 3; i++)
     action(r, p.token, {

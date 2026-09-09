@@ -16,6 +16,8 @@ import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
 import type { Card, Player, Room } from '../page';
 import type { TableCallbacks } from '../babylon-table';
+import { playerColor } from '../player-colors';
+import { initiativeDice } from './initiative-dice';
 
 export type TableSnapshot = { room: Room; focus: string; busy: boolean };
 export type TableRuntime = {
@@ -114,6 +116,7 @@ export function createTable(
   shadows.usePercentageCloserFiltering = true;
   shadows.bias = 0.002;
   shadows.normalBias = 0.02;
+  const dice = initiativeDice(scene,shadows);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const visuals = new Map<string, Visual>();
   let state: TableSnapshot | undefined,
@@ -356,8 +359,8 @@ export function createTable(
       return {
         player,
         x: (col - (inRow - 1) / 2) * (count <= 3 ? 14 : 10),
-        z: 4.8 + row * 4.1,
-        angle: 0,
+        z: 7.2 + row * 5.2,
+        angle: Math.PI,
         scale: count === 2 ? 0.58 : count === 3 ? 0.48 : 0.34,
       };
     });
@@ -384,6 +387,7 @@ export function createTable(
       playerLabel.type = 'button';
       playerLabel.disabled = true;
       playerLabel.className = 'scene-zone-label scene-player-label';
+      const color=playerColor(state.room,seat.player.id);playerLabel.style.backgroundColor=color;playerLabel.style.color='#fff';playerLabel.style.borderColor=seat.player.id===state.room.host?'#cdb68b':color;
       labelsRoot.appendChild(playerLabel);
       if (state.room.me && seat.player.id !== state.room.me) {
         const attack = document.createElement('button');
@@ -395,7 +399,7 @@ export function createTable(
         labelsRoot.appendChild(attack);
         screenLabels.push({
           element: attack,
-          position: world(seat, -6.65, 4.35, 0.08),
+          position: world(seat, -6.65, 3.3, 0.08).add(new Vector3(0,0,.6)),
           key: seat.player.id + ':attack',
         });
       }
@@ -681,6 +685,7 @@ export function createTable(
       pos: Vector3,
       angle: number,
       meta: Meta,
+      size = 1,
     ) {
       wanted.add(key);
       let v = visuals.get(key);
@@ -721,9 +726,9 @@ export function createTable(
           ? 1
           : seats.find((s) => s.player.id === player)?.scale || 1;
       v.mesh.scaling.setAll(
-        cardScale * (card.type === 'Aliado' && card.zone !== 'mano' ? 1.16 : 1),
+        cardScale * size * (card.type === 'Aliado' && card.zone !== 'mano' ? 1.16 : 1),
       );
-      v.shadow.scaling.setAll(cardScale);
+      v.shadow.scaling.setAll(cardScale * size);
       v.mesh.setEnabled(
         card.zone !== 'mano' || player !== state!.room.me || handVisible,
       );
@@ -768,23 +773,25 @@ export function createTable(
               );
           }
         } else {
-          const spacing = Math.min(
-            1.18,
-            (s.w - 1.2) / Math.max(1, cards.length - 1),
-          );
+          const gold = zone === 'reserva' || zone === 'pagado';
+          let columns = Math.max(1, cards.length), size = 1;
+          if (gold && cards.length) {
+            size = 0;
+            for(let cols=1;cols<=cards.length;cols++){
+              const fit=Math.min(1,(s.w*1.6-.2)/(cols*1.9),(s.h-.35)/(Math.ceil(cards.length/cols)*2.7));
+              if(fit>size){size=fit;columns=cols;}
+            }
+          }
+          const rows = Math.ceil(cards.length / columns);
+          const spacing = gold ? 1.9 * size / 1.6 : Math.min(1.18, (s.w - 1.2) / Math.max(1, cards.length - 1));
           cards.forEach((c, i) =>
-            place(
-              c.id,
-              c,
-              player.id,
-              world(
-                seat,
-                s.x + (i - (cards.length - 1) / 2) * spacing,
-                s.z - 0.12,
-                0.075 + i * 0.002,
-              ),
+            place(c.id, c, player.id,
+              world(seat,
+                s.x + ((i % columns) - (columns - 1) / 2) * spacing,
+                s.z - .12 + ((rows - 1) / 2 - Math.floor(i / columns)) * 2.7 * size,
+                .075 + i * .002),
               seat.angle,
-              { kind: 'card', player: player.id, cardId: c.id },
+              { kind: 'card', player: player.id, cardId: c.id }, size,
             ),
           );
         }
@@ -800,7 +807,7 @@ export function createTable(
               seat,
               (i - (hand.length - 1) / 2) *
                 Math.min(0.9, 10 / Math.max(1, hand.length)),
-              6.1,
+              -6.1,
               0.09,
             ),
             seat.angle,
@@ -1127,7 +1134,7 @@ export function createTable(
     const now = performance.now(),
       dt = Math.min((now - last) / 1000, 0.05);
     last = now;
-    let movingNow = false;
+    let movingNow = dice.tick(reduced.matches);
     if (Math.abs(currentRadius - desiredRadius) > 0.01) {
       currentRadius += (desiredRadius - currentRadius) * 0.14;
       movingNow = true;
@@ -1233,6 +1240,7 @@ export function createTable(
   return {
     sync(next) {
       state = next;
+      dice.sync(next.room);
       const key =
         next.room.players.map((p) => p.id).join(',') +
         '|' +
@@ -1288,6 +1296,7 @@ export function createTable(
       clearTimeout(hold);
       observer.disconnect();
       labelsRoot.remove();
+      dice.dispose();
       canvas.removeEventListener('pointerdown', down);
       canvas.removeEventListener('pointerleave',leave);
       canvas.removeEventListener('pointermove', moving);

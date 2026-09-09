@@ -279,6 +279,11 @@ body:has(.immersive-table.hud-menu) .game-topbar .format {
   pointer-events: none;
   overflow: hidden;
 }
+.arena .start-d20{position:absolute;z-index:28;left:50%;top:18px;transform:translateX(-50%);background:#a97630;border:1px solid #ffe0a0;border-radius:25px;padding:12px 24px;color:#fff1cd;font-weight:bold;box-shadow:0 0 24px #e7aa4444;}
+.initiative-overlay{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:14vh 20px 18vh;background:radial-gradient(ellipse,transparent 20%,#08050488);color:#ffe6b4;}
+.initiative-heading{text-align:center;text-shadow:0 3px 16px #000;}.initiative-heading small{letter-spacing:4px;font-size:12px;}.initiative-heading h2{font:36px Georgia;margin:15px;}
+.initiative-results{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}.initiative-results>div{display:flex;align-items:center;gap:10px;padding:12px 18px;background:#171310ee;border:2px solid;border-radius:14px;}.initiative-results i{display:block;width:18px;height:18px;border-radius:50%;border:1px solid #eadac1;}.initiative-results strong{font:32px Georgia;}.initiative-results .winner{box-shadow:0 0 30px #ffcb65;background:#5a3e1bef;}
+@media(max-width:700px){.initiative-heading h2{font-size:25px;}.initiative-results>div{padding:6px 10px;}.arena .start-d20{top:110px;white-space:nowrap;font-size:12px;}}
 .arena .scene-zone-label.rival-attack {
   background: #66291be8;
   color: #ffe2a0;

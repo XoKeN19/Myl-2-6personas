@@ -48,11 +48,13 @@ export type Player = {
   name: string;
   cards: Card[];
   ready: boolean;
+  deckLoaded?: boolean;
   freeMulligan: boolean;
   houseMulligan: boolean;
   temporaryGold?: number;
 };
 export type Room = {
+  initiative?: {id:string;startedAt:number;endsAt:number;winner:string;rounds:{player:string;value:number}[][]};
   defeated?: { id: string; name: string }[];
   revealEvent?: {
     id: string;

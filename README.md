@@ -171,3 +171,9 @@ La distribución coloca Oro pagado encima del Castillo y Reserva debajo; Cemente
 ### Personalizar mazos existentes
 
 Importa tu JSON desde Mis mazos: la vista de cartas permite pulsar cualquier carta y añadir su foto. Guardar carta y mazo guarda también la biblioteca del navegador. Puedes aplicar la foto a las copias con el mismo nombre, tipo y efecto. Exportar JSON completo conserva las imágenes para otro equipo. Se verificó importación de 50 cartas, personalización y recuperación tras recargar en escritorio y móvil.
+
+### Inicio con dados y mesas rivales
+
+La sala espera completar los cupos elegidos (2 a 6). Cuando todos cargan su mazo o preparan su mano, el anfitrión puede pulsar Comenzar · Tirar d20. El servidor sortea el resultado; sólo los empatados repiten y el mayor inicia. La presentación usa dados 3D animados y un aura para el ganador. El reloj empieza al finalizar la tirada. Los colores son negro para el anfitrión, azul, verde, rojo, violeta y naranja.
+
+Las mesas rivales apuntan hacia tu ataque. Reserva y Oro pagado distribuyen sus cartas en una cuadrícula sin superponerlas; puedes pasar el cursor para ampliarlas. Las salas ya iniciadas conservan su estado: para probar el nuevo inicio, crea una sala nueva.

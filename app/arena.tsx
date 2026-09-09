@@ -34,6 +34,7 @@ import { BattlePanel, BattleNotice } from './battle-panel';
 import ResponseTools from './response-tools';
 import BabylonTable from './babylon-table';
 import TableFeedback from './table-feedback';
+import InitiativeBanner from './initiative-banner';
 import CombatLines from './combat-lines';
 import type { Card, Player, Room } from './page';
 
@@ -551,6 +552,8 @@ export default function Arena({
     <div ref={root} className={`arena fixed-table ${table3d ? 'babylon-arena immersive-table' : ''} ${hudPanel ? 'hud-' + hudPanel : ''} ${drag ? 'is-dragging' : ''}`}>
       {table3d && <>
         <TableFeedback room={room} play={play} reduced={reduced}/>
+        <InitiativeBanner room={room}/>
+        {!room.started&&room.host===room.me&&room.players.length===room.capacity&&room.players.every(p=>p.ready||p.deckLoaded)&&<button className="start-d20" disabled={busy} onClick={()=>void act({type:'start'})}>Comenzar · Tirar d20</button>}
         <nav className="table-dock" aria-label="Controles de la partida">
           {[['menu','☰','Menú'],['setup','♧','Preparación'],['actions','⚔','Acciones'],['turn','◷','Turno y sonido']].map(([id,icon,label])=><button key={id} title={label} aria-label={label} aria-expanded={hudPanel===id} className={hudPanel===id?'active':''} onClick={()=>setHudPanel(hudPanel===id?null:id)}><span>{icon}</span><small>{label}</small></button>)}
           <button title="Ver mi mano" aria-label="Ver mi mano" disabled={!me} onClick={()=>me&&openPile(me,'mano')}><Eye size={21}/><small>Mi mano</small></button>
@@ -666,8 +669,8 @@ export default function Arena({
             <button
               disabled={
                 busy ||
-                room.players.length < 2 ||
-                room.players.some((p) => !p.ready)
+                room.players.length < room.capacity ||
+                room.players.some((p) => !p.ready && !p.deckLoaded)
               }
               onClick={() => void act({ type: 'start' })}
             >
