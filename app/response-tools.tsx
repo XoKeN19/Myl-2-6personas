@@ -28,11 +28,12 @@ export default function ResponseTools({ room, act, busy, play }: Props) {
       const live = attacker?.cards.find(
         (c) => c.id === row.cardId && c.zone === 'ataque',
       );
+      const assigned = blockers.find(c => c.blocks === row.cardId);
       return {
         ...row,
         ...(choices[battle.id + row.cardId] || {
-          blocker: '',
-          damage: live?.strength || 0,
+          blocker: assigned?.id || '',
+          damage: Math.max(0, (live?.strength || 0) - (assigned?.strength || 0)),
         }),
       };
     }) || [];

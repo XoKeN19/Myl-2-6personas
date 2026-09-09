@@ -1,0 +1,153 @@
+.arena.babylon-arena {
+  padding: 8px 12px 6px;
+  gap: 6px;
+  background:
+    linear-gradient(#23170fdd, #120d09ee),
+    url('/backgrounds/taberna-cenital.png') center/cover;
+}
+.babylon-stage {
+  position: relative;
+  flex: 1;
+  min-height: 260px;
+  border: 1px solid #78623a;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #080e10;
+}
+.babylon-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+  touch-action: none;
+}
+.babylon-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 96% 2%, #ffb44628, transparent 28%),
+    radial-gradient(ellipse at 1% 88%, #ffc15c20, transparent 24%);
+  animation: candle-breathe 5s ease-in-out infinite alternate;
+}
+@keyframes candle-breathe {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .babylon-stage::after {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+.babylon-canvas:focus-visible {
+  outline: 2px solid #e0c17d;
+  outline-offset: -3px;
+}
+.scene-zone-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.arena .scene-zone-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  border: 0;
+  background: #28190ed9;
+  color: #e6d5a9;
+  font-size: 10px;
+  padding: 2px 5px;
+  white-space: nowrap;
+  border-radius: 3px;
+}
+.arena .scene-player-label {
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #ffe2a0;
+  opacity: 1;
+  padding: 4px 10px;
+  border: 1px solid #ad824c;
+  pointer-events: none;
+}
+.scene-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #0f191bea;
+  color: #eddbb4;
+  z-index: 4;
+}
+.scene-camera {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 5px;
+}
+.scene-camera button,
+.scene-hand-controls button {
+  background: #1b211deb !important;
+  color: #f0d9a6 !important;
+  border-color: #75623c !important;
+}
+.scene-hand-controls {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+  max-width: 98%;
+  overflow-x: auto;
+}
+.scene-hint {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: #c8b995;
+  font-size: 12px;
+  pointer-events: none;
+}
+.babylon-arena .arena-status {
+  font-size: 12px;
+  min-height: 28px;
+}
+.babylon-arena .arena-toolbar {
+  min-height: 40px;
+}
+.babylon-arena .arena-viewbar {
+  min-height: 38px;
+}
+@media (max-width: 700px) {
+  .arena.babylon-arena {
+    padding: 4px;
+    gap: 3px;
+    height: calc(100dvh - 54px);
+  }
+  .scene-hint {
+    display: none;
+  }
+  .scene-hand-controls button {
+    font-size: 11px !important;
+    padding: 6px !important;
+  }
+  .scene-camera button {
+    padding: 5px !important;
+    font-size: 11px !important;
+  }
+  .babylon-stage {
+    min-height: 160px;
+  }
+}

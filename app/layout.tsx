@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import './arena.css';
 import './tavern.css';
+import './babylon-table.css';
 import {MusicProvider} from './tavern-music';
 export const metadata: Metadata = {
   title: 'Mesa Imperio — Mitos y Leyendas',

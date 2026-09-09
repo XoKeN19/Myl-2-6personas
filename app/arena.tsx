@@ -32,7 +32,7 @@ import { useTableMotion } from './table-motion';
 import { useTavernMusic } from './tavern-music';
 import { BattlePanel, BattleNotice } from './battle-panel';
 import ResponseTools from './response-tools';
-import Table3D from './table-3d';
+import BabylonTable from './babylon-table';
 import CombatLines from './combat-lines';
 import type { Card, Player, Room } from './page';
 
@@ -117,9 +117,7 @@ export default function Arena({
   const [costFilter, setCostFilter] = useState('');
   const [handWarning, setHandWarning] = useState(false);
   const [handOpen, setHandOpen] = useState(false);
-  const [table3d, setTable3d] = useState(
-    () => typeof window !== 'undefined' && localStorage.getItem('imperio-table-3d') === 'on',
-  );
+  const [table3d, setTable3d] = useState(true);
   const [blockMode, setBlockMode] = useState(false);
   const [blockSource, setBlockSource] = useState<string | null>(null);
   const [enlarged, setEnlarged] = useState(false);
@@ -547,7 +545,7 @@ export default function Arena({
     );
   }
   return (
-    <div ref={root} className={`arena fixed-table ${drag ? 'is-dragging' : ''}`}>
+    <div ref={root} className={`arena fixed-table ${table3d ? 'babylon-arena' : ''} ${drag ? 'is-dragging' : ''}`}>
       <div className="arena-toolbar">
         <div className="arena-room">
           <span>MESA LIBRE · {room.code}</span>
@@ -677,20 +675,11 @@ export default function Arena({
         <span>
           <Hand size={14} /> Arrastra para jugar · Clic para ver acciones
         </span>
-        <button
-          aria-pressed={table3d}
-          title="Perspectiva, luz y partículas. Puedes desactivarlo si prefieres rendimiento."
-          onClick={() => {
-            const next = !table3d;
-            setTable3d(next);
-            localStorage.setItem('imperio-table-3d', next ? 'on' : 'off');
-          }}
-        >
-          {table3d ? '◈ 3D activo' : '◈ Vista 3D'}
-        </button>
+        {!table3d && <button onClick={() => setTable3d(true)}>Reintentar mesa 3D</button>}
         {!spectator && <button className={blockMode ? 'block-mode active' : 'block-mode'} onClick={() => { setBlockMode(!blockMode); setBlockSource(null); }}>
           {blockMode ? (blockSource ? 'Bloquear: elige defensor' : 'Bloquear: elige atacante') : '⌁ Bloqueo'}
         </button>}
+        {table3d && me && <button onClick={() => setBattleOpen(true)}>Atacar · {me.cards.filter(c=>c.zone==='ataque'&&c.type==='Aliado').reduce((sum,c)=>sum+c.strength,0)} ⚔</button>}
         {me && (
           <button
             disabled={busy}
@@ -705,7 +694,25 @@ export default function Arena({
           </button>
         )}
       </div>
-      <Table3D enabled={table3d}>
+      {table3d ? <BabylonTable room={room} focus={focus} busy={busy} fallback={() => setTable3d(false)} callbacks={{
+        select: (c,p) => {
+          if(blockMode){
+            if(c.zone==='ataque' && p.id!==room.me){setBlockSource(c.id);return;}
+            if(c.zone==='defensa' && p.id===room.me && blockSource){void act({type:'block',cardId:c.id,attacker:blockSource});setBlockSource(null);return;}
+          }
+          setSelected({id:c.id,player:p.id});setPile(null);
+        },
+        pile: openPile,
+        move: (c,p,z,to) => move(c,p.id,z,to.id),
+        playCard: (c,p) => {if(busy||p.id!==room.me)return;
+          if(c.zone==='mano')void move(c,p.id,c.type==='Aliado'?'defensa':c.type==='Oro'?'reserva':c.type==='Talismán'?'cementerio':'apoyo',p.id);
+          else if(c.type==='Oro'&&['reserva','pagado'].includes(c.zone))void move(c,p.id,c.zone==='reserva'?'pagado':'reserva',p.id);
+          else {setSelected({id:c.id,player:p.id});setPile(null);}
+        },
+        draw: () => {if(!busy&&me)void act({type:'freeDraw',count:1});},
+        attach: (c,h) => {if(!busy)void act({type:'attach',cardId:c.id,hostId:h.id});},
+        sound: play,
+      }}/> : <>
       <div
         className={`arena-boards players-${focus === 'all' ? room.players.length : 1}`}
       >
@@ -752,7 +759,6 @@ export default function Arena({
             </article>
           ))}
       </div>
-      </Table3D>
       <CombatLines revision={room.revision} blocks={room.players.flatMap(player => player.cards.filter(card => card.blocks).map(card => ({ defender: card.id, attacker: card.blocks! })))} />
       {me && <div className={`hand-drawer ${handOpen ? 'open' : ''} ${drag ? 'dragging-hand' : ''}`}>
         <button className="hand-drawer-toggle" aria-expanded={handOpen} aria-controls="my-hand-tray" onClick={() => setHandOpen(!handOpen)} data-drop-zone="mano" data-drop-player={me.id}>
@@ -762,6 +768,7 @@ export default function Arena({
           {zone(me, 'mano')}
         </div>
       </div>}
+      </>}
       <div className="arena-status">
         <span>{room.log[0]?.message || 'Mesa preparada'}</span>
         <button disabled={spectator} onClick={onCreate}>

@@ -156,7 +156,11 @@ Mis mazos permite seleccionar una carta existente, editarla y subir una foto o t
 
 ## Mesa 3D e interacción directa
 
-El botón **Vista 3D** activa una perspectiva original de la mesa, luz cálida y partículas ligeras. Se guarda por navegador y se puede apagar para priorizar rendimiento; en móvil y con reducción de movimiento evita la inclinación. Las cartas siguen siendo controles normales: arrastra para mover, haz doble clic en una carta de Mano para jugarla en la zona sugerida, clic derecho para abrir sus acciones y mantén pulsada una carta en móvil para verla. El modo **Bloqueo** permite elegir un atacante rival y luego un Aliado propio en Defensa; una línea ámbar muestra la asignación a ambos jugadores.
+La partida abre una escena WebGL de **Babylon.js**, con cámara cenital ortográfica, cartas con frente y reverso, luz y sombras. Tu mesa se muestra grande y los rivales arriba, reducidos; puedes enfocar cualquier jugador. El fondo de taberna fue proporcionado por el usuario. La cámara permanece fija al mover el ratón; usa acercar, alejar o centrar para ajustar la vista. El motor se carga al entrar en una partida y reduce el renderizado cuando la escena permanece quieta. La vista clásica sólo se ofrece como recuperación si falla WebGL.
+
+Arrastra las cartas entre zonas; suéltalas sobre un Aliado para equipar un Arma. Haz doble clic en una carta de Mano para jugarla en la zona sugerida, o en un Oro para pagarlo/agruparlo. Doble clic en tu Castillo roba una carta. Clic simple, clic derecho o pulsación larga abre las acciones. La mano puede ocultarse y también abrirse en una ventana. **Atacar** conserva la asignación por rival y la respuesta del defensor. **Bloqueo** permite elegir un atacante rival y luego un Aliado propio en Defensa; una línea ámbar muestra la asignación.
+
+La distribución coloca Oro pagado encima del Castillo y Reserva debajo; Cementerio y Destierro a su izquierda, y Ataque, Defensa y Apoyo a la derecha. La vista admite de dos a seis participantes y permite enfocar una mesa para leerla mejor. Las salas, permisos, mazos con fotos y reglas manuales siguen utilizando el servidor existente: esta migración no incorpora Colyseus ni cambia el formato JSON. No utiliza físicas de colisión; los movimientos se ajustan a las zonas y se animan. En pantallas pequeñas se recomienda enfocar un jugador y abrir la mano en su ventana.
 
 ### Personalizar mazos existentes
 

@@ -15,6 +15,7 @@
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
+    "@babylonjs/core": "9.25.0",
     "@base-ui/react": "1.7.0",
     "@shadcn/react": "0.3.0",
     "class-variance-authority": "0.7.1",
