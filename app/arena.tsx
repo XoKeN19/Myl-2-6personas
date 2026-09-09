@@ -643,21 +643,6 @@ export default function Arena({
       {!room.started && (
         <div className="arena-setup">
           <span>Preparación de la partida</span>
-          <div className="setup-readiness" aria-live="polite">
-            <strong>Esperando a que los jugadores armen sus mazos</strong>
-            {room.players.map((player) => (
-              <span
-                key={player.id}
-                className={player.ready || player.deckLoaded ? 'ready' : ''}
-              >
-                {player.name}: {player.ready || player.deckLoaded ? 'mazo listo' : 'preparando mazo'}
-              </span>
-            ))}
-            {room.players.length < room.capacity && (
-              <span>Faltan {room.capacity - room.players.length} jugador(es) por entrar.</span>
-            )}
-            {!spectator && !me?.ready && <button onClick={onDeck}>Ir a Mis mazos</button>}
-          </div>
           <button disabled={spectator || me?.ready} onClick={onDeck}>
             Cargar mazo
           </button>

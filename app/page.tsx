@@ -408,6 +408,10 @@ export default function Home() {
       setNotice(`Código de sala: ${room?.code}`);
     }
   }
+  const playersPreparing =
+    room && !room.started
+      ? room.players.filter((player) => !player.ready && !player.deckLoaded)
+      : [];
   return (
     <>
       <header className={`topbar ${room ? 'game-topbar' : ''}`}>
@@ -448,6 +452,20 @@ export default function Home() {
             ×
           </button>
         </output>
+      )}
+      {room && playersPreparing.length > 0 && (
+        <section className="preparation-banner" aria-live="polite">
+          <div>
+            <strong>Esperando a que los jugadores armen sus mazos</strong>
+            <span>
+              {playersPreparing.map((player) => player.name).join(', ')}{' '}
+              {playersPreparing.length === 1 ? 'está preparando su mazo.' : 'están preparando sus mazos.'}
+            </span>
+          </div>
+          {room.role !== 'spectator' && !room.players.find((p) => p.id === room.me)?.ready && (
+            <button onClick={() => setDeck(true)}>Ir a Mis mazos</button>
+          )}
+        </section>
       )}
       {!room ? (
         <main className="lobby">

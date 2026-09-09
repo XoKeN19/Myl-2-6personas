@@ -53,5 +53,15 @@ test('Una sala de tres espera al tercero antes de comenzar', () => {
  assert.equal(r.started,false);
  r.players.push(player('C'));r.players[2].deckLoaded=true;
  action(r,r.players[0].token,{type:'start'});
- assert.equal(r.initiative.rounds[0].length,3);
+  assert.equal(r.initiative.rounds[0].length,3);
+});
+
+test('Crear una carta marca al jugador como mazo preparado', () => {
+  const room = createRoom('A', 2), playerA = room.players[0];
+  assert.equal(playerA.deckLoaded, undefined);
+  action(room, playerA.token, {
+    type: 'add',
+    card: { name: 'Aliado de prueba', type: 'Aliado', zone: 'mano' },
+  });
+  assert.equal(playerA.deckLoaded, true);
 });

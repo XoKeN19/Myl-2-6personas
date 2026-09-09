@@ -683,6 +683,27 @@ button svg {
 .banner button {
   padding: 2px 10px;
 }
+.preparation-banner {
+  position: fixed;
+  z-index: 46;
+  top: 66px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: min(680px, calc(100vw - 28px));
+  padding: 10px 16px;
+  border: 1px solid #b78b44;
+  border-radius: 12px;
+  background: #20170fec;
+  box-shadow: 0 12px 34px #0008;
+  color: #e8d6ad;
+}
+.preparation-banner div { display: grid; gap: 2px; }
+.preparation-banner strong { color: #f5cf75; }
+.preparation-banner span { font-size: 13px; }
+.preparation-banner button { white-space: nowrap; }
 .warning {
   color: #f1bc89;
   margin-top: 14px;
