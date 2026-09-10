@@ -59,17 +59,17 @@ function addCatalogPhotos(cards: Entry[], catalog: CatalogCard[]) {
 }
 
 export default function DeckManager({ open, onOpenChange, loadRoom, importRoom }: { open: boolean; onOpenChange: (v: boolean) => void; loadRoom?: () => Promise<unknown>; importRoom?: (d: Deck) => Promise<boolean> }) {
-  const [catalog, setCatalog] = useState<CatalogCard[]>([]), [imageIndex, setImageIndex] = useState<CatalogCard[]>([]), [catalogError, setCatalogError] = useState('');
+  const [catalog, setCatalog] = useState<CatalogCard[]>([]), [imageIndex, setImageIndex] = useState<CatalogCard[]>([]), [torImageIndex, setTorImageIndex] = useState<CatalogCard[]>([]), [catalogError, setCatalogError] = useState('');
   const [name, setName] = useState('Mi mazo'), [cards, setCards] = useState<Entry[]>([]), [library, setLibrary] = useState<Deck[]>([]);
   const [query, setQuery] = useState(''), [edition, setEdition] = useState('Todas'), [type, setType] = useState('Todas'), [race, setRace] = useState('Todas'), [cost, setCost] = useState('Todos');
   const [selected, setSelected] = useState<CatalogCard | null>(null), [message, setMessage] = useState(''), [showTools, setShowTools] = useState(false);
 
   useEffect(() => { if (!open) return; void (async () => {
     try {
-      const [catalogResponse, imagesResponse] = await Promise.all([fetch('/catalogs/myths-imperio.json'), fetch('/catalogs/myths-image-index.json')]);
-      if (!catalogResponse.ok || !imagesResponse.ok) throw Error();
-      const [catalogData, imagesData] = await Promise.all([catalogResponse.json(), imagesResponse.json()]) as [{ cards?: CatalogCard[] }, { cards?: CatalogCard[] }];
-      setCatalog(catalogData.cards || []); setImageIndex(imagesData.cards || []);
+      const [catalogResponse, imagesResponse, torResponse] = await Promise.all([fetch('/catalogs/myths-imperio.json'), fetch('/catalogs/myths-image-index.json'), fetch('/catalogs/tor-imperio-image-index.json')]);
+      if (!catalogResponse.ok || !imagesResponse.ok || !torResponse.ok) throw Error();
+      const [catalogData, imagesData, torData] = await Promise.all([catalogResponse.json(), imagesResponse.json(), torResponse.json()]) as [{ cards?: CatalogCard[] }, { cards?: CatalogCard[] }, { cards?: CatalogCard[] }];
+      setCatalog(catalogData.cards || []); setImageIndex(imagesData.cards || []); setTorImageIndex(torData.cards || []);
     } catch { setCatalogError('No se pudo abrir el catálogo. Recarga e inténtalo de nuevo.'); }
     try { const saved = (await deckStorage()) ?? JSON.parse(localStorage.getItem(key) || '[]'); setLibrary(Array.isArray(saved) ? saved : []); } catch { setMessage('No se pudo leer la biblioteca guardada de este navegador.'); }
   })(); }, [open]);
@@ -81,7 +81,7 @@ export default function DeckManager({ open, onOpenChange, loadRoom, importRoom }
   const copies = (card: Entry) => cards.filter((entry) => cardKey(entry) === cardKey(card)).length;
   const add = (card: CatalogCard) => { if (cards.length >= 50) return setMessage('El mazo ya tiene 50 cartas. Quita una antes de añadir otra.'); setCards((old) => [...old, { ...card }]); setMessage(`${card.name} añadida (${cards.length + 1}/50).`); };
   const remove = (card: Entry) => { const index = cards.map(cardKey).lastIndexOf(cardKey(card)); if (index >= 0) setCards((old) => old.filter((_, i) => i !== index)); };
-  const photoCatalog = useMemo(() => [...catalog, ...imageIndex.filter((card) => !catalog.some((imperio) => imperio.id === card.id))], [catalog, imageIndex]);
+  const photoCatalog = useMemo(() => [...torImageIndex, ...catalog, ...imageIndex.filter((card) => !catalog.some((imperio) => imperio.id === card.id))], [catalog, imageIndex, torImageIndex]);
   useEffect(() => {
     if (!photoCatalog.length) return;
     setCards((old) => addCatalogPhotos(old, photoCatalog));

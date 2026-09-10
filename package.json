@@ -13,6 +13,7 @@
     "format": "oxfmt",
     "api": "node server.mjs",
     "catalog:imperio": "node scripts/import-myths-imperio.mjs",
+    "catalog:tor": "node scripts/import-tor-imperio.mjs",
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
