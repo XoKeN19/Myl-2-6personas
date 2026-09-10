@@ -17,6 +17,8 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 type Entry = {
+  id?: string;
+  edition?: string;
   image?: string;
   name: string;
   type: string;
@@ -26,6 +28,7 @@ type Entry = {
   strength: number;
 };
 type Deck = { version: 1; name: string; cards: Entry[] };
+type CatalogCard = Entry & { id: string; edition: string };
 const empty: Entry = {
   name: '',
   type: 'Aliado',
@@ -85,7 +88,9 @@ export default function DeckManager({
     [library, setLibrary] = useState<Deck[]>([]),
     [draft, setDraft] = useState(empty),
     [quantity, setQuantity] = useState(1),
-    [message, setMessage] = useState('');
+    [message, setMessage] = useState(''),
+    [catalog, setCatalog] = useState<CatalogCard[] | null>(null),
+    [catalogQuery, setCatalogQuery] = useState('');
   const photo = useRef<CardPhotoHandle>(null);
   useEffect(() => {
     if (open)
@@ -117,6 +122,29 @@ export default function DeckManager({
     setName(d.name);
     setText(JSON.stringify(d.cards, null, 2));
     setMessage(`${d.cards.length} cartas cargadas`);
+  }
+  async function openImperioCatalog() {
+    try {
+      if (!catalog) {
+        const response = await fetch('/catalogs/myths-imperio.json');
+        if (!response.ok) throw Error('No se pudo cargar el catálogo Imperio.');
+        const data = (await response.json()) as { cards?: CatalogCard[] };
+        setCatalog(data.cards || []);
+      }
+      setMessage('Catálogo Imperio listo: busca una carta y añádela al mazo.');
+    } catch (e) {
+      setMessage((e as Error).message);
+    }
+  }
+  function addCatalogCard(card: CatalogCard) {
+    run(() => {
+      const deck = current();
+      if (deck.cards.length >= 50)
+        throw Error('El mazo ya tiene 50 cartas. Quita una antes de añadir otra.');
+      const cards = [...deck.cards, { ...card }];
+      setText(JSON.stringify(cards, null, 2));
+      setMessage(`${card.name} añadida al mazo (${cards.length}/50).`);
+    });
   }
   function exportFile() {
     run(() => {
@@ -155,6 +183,9 @@ export default function DeckManager({
             onClick={() => setPersonalize(!personalize)}
           >
             {personalize ? 'Ocultar vista de cartas' : 'Personalizar mazo'}
+          </button>
+          <button onClick={() => void openImperioCatalog()}>
+            Explorar catálogo Imperio
           </button>
         </div>
         <label>
@@ -222,6 +253,48 @@ export default function DeckManager({
             Copiar JSON
           </button>
         </div>
+        {catalog && (
+          <section className="imperio-catalog">
+            <div className="catalog-heading">
+              <div>
+                <h3>Catálogo Imperio · {catalog.length} cartas</h3>
+                <p>Portadas autorizadas por el administrador de Myths.</p>
+              </div>
+              <button onClick={() => setCatalog(null)}>Cerrar catálogo</button>
+            </div>
+            <input
+              aria-label="Buscar carta Imperio"
+              value={catalogQuery}
+              onChange={(e) => setCatalogQuery(e.target.value)}
+              placeholder="Buscar por nombre, código, raza o edición"
+            />
+            <div className="imperio-catalog-grid">
+              {catalog
+                .filter((card) =>
+                  `${card.id} ${card.name} ${card.race} ${card.edition}`
+                    .toLocaleLowerCase('es')
+                    .includes(catalogQuery.toLocaleLowerCase('es').trim()),
+                )
+                .slice(0, 80)
+                .map((card) => (
+                  <button
+                    key={card.id}
+                    className="imperio-catalog-card"
+                    onClick={() => addCatalogCard(card)}
+                    title={`Añadir ${card.name}`}
+                  >
+                    <img src={card.image} alt="" loading="lazy" />
+                    <span>{card.id}</span>
+                    <strong>{card.name}</strong>
+                    <small>
+                      {card.type} · {card.cost}
+                      {card.type === 'Aliado' ? ` · ${card.strength} fuerza` : ''}
+                    </small>
+                  </button>
+                ))}
+            </div>
+          </section>
+        )}
         {library.length > 0 && (
           <section>
             <h3>Guardados en este navegador</h3>
