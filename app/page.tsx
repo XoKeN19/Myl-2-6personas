@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import DeckManager from './deck-manager';
 import Arena from './arena';
+import { ImperioTutorial, InterfaceTutorial, NewPlayerQuestion } from './tutorials';
 import { useTavernMusic } from './tavern-music';
 import {
   Shield,
@@ -189,7 +190,10 @@ export default function Home() {
     [rules, setRules] = useState(false),
     [deck, setDeck] = useState(false),
     [notice, setNotice] = useState(''),
-    [canResume, setCanResume] = useState(false);
+    [canResume, setCanResume] = useState(false),
+    [newPlayerQuestion, setNewPlayerQuestion] = useState(false),
+    [interfaceTutorial, setInterfaceTutorial] = useState(false),
+    [imperioTutorial, setImperioTutorial] = useState(false);
   const actionBusy = useRef(false);
   const request = useCallback(
     async (url: string, body?: unknown, auth = '') => {
@@ -231,6 +235,10 @@ export default function Home() {
   useEffect(() => {
     queueMicrotask(() => {
       const q = new URLSearchParams(location.search);
+      if (q.get('tutorial') === 'imperio') setImperioTutorial(true);
+      if (!q.get('sala') && q.get('tutorial') !== 'imperio' && !localStorage.getItem('mesa-imperio-onboarding')) {
+        setNewPlayerQuestion(true);
+      }
       setCode(q.get('sala') || '');
       try {
         const s = JSON.parse(
@@ -384,6 +392,19 @@ export default function Home() {
     setCanResume(true);
     history.replaceState(null, '', location.pathname);
   }
+  function startImperioTutorial() {
+    setImperioTutorial(true);
+    history.replaceState(null, '', '?tutorial=imperio');
+  }
+  function leaveImperioTutorial() {
+    setImperioTutorial(false);
+    history.replaceState(null, '', location.pathname);
+  }
+  function answerNewPlayer(wantsGuide: boolean) {
+    localStorage.setItem('mesa-imperio-onboarding', 'done');
+    setNewPlayerQuestion(false);
+    if (wantsGuide) setInterfaceTutorial(true);
+  }
   async function resumeRoom() {
     try {
       const saved = JSON.parse(
@@ -415,7 +436,7 @@ export default function Home() {
   return (
     <>
       <header className={`topbar ${room ? 'game-topbar' : ''}`}>
-        {!room && (
+        {!room && !imperioTutorial && (
           <button title={music.status} onClick={music.toggle}>
             {music.playing ? '♫ Pausar música' : '♫ Reproducir música'}
           </button>
@@ -427,7 +448,7 @@ export default function Home() {
           </span>
         </div>
         <span className="format">Mitos y Leyendas · Mesa asistida</span>
-        <button onClick={() => setDeck(true)}>Mis mazos</button>
+        {!imperioTutorial && <button onClick={() => setDeck(true)}>Mis mazos</button>}
         <button onClick={() => setRules(true)}>
           <BookOpen size={16} /> Reglas y ayuda
         </button>
@@ -437,6 +458,8 @@ export default function Home() {
           </button>
         )}
       </header>
+      <NewPlayerQuestion open={newPlayerQuestion} answer={answerNewPlayer} />
+      <InterfaceTutorial open={interfaceTutorial} onOpenChange={setInterfaceTutorial} />
       {error && (
         <div className="banner error" role="alert">
           {error}
@@ -467,7 +490,7 @@ export default function Home() {
           )}
         </section>
       )}
-      {!room ? (
+      {imperioTutorial ? <ImperioTutorial onExit={leaveImperioTutorial} /> : !room ? (
         <main className="lobby">
           {canResume && (
             <button className="primary" onClick={() => void resumeRoom()}>
@@ -563,6 +586,12 @@ export default function Home() {
                 Proyecto de aficionados, sin afiliación oficial. Las habilidades
                 se resuelven de común acuerdo.
               </small>
+              <div className="learn-imperio">
+                <BookOpen size={30} />
+                <div><b>¿Sabes jugar Imperio?</b><span>Aprende las zonas, fases, recursos y combate en una mesa guiada.</span></div>
+                <button className="primary" onClick={startImperioTutorial}>Entrar al tutorial</button>
+                <button onClick={() => setInterfaceTutorial(true)}>Tutorial de interfaz</button>
+              </div>
             </section>
           </div>
         </main>
