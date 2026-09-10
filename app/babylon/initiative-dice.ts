@@ -47,6 +47,8 @@ export function initiativeDice(scene: Scene, shadows: ShadowGenerator) {
       player: string;
       x: number;
       height: number;
+      spin: Vector3;
+      drift: number;
     }[] = [],
     aura: Mesh | undefined,
     auraMat: StandardMaterial | undefined;
@@ -142,6 +144,10 @@ export function initiativeDice(scene: Scene, shadows: ShadowGenerator) {
         player: row.player,
         x: (i - (rows.length - 1) / 2) * 2.8,
         height: -bottom + 0.03,
+        // Each die uses a different angular path so a multiplayer throw does
+        // not look like one object duplicated across the table.
+        spin: new Vector3(17.5 + (i % 3) * 3.2, 13.4 + (i % 4) * 2.7, 20.2 + (i % 5) * 2.1),
+        drift: i % 2 ? 0.4 : -0.4,
       });
     });
     auraMat = new StandardMaterial('initiative-aura', scene);
@@ -175,26 +181,29 @@ export function initiativeDice(scene: Scene, shadows: ShadowGenerator) {
         key = nextKey;
         build(event.rounds[round]);
       }
-      // Un solo arco y un giro continuo: el anterior usaba tres rebotes y por
-      // eso daba la sensación de que el dado repetía el mismo movimiento.
+      // Throw, rebound and settle: a continuous path with one short physical
+      // bounce reads as a real d20 roll without the old repeating rotations.
       const t = reduced ? 1 : Math.min(1, (elapsed - round * 4400) / 3400);
       for (const d of dice) {
+        const roll = Math.min(1, t / 0.76);
+        const rebound = t < 0.76 ? 0 : Math.sin(((t - 0.76) / 0.24) * Math.PI) * 0.26;
+        const travel = 1 - roll;
         d.body.position.set(
-          d.x - 3 * (1 - t),
+          d.x - 3.8 * travel + d.drift * Math.sin(roll * Math.PI),
           d.height +
-            3 * (1 - t) +
-            Math.sin(t * Math.PI) * 2.4 * (1 - t),
-          -4 * (1 - t),
+            3.5 * travel +
+            Math.sin(roll * Math.PI) * 2.15 * travel + rebound,
+          -4.8 * travel + d.drift * Math.sin(roll * Math.PI),
         );
         const spin = Quaternion.FromEulerAngles(
-          Math.min(t, 0.84) * 15.7,
-          Math.min(t, 0.84) * 12.6,
-          Math.min(t, 0.84) * 18.8,
+          roll * d.spin.x,
+          roll * d.spin.y,
+          roll * d.spin.z,
         );
         d.body.rotationQuaternion =
-          t < 0.84
+          t < 0.76
             ? spin
-            : Quaternion.Slerp(spin, d.settle, (t - 0.84) / 0.16);
+            : Quaternion.Slerp(spin, d.settle, (t - 0.76) / 0.24);
         if (
           d.player === event.winner &&
           t === 1 &&

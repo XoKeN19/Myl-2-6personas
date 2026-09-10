@@ -14,6 +14,7 @@ export function useTableMotion(revision: number, latestEvent: string) {
   const previous = useRef(new Map<string, DOMRect>());
   const previousEvent = useRef('');
   const audio = useRef<AudioContext | null>(null);
+  const diceAudio = useRef<HTMLAudioElement | null>(null);
   const lastHoverSound = useRef(0);
   const [sound, updateSound] = useState(true);
   const setSound = (enabled: boolean) => {
@@ -70,9 +71,19 @@ export function useTableMotion(revision: number, latestEvent: string) {
         | 'victory'
         | 'grave'
         | 'banish'
-        | 'attack',
+        | 'attack'
+        | 'dice',
     ) => {
       if (!sound) return;
+      if (kind === 'dice') {
+        try {
+          diceAudio.current ??= new Audio('/sounds/dados.mp3');
+          diceAudio.current.volume = 0.45;
+          diceAudio.current.currentTime = 0;
+          void diceAudio.current.play();
+        } catch {}
+        return;
+      }
       if(kind==='hover'){const now=performance.now();if(now-lastHoverSound.current<110)return;lastHoverSound.current=now;}
       try {
         audio.current ??= new AudioContext();

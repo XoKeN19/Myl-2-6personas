@@ -409,6 +409,10 @@ export function createTable(
         key: seat.player.id + ':name',
       });
       for (const [zone, s] of Object.entries(slots)) {
+        // Hands have their own fan at the front of each player's field.
+        // Rendering them again in the central slot made the rival's backs
+        // overlap the board or fall outside the camera on two-player tables.
+        if (zone === 'mano') continue;
         const mesh = MeshBuilder.CreateBox(
           'zone-' + seat.player.id + '-' + zone,
           {
@@ -807,7 +811,10 @@ export function createTable(
               seat,
               (i - (hand.length - 1) / 2) *
                 Math.min(0.9, 10 / Math.max(1, hand.length)),
-              -6.1,
+              // Rivals are rotated 180°. Their front edge points toward the
+              // centre of the table, which is +Z in their local coordinates.
+              // This keeps the card backs visible and clickable for a request.
+              6.1,
               0.09,
             ),
             seat.angle,

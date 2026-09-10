@@ -168,6 +168,13 @@ export default function Arena({
     room.revision,
     room.log[0]?.id + ' ' + room.log[0]?.message,
   );
+  const initiativeSound = useRef('');
+  useEffect(() => {
+    const event = room.initiative;
+    if (!event || initiativeSound.current === event.id) return;
+    initiativeSound.current = event.id;
+    play('dice');
+  }, [room.initiative, play]);
   const timeOffset = useRef(0);
   useEffect(() => {
     timeOffset.current = room.serverTime - Date.now();
