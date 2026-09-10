@@ -10,6 +10,8 @@ type Deck = { version: 1; name: string; cards: Entry[] };
 type CatalogCard = Entry & { id: string; edition: string };
 const key = 'imperio-decks-v1';
 const types = ['Todas', 'Aliado', 'Arma', 'Tótem', 'Talismán', 'Oro'];
+const normalized = (value: string) =>
+  value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
 
 function parse(text: string): Deck {
   const raw = JSON.parse(text), cards = Array.isArray(raw) ? raw : raw.cards;
@@ -36,7 +38,24 @@ export default function DeckManager({ open, onOpenChange, loadRoom, importRoom }
   const copies = (card: Entry) => cards.filter((entry) => cardKey(entry) === cardKey(card)).length;
   const add = (card: CatalogCard) => { if (cards.length >= 50) return setMessage('El mazo ya tiene 50 cartas. Quita una antes de añadir otra.'); setCards((old) => [...old, { ...card }]); setMessage(`${card.name} añadida (${cards.length + 1}/50).`); };
   const remove = (card: Entry) => { const index = cards.map(cardKey).lastIndexOf(cardKey(card)); if (index >= 0) setCards((old) => old.filter((_, i) => i !== index)); };
-  const fill = (deck: Deck) => { setName(deck.name); setCards(deck.cards); setMessage(`«${deck.name}» cargado: ${deck.cards.length}/50 cartas.`); };
+  const decorateDeck = (deck: Deck): Deck => ({
+    ...deck,
+    cards: deck.cards.map((card) => {
+      if (card.image) return card;
+      const match = catalog.find((item) => normalized(item.name) === normalized(card.name));
+      return match ? { ...card, id: card.id || match.id, edition: card.edition || match.edition, image: match.image } : card;
+    }),
+  });
+  const coverFor = (deck: Deck) => {
+    const pictured = deck.cards.find((card) => card.image)?.image;
+    if (pictured) return pictured;
+    const matched = deck.cards.map((card) => catalog.find((item) => normalized(item.name) === normalized(card.name))).find(Boolean);
+    if (matched?.image) return matched.image;
+    const words = normalized(`${deck.name} ${deck.cards.map((card) => card.race).join(' ')}`);
+    const race = ['dragon', 'guerrero', 'heroe', 'caballero', 'sacerdote', 'bestia'].find((value) => words.includes(value));
+    return catalog.find((card) => race && normalized(card.race).includes(race))?.image || catalog[0]?.image;
+  };
+  const fill = (deck: Deck) => { const decorated = decorateDeck(deck); setName(decorated.name); setCards(decorated.cards); setMessage(`«${decorated.name}» cargado: ${decorated.cards.length}/50 cartas.`); };
   const draft = (): Deck => ({ version: 1, name: name.trim() || 'Mi mazo', cards });
   const save = async () => { const deck = draft(), saved = [deck, ...library.filter((item) => item.name !== deck.name)].slice(0, 30); await deckStorage(saved); setLibrary(saved); setMessage(`«${deck.name}» quedó guardado en este navegador.`); };
   const exportDeck = () => { const deck = draft(), url = URL.createObjectURL(new Blob([JSON.stringify(deck, null, 2)], { type: 'application/json' })), a = document.createElement('a'); a.href = url; a.download = `${deck.name.replace(/[^\p{L}\p{N}_-]/gu, '-')}.json`; a.click(); URL.revokeObjectURL(url); };
@@ -51,7 +70,7 @@ export default function DeckManager({ open, onOpenChange, loadRoom, importRoom }
       <p className="catalog-result">{catalogError || (catalog.length ? `${filtered.length}${filtered.length === 160 ? '+' : ''} cartas encontradas` : 'Cargando catálogo Imperio…')}</p>
       <div className="builder-card-grid">{filtered.map((card) => <article key={card.id} className="builder-card"><button className="builder-card-image" onClick={() => setSelected(card)} aria-label={`Ver ${card.name}`}><img src={card.image} alt={`Carta ${card.name}`} loading="lazy" /></button><div><strong>{card.name}</strong><small>{card.type} · {card.cost}{card.type === 'Aliado' ? ` · ${card.strength} fuerza` : ''}</small></div><button className="builder-add" onClick={() => add(card)} aria-label={`Añadir ${card.name}`}>＋ <span>{copies(card)}</span></button></article>)}</div>
     </section><aside className="deck-list-panel"><header><h3>Tu mazo</h3><button disabled={!cards.length} onClick={() => setCards([])}>Vaciar</button></header>{!cards.length ? <p className="deck-empty">Elige cartas del catálogo para empezar.</p> : <div className="deck-list">{Array.from(new Map(cards.map((card) => [cardKey(card), card])).values()).map((card) => <article key={cardKey(card)}>{card.image ? <img src={card.image} alt="" /> : <span className="card-fallback">{card.type}</span>}<div><strong>{card.name}</strong><small>{card.type} · coste {card.cost}</small></div><b>×{copies(card)}</b><button onClick={() => remove(card)} aria-label={`Quitar ${card.name}`}>−</button></article>)}</div>}{importRoom && <button className="primary wide" disabled={cards.length !== 50} onClick={async () => { if (await importRoom(draft())) { setMessage('Mazo cargado para jugar.'); onOpenChange(false); } }}>Usar este mazo en la sala</button>}</aside></div>
-    {library.length > 0 && <section className="saved-decks"><h3>Mis mazos guardados</h3>{library.map((deck, index) => <button key={`${deck.name}-${index}`} onClick={() => fill(deck)}>{deck.name}<small>{deck.cards.length} cartas</small></button>)}</section>}
+    {library.length > 0 && <section className="saved-decks"><h3>Mis mazos guardados</h3>{library.map((deck, index) => <button key={`${deck.name}-${index}`} onClick={() => fill(deck)}>{coverFor(deck) ? <img src={coverFor(deck)} alt="" /> : <span>◈</span>}<b>{deck.name}</b><small>{deck.cards.length} cartas</small></button>)}</section>}
     <div className="deck-tools"><button onClick={() => setShowTools(!showTools)}>{showTools ? 'Ocultar herramientas' : 'Importar, exportar y personalizar fotos'}</button></div>
     {showTools && <section className="deck-extra-tools"><div className="actions"><label className="file-button">Importar JSON<input type="file" accept=".json" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; try { fill(parse(await file.text())); } catch (error) { setMessage((error as Error).message); } }} /></label><button onClick={exportDeck}>Exportar JSON</button>{loadRoom && <button onClick={async () => { try { fill((await loadRoom()) as Deck); } catch (error) { setMessage((error as Error).message); } }}>Recuperar mazo de la sala</button>}</div>{cards.length > 0 && <DeckGallery cards={cards} onSave={async (index, card, all) => { const original = cards[index], updated = cards.map((entry, i) => i === index || (all && entry.name === original.name && entry.type === original.type && entry.effect === original.effect) ? { ...entry, image: card.image } : entry); setCards(updated); setMessage('Las fotos quedaron aplicadas al mazo. Pulsa Guardar para conservarlo.'); }} />}</section>}
     {selected && <Dialog open onOpenChange={(isOpen) => !isOpen && setSelected(null)}><DialogContent className="modal builder-detail"><DialogTitle>{selected.name}</DialogTitle><img src={selected.image} alt={`Carta ${selected.name}`} /><p><b>{selected.edition} · {selected.id}</b><br />{selected.type} · coste {selected.cost}{selected.type === 'Aliado' ? ` · fuerza ${selected.strength}` : ''}<br />{selected.race}</p><p>{selected.effect || 'Sin texto de efecto disponible.'}</p><button className="primary wide" onClick={() => add(selected)}>Añadir al mazo</button></DialogContent></Dialog>}
