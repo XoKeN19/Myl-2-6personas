@@ -1,0 +1,514 @@
+{
+  "version": 1,
+  "name": "Guerrero — Imperio corregido",
+  "cards": [
+    {
+      "name": "Armería del guerrero",
+      "type": "Oro",
+      "effect": "Oro Inicial. Al comienzo del turno oponente baraja y/o destierra hasta dos cartas del cementerio. Los jugadores no pueden poner Oro en juego por efectos si ya pusieron Oro en juego por efectos durante esta partida. Tus Aliados de coste uno o más ganan uno de Fuerza.",
+      "race": "",
+      "cost": 0,
+      "strength": 0
+    },
+    {
+      "name": "Karna",
+      "type": "Aliado",
+      "effect": "Retador. Cuando este Aliado entra en juego, si todos los Aliados que controlas son de raza Guerrero o Dragón, busca un Aliado en tu Mazo Castillo y ponlo en tu mano. Luego tu oponente bota dos cartas. En tu Fase Final puedes desterrar hasta una carta del cementerio oponente. Luego tu oponente bota una carta.",
+      "race": "Guerrero",
+      "cost": 1,
+      "strength": 2
+    },
+    {
+      "name": "Karna",
+      "type": "Aliado",
+      "effect": "Retador. Cuando este Aliado entra en juego, si todos los Aliados que controlas son de raza Guerrero o Dragón, busca un Aliado en tu Mazo Castillo y ponlo en tu mano. Luego tu oponente bota dos cartas. En tu Fase Final puedes desterrar hasta una carta del cementerio oponente. Luego tu oponente bota una carta.",
+      "race": "Guerrero",
+      "cost": 1,
+      "strength": 2
+    },
+    {
+      "name": "Karna",
+      "type": "Aliado",
+      "effect": "Retador. Cuando este Aliado entra en juego, si todos los Aliados que controlas son de raza Guerrero o Dragón, busca un Aliado en tu Mazo Castillo y ponlo en tu mano. Luego tu oponente bota dos cartas. En tu Fase Final puedes desterrar hasta una carta del cementerio oponente. Luego tu oponente bota una carta.",
+      "race": "Guerrero",
+      "cost": 1,
+      "strength": 2
+    },
+    {
+      "name": "Armadura dorada",
+      "type": "Arma",
+      "effect": "Exhumar. El portador gana dos de Fuerza e Indestructible. Cuando entra en juego roba dos cartas. Puedes desterrar esta Arma o pagar un Oro y desterrarla de tu mano para prevenir que tus Aliados sean afectados o un Aliado anulado.",
+      "race": "",
+      "cost": 1,
+      "strength": 0
+    },
+    {
+      "name": "Estandarte del guerrero",
+      "type": "Oro",
+      "effect": "Cuando entra en juego roba una carta. Puedes pagarlo para buscar dos cartas en cada Castillo y ponerlas en el cementerio. Si está en tu Reserva, las cartas que sean puestas en el cementerio por daño de combate no tienen habilidad por el turno.",
+      "race": "",
+      "cost": 0,
+      "strength": 0
+    },
+    {
+      "name": "Aegishjalmur",
+      "type": "Oro",
+      "effect": "Puedes poner este Oro en juego desde tu cementerio como si estuviera en tu mano. Cuando entra en juego elige dos efectos: sube un Aliado de tu cementerio a tu mano; o baraja hasta una carta de coste dos o menos; o roba una carta.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "TCF-004",
+      "edition": "Toolkit Cenizas de Fuego",
+      "image": "https://myths.cl/cards/Toolkit%20Cenizas%20de%20Fuego/full/TCF-004.webp"
+    },
+    {
+      "name": "Sheut",
+      "type": "Talismán",
+      "effect": "Si controlas menos Oros que tu oponente puedes jugarlo por un Oro menos. Cuando lo juegues destiérralo: anula un Aliado o Tótem de coste uno o menos o cancela la habilidad de una carta.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "BES-373",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-373.webp"
+    },
+    {
+      "name": "Antonio Pincheira",
+      "type": "Aliado",
+      "effect": "Furia. Cuando entra en juego o ataca, tu oponente bota seis cartas. Pon hasta un Oro de su cementerio en tu Reserva. Una vez por turno roba dos cartas. En tu Fase Final agrupa hasta dos Aliados. Los Talismanes cuestan un Oro adicional.",
+      "race": "Guerrero",
+      "cost": 3,
+      "strength": 5,
+      "id": "LIB-006",
+      "edition": "Libertadores",
+      "image": "https://myths.cl/cards/Libertadores/full/LIB-006.webp"
+    },
+    {
+      "name": "Bandido Esqueleto",
+      "type": "Aliado",
+      "effect": "Furia. Cuando entra en juego roba una carta y puedes jugar un Aliado o Arma de tu mano o cementerio pagando su coste. Si jugaste un Bandido de esta forma genera un Oro por el turno para jugar Aliados o Armas.",
+      "race": "Guerrero",
+      "cost": 1,
+      "strength": 3,
+      "id": "LIB-038",
+      "edition": "Libertadores",
+      "image": "https://myths.cl/cards/Libertadores/full/LIB-038.webp"
+    },
+    {
+      "name": "Bandido Esqueleto",
+      "type": "Aliado",
+      "effect": "Furia. Cuando entra en juego roba una carta y puedes jugar un Aliado o Arma de tu mano o cementerio pagando su coste. Si jugaste un Bandido de esta forma genera un Oro por el turno para jugar Aliados o Armas.",
+      "race": "Guerrero",
+      "cost": 1,
+      "strength": 3,
+      "id": "LIB-038",
+      "edition": "Libertadores",
+      "image": "https://myths.cl/cards/Libertadores/full/LIB-038.webp"
+    },
+    {
+      "name": "Wotishir",
+      "type": "Talismán",
+      "effect": "Si este Talismán es anulado puedes agrupar hasta dos Oros objetivo. Destierra todos los Aliados, Tótems y Armas en juego. Por cada carta desterrada de esta manera el oponente objetivo bota tres cartas.",
+      "race": "",
+      "cost": 3,
+      "strength": 0
+    },
+    {
+      "name": "Fuente de la Juventud",
+      "type": "Oro",
+      "effect": "Cuando entra en juego puedes robar dos cartas. A los jugadores les cuesta un Oro adicional jugar Talismanes si han jugado Talismanes este turno, y les cuesta un Oro adicional poner Oro si han puesto Oro en juego este turno.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "TCF-003",
+      "edition": "Toolkit Cenizas de Fuego",
+      "image": "https://myths.cl/cards/Toolkit%20Cenizas%20de%20Fuego/full/TCF-003.webp"
+    },
+    {
+      "name": "Fuente de la Juventud",
+      "type": "Oro",
+      "effect": "Cuando entra en juego puedes robar dos cartas. A los jugadores les cuesta un Oro adicional jugar Talismanes si han jugado Talismanes este turno, y les cuesta un Oro adicional poner Oro si han puesto Oro en juego este turno.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "TCF-003",
+      "edition": "Toolkit Cenizas de Fuego",
+      "image": "https://myths.cl/cards/Toolkit%20Cenizas%20de%20Fuego/full/TCF-003.webp"
+    },
+    {
+      "name": "Corona de la Bestia",
+      "type": "Oro",
+      "effect": "Una vez por turno puedes robar una carta y barajar una carta de tu mano. Cuando lo uses para pagar el coste de un Aliado de coste dos o menos, si atacaste con dos o más Aliados en tu turno anterior, ese Aliado no puede ser anulado y entra en juego con Furia.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "VIG-113",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-113.webp"
+    },
+    {
+      "name": "Insignia del guerrero",
+      "type": "Oro",
+      "effect": "Cuando entra en juego puedes mostrar cartas del tope de tu Castillo hasta mostrar un Aliado y un Arma de coste dos o menos. Ponlas en tu mano y baraja el resto. En Batalla Mitológica puedes desterrar este Oro para prevenir un efecto que afecte a Aliados.",
+      "race": "",
+      "cost": 0,
+      "strength": 0
+    },
+    {
+      "name": "Auguste Dupin",
+      "type": "Aliado",
+      "effect": "Furia. Cuando entra en juego mira la mano de tu oponente y descarta los Talismanes o Tótem de ahí. Si atacaste en tu turno anterior, esta habilidad no puede ser cancelada ni prevenida. Si está en tu cementerio o en juego no se pueden barajar cartas de los cementerios.",
+      "race": "Guerrero",
+      "cost": 2,
+      "strength": 4
+    },
+    {
+      "name": "Motín a bordo",
+      "type": "Talismán",
+      "effect": "Puedes jugarlo al comienzo de la Vigilia y cuando lo juegues destiérralo. Elige un efecto: no eres afectado por habilidades y efectos oponentes este turno y roba una carta; o no pagas costes adicionales este turno, sube hasta una carta de coste dos o menos a la mano.",
+      "race": "",
+      "cost": 1,
+      "strength": 0
+    },
+    {
+      "name": "Chakram",
+      "type": "Arma",
+      "effect": "Exhumar. El portador gana dos de Fuerza e Indestructible. Una vez por turno puedes mirar la mano de tu oponente y elegir de ahí una carta que no sea Oro para que no pueda ser jugada hasta tu próximo turno y roba una carta.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "BES-029",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-029.webp"
+    },
+    {
+      "name": "Chakram",
+      "type": "Arma",
+      "effect": "Exhumar. El portador gana dos de Fuerza e Indestructible. Una vez por turno puedes mirar la mano de tu oponente y elegir de ahí una carta que no sea Oro para que no pueda ser jugada hasta tu próximo turno y roba una carta.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "BES-029",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-029.webp"
+    },
+    {
+      "name": "Dragón Dorado",
+      "type": "Talismán",
+      "effect": "Única. Cuando juegues este Talismán destiérralo. Anula una carta, luego baraja hasta tantas cartas de tu mano como coste tenga.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "KVM-058",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-058.webp"
+    },
+    {
+      "name": "Mariano Osorio",
+      "type": "Aliado",
+      "effect": "Furia. Cuando entra en juego muestra dos cartas del tope de tu Castillo y ponlas en tu mano. Si mostraste un Aliado o Arma de esta forma convierte un Oro en Oro sin habilidad. En tu Vigilia/Fase Final destierra hasta tres cartas del cementerio oponente.",
+      "race": "Guerrero",
+      "cost": 1,
+      "strength": 3,
+      "id": "LIB-023",
+      "edition": "Libertadores",
+      "image": "https://myths.cl/cards/Libertadores/full/LIB-023.webp"
+    },
+    {
+      "name": "Purificar Alma",
+      "type": "Talismán",
+      "effect": "Elige un tipo de carta. Baraja y/o destierra todas las cartas del tipo elegido de los cementerios de los jugadores.",
+      "race": "",
+      "cost": 2,
+      "strength": 0,
+      "id": "VIG-168",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-168.webp"
+    },
+    {
+      "name": "Tyet",
+      "type": "Oro",
+      "effect": "Cuando entra en juego busca un Arma o un Oro en tu Castillo y ponlo en tu mano. Puedes pagarlo para que un Oro pierda su habilidad por este turno y mueve el Oro pagado. Puedes poner esta y otra carta de tu mano en el fondo de tu Castillo y robar dos cartas. Sólo puedes usar esta habilidad de Tiet una vez por turno.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-032",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-032.webp"
+    },
+    {
+      "name": "Grimorio",
+      "type": "Oro",
+      "effect": "Puedes pagar este Oro y barajar una carta de tu mano para buscar en el Castillo oponente una carta del mismo tipo. Destierra esa carta y todas sus copias en el Castillo oponente.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-293",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-293.webp"
+    },
+    {
+      "name": "Legion de Honor",
+      "type": "Oro",
+      "effect": "En tu Vigilia, una vez por turno puedes pagarlo para mover un Oro oponente a su Oro Pagado. Si está en tu Reserva los Aliados que controlas ganan uno de Fuerza.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-289",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-289.webp"
+    },
+    {
+      "name": "Signo Amarillo",
+      "type": "Oro",
+      "effect": "Indestructible. Cuando entra en juego mira cuatro cartas del tope de tu Castillo. Pon una de ahí en tu mano y otra en tu cementerio y ordena el resto. Puedes convertir este Oro en un Oro sin habilidad para cancelar la habilidad de una carta fuera de juego o un Oro.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-015",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-015.webp"
+    },
+    {
+      "name": "Tempilcahue",
+      "type": "Talismán",
+      "effect": "Cuando lo juegues destiérralo. Elige un efecto: busca una carta en tu Castillo, ponla en tu mano y roba una carta. No puedes jugar más cartas este turno; o paga dos Oros para barajar cartas cuyo coste suba hasta cuatro y roba dos cartas.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "LIB-011",
+      "edition": "Libertadores",
+      "image": "https://myths.cl/cards/Libertadores/full/LIB-011.webp"
+    },
+    {
+      "name": "Kuchiku Kan",
+      "type": "Aliado",
+      "effect": "Cuando entra en juego busca un Aliado en tu Castillo o cementerio, ponlo en tu mano y tus Aliados ganan uno de Fuerza permanentemente. Una vez por turno puedes descartar una carta para que una carta pierda su habilidad y no pueda atacar ni bloquear mientras este Aliado esté en juego.",
+      "race": "Guerrero",
+      "cost": 1,
+      "strength": 3,
+      "id": "KVM-041",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-041.webp"
+    },
+    {
+      "name": "Susurro de los Bosques",
+      "type": "Talismán",
+      "effect": "Hasta tu próximo turno tus Aliados no pueden ser destruidos ni desterrados. Ganan uno de Fuerza permanentemente. Por el resto del juego los jugadores sólo pueden barajar hasta tres cartas de los cementerios cada turno.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "BES-111",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-111.webp"
+    },
+    {
+      "name": "Orikalon",
+      "type": "Aliado",
+      "effect": "Furia. Cuando entra en juego puedes subir un Aliado y un Oro de tu cementerio a tu mano. Cuando salga del juego conviértela en un Arma con la habilidad: el portador gana dos de Fuerza e Imbloqueable, y pórtala.",
+      "race": "Guerrero",
+      "cost": 1,
+      "strength": 3,
+      "id": "KVM-140",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-140.webp"
+    },
+    {
+      "name": "Orikalon",
+      "type": "Aliado",
+      "effect": "Furia. Cuando entra en juego puedes subir un Aliado y un Oro de tu cementerio a tu mano. Cuando salga del juego conviértela en un Arma con la habilidad: el portador gana dos de Fuerza e Imbloqueable, y pórtala.",
+      "race": "Guerrero",
+      "cost": 1,
+      "strength": 3,
+      "id": "KVM-140",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-140.webp"
+    },
+    {
+      "name": "Caon Helios",
+      "type": "Arma",
+      "effect": "El portador gana dos de Fuerza y Furia. Cuando entra en juego roba dos cartas. Cuando el portador ataca puedes elegir un Aliado oponente para que lo bloquee. Puedes desterrarlo para anular un Talismán o prevenir que un Aliado sea afectado por un efecto oponente.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "KVM-032",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-032.webp"
+    },
+    {
+      "name": "Vision Heroica",
+      "type": "Talismán",
+      "effect": "Única. Baraja una carta de coste tres o menos o anula un Talismán oponente. Puedes pagar un Oro para subir esta carta de tu cementerio a tu mano y robar una carta.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "KVM-266",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-266.webp"
+    },
+    {
+      "name": "Hito del Valor",
+      "type": "Oro",
+      "effect": "Cuando este Oro sea usado para pagar el coste de Aliados Caballero, Guerrero o Héroe, baraja una carta de tu mano y roba una carta. Si está en tu Oro Pagado los Aliados que controles ganan uno de Fuerza.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-120",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-120.webp"
+    },
+    {
+      "name": "Dracula",
+      "type": "Oro",
+      "effect": "Las habilidades de este Oro no pueden ser canceladas. Cuando entra en juego roba dos cartas. Puedes convertirlo en un Oro sin habilidad para prevenir que una habilidad sea cancelada o un Aliado de coste uno sea anulado. Puedes desterrarlo de tu mano o cementerio para cancelar el ataque de hasta dos Aliados.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "KVM-056",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-056.webp"
+    },
+    {
+      "name": "Espada del guerrero inmortal",
+      "type": "Arma",
+      "effect": "El portador gana dos de Fuerza y Furia. En tu Vigilia una vez por turno puedes buscar un Aliado y un Arma en tu Castillo y ponerlo en tu mano o robar dos cartas. Los Aliados que controlas ganan uno de Fuerza.",
+      "race": "",
+      "cost": 1,
+      "strength": 0
+    },
+    {
+      "name": "Camino del guerrero",
+      "type": "Talismán",
+      "effect": "Única. Sólo puedes jugar esta carta si controlas y/o muestras de tu mano al menos cuatro Aliados. Prever un efecto y tus Aliados ganan uno de Fuerza permanentemente.",
+      "race": "",
+      "cost": 1,
+      "strength": 0
+    },
+    {
+      "name": "Sacrificio Solar",
+      "type": "Talismán",
+      "effect": "Única. Anula o cancela la habilidad de una carta de coste cero o jugada sin pagar su coste este turno. Puedes pagar un Oro y barajar esta carta desde tu mano para desterrar o barajar una carta de coste dos o menos y robar una carta.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "KVM-002",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-002.webp"
+    },
+    {
+      "name": "Estaca",
+      "type": "Arma",
+      "effect": "El portador gana dos de Fuerza y Furia. Una vez por turno puedes robar tres cartas, barajar una carta oponente que no sea Oro y tantas cartas de tu mano como coste tenga. Puedes desterrarla para prevenir que una carta sea afectada por un efecto oponente.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "KVM-267",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-267.webp"
+    },
+    {
+      "name": "Xi",
+      "type": "Aliado",
+      "effect": "Furia. Reduce su coste un Oro si muestras un Arma o Tótem de tu mano o cementerio. Cuando entra en juego juega un Arma o Tótem de coste uno desde tu mano o cementerio sin pagar su coste.",
+      "race": "",
+      "cost": 2,
+      "strength": 4
+    },
+    {
+      "name": "Xi",
+      "type": "Aliado",
+      "effect": "Furia. Reduce su coste un Oro si muestras un Arma o Tótem de tu mano o cementerio. Cuando entra en juego juega un Arma o Tótem de coste uno desde tu mano o cementerio sin pagar su coste.",
+      "race": "",
+      "cost": 2,
+      "strength": 4
+    },
+    {
+      "name": "Espada de Ohiggins",
+      "type": "Arma",
+      "effect": "Exhumar. El portador gana dos de Fuerza e Indestructible. En tu Vigilia una vez por turno puedes barajar hasta una carta que no sea Oro o buscar un Oro en tu Castillo y ponerlo en tu mano. En tu Fase Final destierra hasta tres cartas de los cementerios y roba dos cartas.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "LIB-012",
+      "edition": "Libertadores",
+      "image": "https://myths.cl/cards/Libertadores/full/LIB-012.webp"
+    },
+    {
+      "name": "Babr-e Bayan",
+      "type": "Arma",
+      "effect": "Puedes barajar una carta de tu mano para subirla de tu cementerio a la mano. El portador gana dos de Fuerza, Furia y no puede ser afectado por Talismanes. Cuando entra en juego puedes buscar en tu Castillo un Aliado y ponerlo en tu mano.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "BES-073",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-073.webp"
+    },
+    {
+      "name": "Kuchiku el Cazador",
+      "type": "Aliado",
+      "effect": "Furia. Una vez en tu turno busca en tu Castillo o cementerio un Aliado y juégalo reduciendo su coste en un Oro hasta un mínimo de cero. Una vez por turno puedes destruir hasta una carta de coste tres o menos y tu oponente bota tantas cartas igual a la Fuerza de este Aliado.",
+      "race": "Guerrero",
+      "cost": 2,
+      "strength": 4,
+      "id": "KVM-011",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-011.webp"
+    },
+    {
+      "name": "Nahualismo",
+      "type": "Talismán",
+      "effect": "Cada jugador baraja las cartas que controle que no sean Oro. Tu oponente bota una carta por cada carta barajada de esta forma. Por el resto del juego tu oponente no puede desterrar cartas de tu cementerio que no sean Talismán.",
+      "race": "",
+      "cost": 3,
+      "strength": 0,
+      "id": "BES-110",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-110.webp"
+    },
+    {
+      "name": "La Torre",
+      "type": "Aliado",
+      "effect": "Furia. Sólo puede ser puesto en juego un La torre por turno. Cuando entra en juego busca en tu Castillo o cementerio un Aliado de coste dos o menos y juégalo sin pagar su coste. Gana uno de Fuerza por cada otro Aliado que controles.",
+      "race": "Guerrero",
+      "cost": 2,
+      "strength": 3,
+      "id": "SAR-006",
+      "edition": "Secretos Arcanos",
+      "image": "https://myths.cl/cards/Secretos%20Arcanos/full/SAR-006.webp"
+    },
+    {
+      "name": "Principe Ur Nammu",
+      "type": "Aliado",
+      "effect": "En tu Vigilia una vez por turno muestra las cinco primeras cartas de tu Castillo. Puedes jugar un Aliado de ahí reduciendo su coste en un Oro hasta un mínimo de cero y barajar el resto. En tu Vigilia una vez por turno tu oponente bota tantas cartas como Aliados controles.",
+      "race": "",
+      "cost": 2,
+      "strength": 4,
+      "id": "VIG-182",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-182.webp"
+    },
+    {
+      "name": "Gema del Grifo",
+      "type": "Oro",
+      "effect": "Cuando entra en juego puedes buscar en tu Castillo un Oro y ponerlo en tu mano. Una vez por turno si controlas un Aliado de coste dos o más puedes convertirlo hasta tu próximo turno en un Aliado de Fuerza cuatro con habilidad Indestructible, indestrerable.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-160",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-160.webp"
+    },
+    {
+      "name": "Dhampir",
+      "type": "Aliado",
+      "effect": "Furia. Cuando ataca, entra o sale del juego, muestra un Aliado de tu mano y destierra hasta una carta de coste tres o menos o roba dos cartas. Cuando tu oponente juegue una carta, hasta tres veces por turno, él bota dos cartas. Si es tu turno, en vez de eso las destierra.",
+      "race": "Guerrero",
+      "cost": 2,
+      "strength": 4,
+      "id": "ONY-006",
+      "edition": "Onyria",
+      "image": "https://myths.cl/cards/Onyria/full/ONY-006.webp"
+    }
+  ]
+}

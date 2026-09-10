@@ -85,7 +85,9 @@ export function createTable(
     preserveDrawingBuffer: false,
     powerPreference: 'high-performance',
   });
-  engine.setHardwareScalingLevel(1 / Math.min(devicePixelRatio, 2));
+  // The table stays sharp while avoiding native-resolution rendering on low-DPI
+  // machines, which was the main source of stutter with many card scans open.
+  engine.setHardwareScalingLevel(devicePixelRatio > 1 ? 1.5 : 1.2);
   const scene = new Scene(engine);
   scene.clearColor = new Color4(0.018, 0.026, 0.028, 1);
   scene.ambientColor = new Color3(0.28, 0.25, 0.21);
@@ -112,7 +114,9 @@ export function createTable(
   light.position = new Vector3(-12, 24, -8);
   light.intensity = 0.85;
   light.diffuse = new Color3(1, 0.84, 0.64);
-  const shadows = new ShadowGenerator(1024, light);
+  // Cards use their lightweight contact shadows below. Reserve the real shadow
+  // map for the D20 only, where the changing shape is visible to the player.
+  const shadows = new ShadowGenerator(512, light);
   shadows.usePercentageCloserFiltering = true;
   shadows.bias = 0.002;
   shadows.normalBias = 0.02;
@@ -526,7 +530,7 @@ export function createTable(
       m.diffuseTexture = new Texture(
         card.image,
         scene,
-        false,
+        true,
         true,
         Texture.TRILINEAR_SAMPLINGMODE,
         () => {
@@ -534,7 +538,7 @@ export function createTable(
         },
       );
       m.emissiveTexture = m.diffuseTexture;
-      m.diffuseTexture.anisotropicFilteringLevel = 8;
+      m.diffuseTexture.anisotropicFilteringLevel = 2;
       return m;
     }
     const texture = new DynamicTexture(
@@ -638,7 +642,6 @@ export function createTable(
     underside.rotation.x = -Math.PI / 2;
     underside.material = back;
     underside.isPickable = false;
-    shadows.addShadowCaster(mesh, true);
     const shadow = MeshBuilder.CreatePlane(
       'shadow-' + key,
       { width: 2.1, height: 2.95 },
@@ -674,7 +677,6 @@ export function createTable(
     return v;
   }
   function disposeVisual(v: Visual) {
-    shadows.removeShadowCaster(v.mesh, true);
     v.mesh.dispose();
     v.shadow.dispose();
     if (v.material !== back) v.material.dispose(true, true);
@@ -1091,7 +1093,17 @@ export function createTable(
   canvas.addEventListener('pointerup', up);
   canvas.addEventListener('pointercancel', cancel);
   canvas.addEventListener('contextmenu', context);
+  let blockingKey = '';
   function updateLines() {
+    const nextKey = state
+      ? state.room.players
+          .flatMap((player) =>
+            player.cards.filter((card) => card.blocks).map((card) => `${card.id}:${card.blocks}`),
+          )
+          .join('|')
+      : '';
+    if (nextKey === blockingKey) return;
+    blockingKey = nextKey;
     for (const line of lines) line.dispose();
     lines = [];
     if (!state) return;

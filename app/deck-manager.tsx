@@ -12,6 +12,22 @@ const key = 'imperio-decks-v1';
 const types = ['Todas', 'Aliado', 'Arma', 'Tótem', 'Talismán', 'Oro'];
 const normalized = (value: string) =>
   value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+const aliasKey = (value: string) => normalized(value).replace(/[^a-z0-9]/g, '');
+// Names dictated from physical cards can differ in accents or transliteration.
+// These are confirmed Imperio catalogue names, used when importing old decks.
+const imperioAliases: Record<string, string> = {
+  aegishajalmur: 'Aegishjalmur',
+  tiet: 'Tyet',
+  templicahue: 'Tempilcahue',
+  cuchicucan: 'Kuchiku Kan',
+  oricalon: 'Orikalon',
+  canonhelios: 'Caon Helios',
+  espadadehiggins: 'Espada de Ohiggins',
+  barbebayan: 'Babr-e Bayan',
+  nagualismo: 'Nahualismo',
+  principeurnamo: 'Principe Ur Nammu',
+  dampir: 'Dhampir',
+};
 
 function parse(text: string): Deck {
   const raw = JSON.parse(text), cards = Array.isArray(raw) ? raw : raw.cards;
@@ -42,14 +58,15 @@ export default function DeckManager({ open, onOpenChange, loadRoom, importRoom }
     ...deck,
     cards: deck.cards.map((card) => {
       if (card.image) return card;
-      const match = catalog.find((item) => normalized(item.name) === normalized(card.name));
-      return match ? { ...card, id: card.id || match.id, edition: card.edition || match.edition, image: match.image } : card;
+      const correctedName = imperioAliases[aliasKey(card.name)] || card.name;
+      const match = catalog.find((item) => normalized(item.name) === normalized(correctedName));
+      return match ? { ...card, name: match.name, id: card.id || match.id, edition: card.edition || match.edition, image: match.image } : card;
     }),
   });
   const coverFor = (deck: Deck) => {
     const pictured = deck.cards.find((card) => card.image)?.image;
     if (pictured) return pictured;
-    const matched = deck.cards.map((card) => catalog.find((item) => normalized(item.name) === normalized(card.name))).find(Boolean);
+    const matched = deck.cards.map((card) => catalog.find((item) => normalized(item.name) === normalized(imperioAliases[aliasKey(card.name)] || card.name))).find(Boolean);
     if (matched?.image) return matched.image;
     const words = normalized(`${deck.name} ${deck.cards.map((card) => card.race).join(' ')}`);
     const race = ['dragon', 'guerrero', 'heroe', 'caballero', 'sacerdote', 'bestia'].find((value) => words.includes(value));
