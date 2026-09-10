@@ -16,9 +16,21 @@ const aliasKey = (value: string) => normalized(value).replace(/[^a-z0-9]/g, '');
 // Names dictated from physical cards can differ in accents or transliteration.
 // These are confirmed Imperio catalogue names, used when importing old decks.
 const imperioAliases: Record<string, string> = {
+  bibliotecadelacaballeria: 'Biblioteca de Caballeria',
   aegishajalmur: 'Aegishjalmur',
+  aegisjalmour: 'Aegishjalmur',
   tiet: 'Tyet',
   templicahue: 'Tempilcahue',
+  espadadeohiggins: 'Espada de Ohiggins',
+  tremtenvilu: 'Trentren Vilu',
+  pluquina: 'Piruquina',
+  dakkunarenegado: 'Daikaiju Renacido',
+  padredragon: 'Padre Dagon',
+  genpiessp: 'Cienpies Sp',
+  lossellossagrados: 'Los Siete Sellos',
+  trapecedo: 'Trapezoedro',
+  megadakkanu: 'Mecha-daikaiju',
+  aziraqqotia: 'Azi Raoidita',
   cuchicucan: 'Kuchiku Kan',
   oricalon: 'Orikalon',
   canonhelios: 'Caon Helios',

@@ -1,0 +1,520 @@
+{
+  "version": 1,
+  "name": "Dragón — Imperio corregido",
+  "cards": [
+    {
+      "name": "Trentren Vilu",
+      "type": "Aliado",
+      "effect": "No puede ser jugado sin pagar su coste. Cuando entra en juego, puedes Barajar las demás cartas en juego que no sean Oro. Una vez en tu turno, puedes pagar un Oro y Botar cuatro cartas para jugar un Aliado de coste 4 o menos de tu mano o Cementerio sin pagar su coste.",
+      "race": "Dragón",
+      "cost": 3,
+      "strength": 6,
+      "id": "LIB-003",
+      "edition": "Libertadores",
+      "image": "https://myths.cl/cards/Libertadores/full/LIB-003.webp"
+    },
+    {
+      "name": "Guitarra Morisca",
+      "type": "Oro",
+      "effect": "Puedes Destruir este Oro para reducir a 0 todo el Daño que fueras a recibir este turno. Puedes Desterrar esta carta de tu Cementerio para Barajar hasta tres cartas de tu Cementerio.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-291",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-291.webp"
+    },
+    {
+      "name": "Piruquina",
+      "type": "Aliado",
+      "effect": "Furia. Reduce su coste en un Oro por cada Oro que controles, hasta un mínimo de 1. Si está en tu mano, puedes pagar un Oro y ponerlo en el fondo de tu Castillo para reducir a cero el próximo daño a tu Castillo.",
+      "race": "Dragón",
+      "cost": 6,
+      "strength": 6,
+      "id": "LIB-134",
+      "edition": "Libertadores",
+      "image": "https://myths.cl/cards/Libertadores/full/LIB-134.webp"
+    },
+    {
+      "name": "Directorium Inquisitorum",
+      "type": "Oro",
+      "effect": "Puedes ponerlo en juego desde tu Cementerio como si estuviera en tu mano. Cuando entra en juego, puedes buscar un Oro en tu Castillo y ponerlo en tu mano. Si entró en juego desde tu Cementerio, en vez de eso puedes Robar dos cartas.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-292",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-292.webp"
+    },
+    {
+      "name": "Pacto Sangriento",
+      "type": "Talismán",
+      "effect": "Tu oponente convierte Aliados que controle en Tótem sin habilidad, hasta tener la misma cantidad de Aliados que controlas. Roba dos cartas. Si se convierten tres o menos cartas de esa manera, gana su control.",
+      "race": "",
+      "cost": 2,
+      "strength": 0,
+      "id": "VIG-097",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-097.webp"
+    },
+    {
+      "name": "Intervencion Divina",
+      "type": "Talismán",
+      "effect": "Puedes jugarla al comienzo de cualquier Fase y cuando lo juegues, Destíerralo. Elige un efecto: una carta de coste 2 o menos pierde su habilidad por el turno; Destierra hasta tres cartas de un Cementerio; mueve un Aliado a la Línea de Ataque.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "VIG-138",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-138.webp"
+    },
+    {
+      "name": "Escamas de Azi",
+      "type": "Oro",
+      "effect": "Cuando entra en juego, Descarta una carta o Bota tres cartas para buscar un Oro o un Azi en tu Castillo y ponerlo en tu mano. En tu Fase Final, Destierra y/o Baraja hasta dos cartas de los Cementerios. Los Oros en juego ganan Indesterrable.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "VIG-175",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-175.webp"
+    },
+    {
+      "name": "Dakkanu Renegado",
+      "type": "Aliado",
+      "effect": "Furia. Imbloqueable. Cuando haga daño, puedes Barajar una carta de coste 2 o menos o buscar un Aliado en tu Castillo y ponerlo en tu mano. En tu Fase Final, Baraja y/o Destierra hasta tres cartas de los Cementerios.",
+      "race": "Dragón",
+      "cost": 3,
+      "strength": 1
+    },
+    {
+      "name": "Última Cruzada",
+      "type": "Talismán",
+      "effect": "Anula o Destruye una carta oponente.",
+      "race": "",
+      "cost": 2,
+      "strength": 0
+    },
+    {
+      "name": "Smallgaster",
+      "type": "Aliado",
+      "effect": "Furia. Una vez por turno, cuando esta u otra carta salga del juego por el efecto de un Aliado Dragón, tu oponente Bota tres cartas. Cuando haga daño de combate, busca en tu Castillo un Oro y ponlo en tu mano.",
+      "race": "Dragón",
+      "cost": 3,
+      "strength": 1
+    },
+    {
+      "name": "Dakkanu Renegado",
+      "type": "Aliado",
+      "effect": "Furia. Imbloqueable. Cuando haga daño, puedes Barajar una carta de coste 2 o menos o buscar un Aliado en tu Castillo y ponerlo en tu mano. En tu Fase Final, Baraja y/o Destierra hasta tres cartas de los Cementerios.",
+      "race": "Dragón",
+      "cost": 3,
+      "strength": 1
+    },
+    {
+      "name": "Guitarra Morisca",
+      "type": "Oro",
+      "effect": "Puedes Destruir este Oro para reducir a 0 todo el Daño que fueras a recibir este turno. Puedes Desterrar esta carta de tu Cementerio para Barajar hasta tres cartas de tu Cementerio.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-291",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-291.webp"
+    },
+    {
+      "name": "Escamas de Azi",
+      "type": "Oro",
+      "effect": "Cuando entra en juego, Descarta una carta o Bota tres cartas para buscar un Oro o un Azi en tu Castillo y ponerlo en tu mano. En tu Fase Final, Destierra y/o Baraja hasta dos cartas de los Cementerios. Los Oros en juego ganan Indesterrable.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "VIG-175",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-175.webp"
+    },
+    {
+      "name": "Primer Sello",
+      "type": "Talismán",
+      "effect": "Busca un Sello en tu Castillo y ponlo en tu mano. Tu oponente Bota una carta más una por cada otro Sello que hayas jugado este turno. Si está en tu Cementerio, el daño de tus Sello no puede ser reducido.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "VIG-169",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-169.webp"
+    },
+    {
+      "name": "Padre Dagon",
+      "type": "Aliado",
+      "effect": "No se puede Anular ni cancelar su habilidad. Una vez por turno, las cartas oponentes que no sean Oro pierden su habilidad y son Destruidas o prevén que uno o más Aliados sean afectados por un efecto oponente. Tu oponente sólo puede poner en juego hasta tres cartas por turno que no sean Oro.",
+      "race": "Dragón",
+      "cost": 4,
+      "strength": 5,
+      "id": "ONY-003",
+      "edition": "Onyria",
+      "image": "https://myths.cl/cards/Onyria/full/ONY-003.webp"
+    },
+    {
+      "name": "Cienpies Sp",
+      "type": "Talismán",
+      "effect": "Única. Anula una carta de coste 3 o menos.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "BES-176",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-176.webp"
+    },
+    {
+      "name": "Los Siete Sellos",
+      "type": "Oro",
+      "effect": "Oro Inicial. Única. No puede ser convertido y no paga costes adicionales mientras juegas o utilizas la habilidad de cartas Sello. Hasta dos veces por turno, cuando se resuelva el efecto de uno de tus Talismanes Sello, tu oponente Bota dos cartas.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "VIG-114",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-114.webp"
+    },
+    {
+      "name": "Tótem del Dragón Ancestral",
+      "type": "Tótem",
+      "effect": "Exhumar. Cuando entra en juego, Baraja y/o Destierra hasta tres cartas de los Cementerios y elige entre Destruir una carta de coste 2 o menos o Robar dos cartas. En tu turno, puedes Barajarlo para Anular un Aliado o cancelar una habilidad.",
+      "race": "",
+      "cost": 1,
+      "strength": 0
+    },
+    {
+      "name": "Sangre de Cobra",
+      "type": "Talismán",
+      "effect": "Anula una carta oponente que no sea Aliado.",
+      "race": "",
+      "cost": 2,
+      "strength": 0
+    },
+    {
+      "name": "Vision Heroica",
+      "type": "Talismán",
+      "effect": "Única. No puede ser Anulado. Al comienzo de tu Fase de Vigilia, puedes pagar dos Oros para Subir este Talismán de tu Cementerio a tu mano. Anula una carta objetivo.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "KVM-266",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-266.webp"
+    },
+    {
+      "name": "Trapezoedro",
+      "type": "Tótem",
+      "effect": "No puedes controlar más copias de esta carta. Si al comienzo del turno no tenías Oros en Reserva, cuando tu oponente ponga en juego su tercera carta en el turno, agrupa un Oro. A tu oponente le cuesta un Oro adicional afectar a tus Aliados de coste 2 o más con Armas y/o Tótem de coste 2 o menos.",
+      "race": "",
+      "cost": 2,
+      "strength": 0,
+      "id": "BES-336",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-336.webp"
+    },
+    {
+      "name": "Corazón de Dragón",
+      "type": "Oro",
+      "effect": "Entra en juego como una copia de un Oro que controle tu oponente. En tu Vigilia, si no has puesto Oros en juego este turno, puedes ponerlo desde tu mano o Cementerio en tu Reserva.",
+      "race": "",
+      "cost": 0,
+      "strength": 0
+    },
+    {
+      "name": "Garras del Dragón",
+      "type": "Arma",
+      "effect": "Exhumar. El portador gana Fuerza igual a su coste y no puede ser Barajado. Cuando entra en juego, cada jugador Bota tantas cartas como Oros controle su oponente. Si se Botaron Oros de esta forma, pon un Oro de un Cementerio en tu Oro Pagado.",
+      "race": "",
+      "cost": 1,
+      "strength": 0
+    },
+    {
+      "name": "Mecha-daikaiju",
+      "type": "Aliado",
+      "effect": "Indestructible. Indesterrable. Cuando entra en juego, Roba hasta tres cartas. Una vez en tu turno, busca en tu Castillo un Oro, ponlo en tu Oro Pagado y hasta tu próximo turno tu oponente no puede utilizar habilidades disparadas a menos que pague un Oro. Tus Aliados ganan 1 de Fuerza y Furia.",
+      "race": "Dragón",
+      "cost": 3,
+      "strength": 5,
+      "id": "KVM-008",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-008.webp"
+    },
+    {
+      "name": "Magog",
+      "type": "Tótem",
+      "effect": "En tu Vigilia, una vez por turno, elige un Oro para que no pueda ser agrupado el próximo turno. Una vez por turno, puedes Destruir un Aliado de coste 3 o menos y Robar una carta.",
+      "race": "",
+      "cost": 3,
+      "strength": 0,
+      "id": "VIG-144",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-144.webp"
+    },
+    {
+      "name": "Escamas de Azi",
+      "type": "Oro",
+      "effect": "Cuando entra en juego, Descarta una carta o Bota tres cartas para buscar un Oro o un Azi en tu Castillo y ponerlo en tu mano. En tu Fase Final, Destierra y/o Baraja hasta dos cartas de los Cementerios. Los Oros en juego ganan Indesterrable.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "VIG-175",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-175.webp"
+    },
+    {
+      "name": "Pluteo",
+      "type": "Arma",
+      "effect": "Maquinaria. Tamaño 2. (Juégala en tu Línea de Apoyo. Tiene habilidad mientras controles 2 o más Aliados). Cuando un Aliado entre en juego bajo tu control, Roba dos cartas y Descarta una carta. Tus Aliados ganan 1 de Fuerza por cada otro Aliado de distinto nombre que controles.",
+      "race": "",
+      "cost": 1,
+      "strength": 0
+    },
+    {
+      "name": "Directorium Inquisitorum",
+      "type": "Oro",
+      "effect": "Puedes ponerlo en juego desde tu Cementerio como si estuviera en tu mano. Cuando entra en juego, puedes buscar un Oro en tu Castillo y ponerlo en tu mano. Si entró en juego desde tu Cementerio, en vez de eso puedes Robar dos cartas.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-292",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-292.webp"
+    },
+    {
+      "name": "Aegishjalmur",
+      "type": "Oro",
+      "effect": "Puedes poner este Oro en juego desde tu Cementerio como si estuviera en tu mano. Cuando entra en juego, elige dos efectos: Sube un Aliado de tu Cementerio a tu mano; Baraja hasta una carta de coste 2 o menos; Roba una carta.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "TCF-004",
+      "edition": "Toolkit Cenizas de Fuego",
+      "image": "https://myths.cl/cards/Toolkit%20Cenizas%20de%20Fuego/full/TCF-004.webp"
+    },
+    {
+      "name": "Ritual Oscuro",
+      "type": "Talismán",
+      "effect": "Exhumar. Elige hasta dos efectos: Baraja y/o Destierra hasta cuatro cartas de los Cementerios; Baraja una carta de coste 2 o menos; Roba una carta.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "BES-276",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-276.webp"
+    },
+    {
+      "name": "Azi Raoidita",
+      "type": "Aliado",
+      "effect": "Furia. Si controlas Dragones reduce su coste en un Oro. Una vez por turno, genera un Oro para Aliados y Destruye hasta una carta de coste 2 o menos. Al comienzo del turno, si está en juego o en tu Cementerio, un Oro o carta de coste 2 o menos pierde su habilidad por el turno.",
+      "race": "Dragón",
+      "cost": 3,
+      "strength": 5,
+      "id": "BES-089",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-089.webp"
+    },
+    {
+      "name": "Intervencion Divina",
+      "type": "Talismán",
+      "effect": "Puedes jugarla al comienzo de cualquier Fase y cuando lo juegues, Destíerralo. Elige un efecto: una carta de coste 2 o menos pierde su habilidad por el turno; Destierra hasta tres cartas de un Cementerio; mueve un Aliado a la Línea de Ataque.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "VIG-138",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-138.webp"
+    },
+    {
+      "name": "Libro de Enoc",
+      "type": "Oro",
+      "effect": "Cuando entra en juego, Roba una carta. Si está en tu Reserva, los jugadores no pueden jugar cartas o utilizar habilidades de cartas que estén en su Cementerio o Destierro a menos que Barajen una carta de su mano. Si está en tu Oro Pagado, tus Aliados ganan 1 de Fuerza e Indestructible.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "VIG-045",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-045.webp"
+    },
+    {
+      "name": "Perla de Sangre",
+      "type": "Oro",
+      "effect": "En tu Vigilia, una vez por turno, puedes pagarlo para buscar en tu Castillo un Aliado y ponerlo en tu mano o jugarlo reduciendo su coste en un Oro, hasta un mínimo de 1. Puedes convertirlo en un Oro sin habilidad para Barajar y/o Desterrar hasta cuatro cartas de los Cementerios y Robar hasta dos cartas.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "KVM-054",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-054.webp"
+    },
+    {
+      "name": "Liberar Primigenio",
+      "type": "Talismán",
+      "effect": "Puedes Desterrar un Aliado de tu mano para reducir su coste en un Oro. Baraja hasta tres cartas en juego cuyos costes sumen 3 o menos. Sube una carta que no sea Talismán de tu Cementerio a tu mano.",
+      "race": "",
+      "cost": 2,
+      "strength": 0,
+      "id": "BES-335",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-335.webp"
+    },
+    {
+      "name": "Azi Dahaka",
+      "type": "Aliado",
+      "effect": "Furia. Exhumar. En tu Vigilia, una vez por turno, Destruye una carta que no sea Oro o busca una carta en tu Castillo y ponla en tu mano. Roba dos cartas. Tus Aliados no pueden perder su habilidad y ganan 1 de Fuerza. Tu oponente no puede utilizar habilidades de Oros.",
+      "race": "Dragón",
+      "cost": 5,
+      "strength": 4,
+      "id": "BES-003",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-003.webp"
+    },
+    {
+      "name": "Última Cruzada",
+      "type": "Talismán",
+      "effect": "Anula o Destruye una carta oponente.",
+      "race": "",
+      "cost": 2,
+      "strength": 0
+    },
+    {
+      "name": "Última Cruzada",
+      "type": "Talismán",
+      "effect": "Anula o Destruye una carta oponente.",
+      "race": "",
+      "cost": 2,
+      "strength": 0
+    },
+    {
+      "name": "Jabberwocky",
+      "type": "Aliado",
+      "effect": "Si no controlas Aliados de coste 1 o menos, reduce su coste en un Oro. No se puede Anular, ni cancelar su habilidad. Cuando entra en juego o ataca, convierte la primera carta del Castillo oponente en un Oro sin habilidad y ponlo en tu Oro Pagado.",
+      "race": "Dragón",
+      "cost": 3,
+      "strength": 2,
+      "id": "KVM-274",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-274.webp"
+    },
+    {
+      "name": "Jabberwocky",
+      "type": "Aliado",
+      "effect": "Si no controlas Aliados de coste 1 o menos, reduce su coste en un Oro. No se puede Anular, ni cancelar su habilidad. Cuando entra en juego o ataca, convierte la primera carta del Castillo oponente en un Oro sin habilidad y ponlo en tu Oro Pagado.",
+      "race": "Dragón",
+      "cost": 3,
+      "strength": 2,
+      "id": "KVM-274",
+      "edition": "Kaijus vs Mechas",
+      "image": "https://myths.cl/cards/Kaijus%20vs%20Mechas/full/KVM-274.webp"
+    },
+    {
+      "name": "Azi Zairita",
+      "type": "Aliado",
+      "effect": "Cuando entra en juego o ataque, busca en tu Castillo un Aliado Azi, ponlo en tu mano y muestra la primera carta del Castillo oponente. Si es un Oro, ponlo en tu Oro Pagado, de lo contrario, conviértelo en un Oro sin habilidad y ponlo en tu Oro Pagado.",
+      "race": "Dragón",
+      "cost": 5,
+      "strength": 3,
+      "id": "BES-128",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-128.webp"
+    },
+    {
+      "name": "Azi Dahaka",
+      "type": "Aliado",
+      "effect": "Furia. Exhumar. En tu Vigilia, una vez por turno, Destruye una carta que no sea Oro o busca una carta en tu Castillo y ponla en tu mano. Roba dos cartas. Tus Aliados no pueden perder su habilidad y ganan 1 de Fuerza. Tu oponente no puede utilizar habilidades de Oros.",
+      "race": "Dragón",
+      "cost": 5,
+      "strength": 4,
+      "id": "BES-003",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-003.webp"
+    },
+    {
+      "name": "Azi Dahaka",
+      "type": "Aliado",
+      "effect": "Furia. Exhumar. En tu Vigilia, una vez por turno, Destruye una carta que no sea Oro o busca una carta en tu Castillo y ponla en tu mano. Roba dos cartas. Tus Aliados no pueden perder su habilidad y ganan 1 de Fuerza. Tu oponente no puede utilizar habilidades de Oros.",
+      "race": "Dragón",
+      "cost": 5,
+      "strength": 4,
+      "id": "BES-003",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-003.webp"
+    },
+    {
+      "name": "Segundo Sello",
+      "type": "Talismán",
+      "effect": "Busca un Sello en tu Castillo y ponlo en tu mano. Hasta dos Aliados ganan 2 de Fuerza y su daño de combate es enviado al Destierro, o el daño directo de tus Sello aumenta en 1 este turno. Si está en tu Cementerio, los Sello en tu Cementerio no pueden ser Desterrados.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "VIG-140",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-140.webp"
+    },
+    {
+      "name": "Segundo Sello",
+      "type": "Talismán",
+      "effect": "Busca un Sello en tu Castillo y ponlo en tu mano. Hasta dos Aliados ganan 2 de Fuerza y su daño de combate es enviado al Destierro, o el daño directo de tus Sello aumenta en 1 este turno. Si está en tu Cementerio, los Sello en tu Cementerio no pueden ser Desterrados.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "VIG-140",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-140.webp"
+    },
+    {
+      "name": "Primer Sello",
+      "type": "Talismán",
+      "effect": "Busca un Sello en tu Castillo y ponlo en tu mano. Tu oponente Bota una carta más una por cada otro Sello que hayas jugado este turno. Si está en tu Cementerio, el daño de tus Sello no puede ser reducido.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "VIG-169",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-169.webp"
+    },
+    {
+      "name": "Primer Sello",
+      "type": "Talismán",
+      "effect": "Busca un Sello en tu Castillo y ponlo en tu mano. Tu oponente Bota una carta más una por cada otro Sello que hayas jugado este turno. Si está en tu Cementerio, el daño de tus Sello no puede ser reducido.",
+      "race": "",
+      "cost": 1,
+      "strength": 0,
+      "id": "VIG-169",
+      "edition": "Angeles y Demonios - Vigilantes",
+      "image": "https://myths.cl/cards/Angeles%20y%20Demonios%20-%20Vigilantes/full/VIG-169.webp"
+    },
+    {
+      "name": "Arassas",
+      "type": "Aliado",
+      "effect": "Cuando entra en juego o ataca, Destierra la carta oponente de mayor coste y Roba cartas igual al coste de esa carta. Los Aliados oponentes de coste 2 o menos no pueden atacar ni bloquear.",
+      "race": "Dragón",
+      "cost": 6,
+      "strength": 4
+    },
+    {
+      "name": "Lambton Worm",
+      "type": "Aliado",
+      "effect": "Puedes mostrar un Aliado de coste 3 o más de tu mano para reducir su coste en dos Oros. Una vez por turno, busca en tu Castillo un Aliado y ponlo en tu mano, Destruye hasta una carta oponente que no sea Oro y Destierra hasta tres cartas de un Cementerio.",
+      "race": "Dragón",
+      "cost": 5,
+      "strength": 5,
+      "id": "BES-088",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-088.webp"
+    },
+    {
+      "name": "Guitarra Morisca",
+      "type": "Oro",
+      "effect": "Puedes Destruir este Oro para reducir a 0 todo el Daño que fueras a recibir este turno. Puedes Desterrar esta carta de tu Cementerio para Barajar hasta tres cartas de tu Cementerio.",
+      "race": "",
+      "cost": 0,
+      "strength": 0,
+      "id": "BES-291",
+      "edition": "Bestiarium",
+      "image": "https://myths.cl/cards/Bestiarium/full/BES-291.webp"
+    }
+  ]
+}
