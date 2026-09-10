@@ -75,8 +75,8 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/catalog/meta') {
       const cards = getTorCatalog();
       send(200, {
-        editions: [...new Set(cards.map((card) => card.edition))].sort(),
-        races: [...new Set(cards.map((card) => card.race).filter(Boolean))].sort(),
+        editions: [...new Set(cards.map((card) => card.edition))].sort((a, b) => a.localeCompare(b, 'es')),
+        races: [...new Set(cards.map((card) => card.race).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')),
       });
       return;
     }
