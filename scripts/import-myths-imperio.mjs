@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 /*
- * Importador autorizado del catálogo Myths para Formato Imperio.
- * No descarga ni duplica las imágenes: guarda su URL pública junto con los
- * datos de la carta. Ejecuta: npm run catalog:imperio
+ * Importador autorizado del catálogo Myths.
+ * No descarga ni duplica las imágenes: guarda sus URL públicas junto con los
+ * datos de cada carta. El constructor mantiene sus filtros de Imperio, y el
+ * índice completo sólo se usa para restaurar fotos de mazos antiguos.
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 const SOURCE = 'https://myths.cl/assets/altArts-Bzm2s5in.js';
 const OUTPUT = resolve('public/catalogs/myths-imperio.json');
+const IMAGE_INDEX_OUTPUT = resolve('public/catalogs/myths-image-index.json');
 const IMPERIO = {
   BES: 'Bestiarium',
   ONY: 'Onyria',
@@ -22,6 +24,15 @@ const IMPERIO = {
   TDM: 'Toolkit Dia de Muertos',
   TRV: 'Toolkit Ritual Vudu',
   CLO: 'Chile Oculto',
+};
+const EDITIONS = {
+  RET: 'El Reto', GOT: 'Mundo Gotico', IRA: 'Ira del Nahual', RAG: 'Ragnarok',
+  COF: 'Cofradia', EDR: 'Espiritu Dragon', ESP: 'Espada Sagrada', HEL: 'Helenica',
+  HIJ: 'Hijos de Daana', DOM: 'Dominios de Ra', DRA: 'Dracula e Inferno',
+  FUR: 'Furia', ROM: 'Roma', EXC: 'Excalibur', TRO: 'Troya',
+  GUE: 'Guerreros del Sol', GUA: 'Guardianes de Daana', ASG: 'Asgard',
+  SUM: 'Sumeria', PES: 'Productos Especiales', GJR: 'Guerrero Jaguar',
+  BAR: 'Barbarie', RAC: 'Reino de Acero', BRO: 'Bestiario', ...IMPERIO,
 };
 const type = {
   aliado: 'Aliado',
@@ -124,6 +135,21 @@ const catalog = Object.entries(cards)
   })
   .filter(Boolean)
   .sort((a, b) => a.id.localeCompare(b.id));
+const imageIndex = Object.entries(cards)
+  .map(([id, card]) => {
+    const [prefix, number] = id.split('-');
+    const edition = EDITIONS[prefix];
+    if (!edition) return null;
+    return {
+      id,
+      name: card.name,
+      edition,
+      type: type[card.type] || card.type,
+      image: `https://myths.cl/cards/${encodeURIComponent(edition)}/full/${prefix}-${number}.webp`,
+    };
+  })
+  .filter(Boolean)
+  .sort((a, b) => a.id.localeCompare(b.id));
 
 await mkdir(dirname(OUTPUT), { recursive: true });
 await writeFile(
@@ -140,4 +166,18 @@ await writeFile(
     2,
   ),
 );
+await writeFile(
+  IMAGE_INDEX_OUTPUT,
+  JSON.stringify(
+    {
+      version: 1,
+      source: 'Myths',
+      scope: 'Todas las ediciones disponibles',
+      generatedAt: new Date().toISOString(),
+      cards: imageIndex,
+    },
+    null,
+  ),
+);
 console.log(`Catálogo Imperio: ${catalog.length} cartas en ${OUTPUT}`);
+console.log(`Índice de fotos: ${imageIndex.length} cartas en ${IMAGE_INDEX_OUTPUT}`);

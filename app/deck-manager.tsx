@@ -39,6 +39,8 @@ const imperioAliases: Record<string, string> = {
   nagualismo: 'Nahualismo',
   principeurnamo: 'Principe Ur Nammu',
   dampir: 'Dhampir',
+  amuletodelcazador: 'Amuleto de Cazador',
+  findelatravesia: 'Fin de Travesia',
 };
 
 function parse(text: string): Deck {
@@ -47,15 +49,28 @@ function parse(text: string): Deck {
   if (cards.some((card) => !card || typeof card.name !== 'string' || !types.includes(card.type) || !Number.isInteger(card.cost) || !Number.isInteger(card.strength))) throw Error('El archivo tiene cartas con datos incompletos.');
   return { version: 1, name: typeof raw.name === 'string' ? raw.name : 'Mi mazo', cards: cards.map((card) => ({ ...card, race: card.race || '', effect: card.effect || '', cost: card.cost || 0, strength: card.strength || 0 })) };
 }
+function addCatalogPhotos(cards: Entry[], catalog: CatalogCard[]) {
+  return cards.map((card) => {
+    if (card.image) return card;
+    const correctedName = imperioAliases[aliasKey(card.name)] || card.name;
+    const match = catalog.find((item) => normalized(item.name) === normalized(correctedName));
+    return match ? { ...card, name: match.name, id: card.id || match.id, edition: card.edition || match.edition, image: match.image } : card;
+  });
+}
 
 export default function DeckManager({ open, onOpenChange, loadRoom, importRoom }: { open: boolean; onOpenChange: (v: boolean) => void; loadRoom?: () => Promise<unknown>; importRoom?: (d: Deck) => Promise<boolean> }) {
-  const [catalog, setCatalog] = useState<CatalogCard[]>([]), [catalogError, setCatalogError] = useState('');
+  const [catalog, setCatalog] = useState<CatalogCard[]>([]), [imageIndex, setImageIndex] = useState<CatalogCard[]>([]), [catalogError, setCatalogError] = useState('');
   const [name, setName] = useState('Mi mazo'), [cards, setCards] = useState<Entry[]>([]), [library, setLibrary] = useState<Deck[]>([]);
   const [query, setQuery] = useState(''), [edition, setEdition] = useState('Todas'), [type, setType] = useState('Todas'), [race, setRace] = useState('Todas'), [cost, setCost] = useState('Todos');
   const [selected, setSelected] = useState<CatalogCard | null>(null), [message, setMessage] = useState(''), [showTools, setShowTools] = useState(false);
 
   useEffect(() => { if (!open) return; void (async () => {
-    try { const response = await fetch('/catalogs/myths-imperio.json'); if (!response.ok) throw Error(); const data = (await response.json()) as { cards?: CatalogCard[] }; setCatalog(data.cards || []); } catch { setCatalogError('No se pudo abrir el catálogo. Recarga e inténtalo de nuevo.'); }
+    try {
+      const [catalogResponse, imagesResponse] = await Promise.all([fetch('/catalogs/myths-imperio.json'), fetch('/catalogs/myths-image-index.json')]);
+      if (!catalogResponse.ok || !imagesResponse.ok) throw Error();
+      const [catalogData, imagesData] = await Promise.all([catalogResponse.json(), imagesResponse.json()]) as [{ cards?: CatalogCard[] }, { cards?: CatalogCard[] }];
+      setCatalog(catalogData.cards || []); setImageIndex(imagesData.cards || []);
+    } catch { setCatalogError('No se pudo abrir el catálogo. Recarga e inténtalo de nuevo.'); }
     try { const saved = (await deckStorage()) ?? JSON.parse(localStorage.getItem(key) || '[]'); setLibrary(Array.isArray(saved) ? saved : []); } catch { setMessage('No se pudo leer la biblioteca guardada de este navegador.'); }
   })(); }, [open]);
 
@@ -66,14 +81,19 @@ export default function DeckManager({ open, onOpenChange, loadRoom, importRoom }
   const copies = (card: Entry) => cards.filter((entry) => cardKey(entry) === cardKey(card)).length;
   const add = (card: CatalogCard) => { if (cards.length >= 50) return setMessage('El mazo ya tiene 50 cartas. Quita una antes de añadir otra.'); setCards((old) => [...old, { ...card }]); setMessage(`${card.name} añadida (${cards.length + 1}/50).`); };
   const remove = (card: Entry) => { const index = cards.map(cardKey).lastIndexOf(cardKey(card)); if (index >= 0) setCards((old) => old.filter((_, i) => i !== index)); };
+  const photoCatalog = useMemo(() => [...catalog, ...imageIndex.filter((card) => !catalog.some((imperio) => imperio.id === card.id))], [catalog, imageIndex]);
+  useEffect(() => {
+    if (!photoCatalog.length) return;
+    setCards((old) => addCatalogPhotos(old, photoCatalog));
+    const upgraded = library.map((deck) => ({ ...deck, cards: addCatalogPhotos(deck.cards, photoCatalog) }));
+    if (upgraded.some((deck, index) => deck.cards.some((card, cardIndex) => card.image !== library[index].cards[cardIndex]?.image))) {
+      setLibrary(upgraded);
+      void deckStorage(upgraded);
+    }
+  }, [photoCatalog]);
   const decorateDeck = (deck: Deck): Deck => ({
     ...deck,
-    cards: deck.cards.map((card) => {
-      if (card.image) return card;
-      const correctedName = imperioAliases[aliasKey(card.name)] || card.name;
-      const match = catalog.find((item) => normalized(item.name) === normalized(correctedName));
-      return match ? { ...card, name: match.name, id: card.id || match.id, edition: card.edition || match.edition, image: match.image } : card;
-    }),
+    cards: addCatalogPhotos(deck.cards, photoCatalog),
   });
   const coverFor = (deck: Deck) => {
     const pictured = deck.cards.find((card) => card.image)?.image;

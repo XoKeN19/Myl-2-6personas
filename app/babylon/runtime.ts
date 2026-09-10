@@ -85,9 +85,10 @@ export function createTable(
     preserveDrawingBuffer: false,
     powerPreference: 'high-performance',
   });
-  // The table stays sharp while avoiding native-resolution rendering on low-DPI
-  // machines, which was the main source of stutter with many card scans open.
-  engine.setHardwareScalingLevel(devicePixelRatio > 1 ? 1.5 : 1.2);
+  // Keep the card scans at native canvas resolution.  Shadows and idle renders
+  // are already capped below, so reducing the whole renderer only made text
+  // and scanned art look soft.
+  engine.setHardwareScalingLevel(1);
   const scene = new Scene(engine);
   scene.clearColor = new Color4(0.018, 0.026, 0.028, 1);
   scene.ambientColor = new Color3(0.28, 0.25, 0.21);
@@ -530,7 +531,7 @@ export function createTable(
       m.diffuseTexture = new Texture(
         card.image,
         scene,
-        true,
+        false,
         true,
         Texture.TRILINEAR_SAMPLINGMODE,
         () => {
@@ -538,17 +539,20 @@ export function createTable(
         },
       );
       m.emissiveTexture = m.diffuseTexture;
-      m.diffuseTexture.anisotropicFilteringLevel = 2;
+      m.diffuseTexture.anisotropicFilteringLevel = 8;
       return m;
     }
     const texture = new DynamicTexture(
       'card-' + card.id,
-      { width: 420, height: 612 },
+      { width: 840, height: 1224 },
       scene,
       true,
       Texture.TRILINEAR_SAMPLINGMODE,
     );
     const ctx = texture.getContext() as CanvasRenderingContext2D;
+    // Render generated cards at 2×, while keeping the drawing layout in its
+    // original 420×612 coordinate system.
+    ctx.scale(2, 2);
     ctx.fillStyle = card.type === 'Oro' ? '#715121' : '#244442';
     ctx.fillRect(0, 0, 420, 612);
     ctx.strokeStyle = '#d5bb78';
