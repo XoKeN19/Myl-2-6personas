@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { rollInitiative } from '../lib/initiative.mjs';
+import {
+  rollInitiative,
+  INITIATIVE_ROUND_MS,
+  INITIATIVE_RESULT_MS,
+} from '../lib/initiative.mjs';
 import { createRoom, player, action, view } from '../lib/game.mjs';
 test('d20: el mayor gana y sólo los empatados repiten', () => {
   const values = [7, 19, 19, 2, 15];
@@ -14,7 +18,10 @@ test('d20: el mayor gana y sólo los empatados repiten', () => {
     { player: 'b', value: 2 },
     { player: 'c', value: 15 },
   ]);
-  assert.equal(result.endsAt, 12100);
+  assert.equal(
+    result.endsAt,
+    100 + result.rounds.length * INITIATIVE_ROUND_MS + INITIATIVE_RESULT_MS,
+  );
 });
 test('Iniciativa del servidor: anfitrión, mazos, mano inicial, bloqueo y resultado compartido', () => {
   const room = createRoom('A', 2),

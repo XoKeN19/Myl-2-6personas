@@ -9,6 +9,9 @@ import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator'
 import type { Room } from '../page';
 import { playerColor } from '../player-colors';
 
+const ROUND_MS = 2800;
+const ROLL_MS = 2769;
+
 export function initiativeDice(scene: Scene, shadows: ShadowGenerator) {
   const atlas = new DynamicTexture(
     'd20-numbers',
@@ -175,7 +178,7 @@ export function initiativeDice(scene: Scene, shadows: ShadowGenerator) {
         return false;
       }
       const elapsed = Math.max(0, now - event.startedAt),
-        round = Math.min(event.rounds.length - 1, Math.floor(elapsed / 4400)),
+        round = Math.min(event.rounds.length - 1, Math.floor(elapsed / ROUND_MS)),
         nextKey = event.id + ':' + round;
       if (key !== nextKey) {
         key = nextKey;
@@ -183,10 +186,10 @@ export function initiativeDice(scene: Scene, shadows: ShadowGenerator) {
       }
       // Throw, rebound and settle: a continuous path with one short physical
       // bounce reads as a real d20 roll without the old repeating rotations.
-      const t = reduced ? 1 : Math.min(1, (elapsed - round * 4400) / 3400);
+      const t = reduced ? 1 : Math.min(1, (elapsed - round * ROUND_MS) / ROLL_MS);
       for (const d of dice) {
-        const roll = Math.min(1, t / 0.76);
-        const rebound = t < 0.76 ? 0 : Math.sin(((t - 0.76) / 0.24) * Math.PI) * 0.26;
+        const roll = Math.min(1, t / 0.68);
+        const rebound = t < 0.68 ? 0 : Math.sin(((t - 0.68) / 0.32) * Math.PI) * 0.26;
         const travel = 1 - roll;
         d.body.position.set(
           d.x - 3.8 * travel + d.drift * Math.sin(roll * Math.PI),
@@ -201,9 +204,9 @@ export function initiativeDice(scene: Scene, shadows: ShadowGenerator) {
           roll * d.spin.z,
         );
         d.body.rotationQuaternion =
-          t < 0.76
+          t < 0.68
             ? spin
-            : Quaternion.Slerp(spin, d.settle, (t - 0.76) / 0.24);
+            : Quaternion.Slerp(spin, d.settle, (t - 0.68) / 0.32);
         if (
           d.player === event.winner &&
           t === 1 &&

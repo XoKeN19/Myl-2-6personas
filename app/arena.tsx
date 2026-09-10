@@ -171,10 +171,16 @@ export default function Arena({
   const initiativeSound = useRef('');
   useEffect(() => {
     const event = room.initiative;
-    if (!event || initiativeSound.current === event.id) return;
-    initiativeSound.current = event.id;
+    if (!event) return;
+    const round = Math.min(
+      event.rounds.length - 1,
+      Math.max(0, Math.floor((now - event.startedAt) / 2800)),
+    );
+    const key = `${event.id}:${round}`;
+    if (initiativeSound.current === key) return;
+    initiativeSound.current = key;
     play('dice');
-  }, [room.initiative, play]);
+  }, [room.initiative, now, play]);
   const timeOffset = useRef(0);
   useEffect(() => {
     timeOffset.current = room.serverTime - Date.now();

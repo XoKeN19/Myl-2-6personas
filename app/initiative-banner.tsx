@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import type { Room } from './page';
 import { playerColor } from './player-colors';
+const ROUND_MS = 2800;
+const ROLL_MS = 2769;
 export default function InitiativeBanner({ room }: { room: Room }) {
   const [now, setNow] = useState(room.serverTime);
   useEffect(() => {
@@ -13,9 +15,9 @@ export default function InitiativeBanner({ room }: { room: Room }) {
   if (!event || now > event.endsAt) return null;
   const round = Math.min(
       event.rounds.length - 1,
-      Math.max(0, Math.floor((now - event.startedAt) / 4400)),
+      Math.max(0, Math.floor((now - event.startedAt) / ROUND_MS)),
     ),
-    settled = now - event.startedAt - round * 4400 >= 3400,
+    settled = now - event.startedAt - round * ROUND_MS >= ROLL_MS,
     done = settled && round === event.rounds.length - 1;
   return (
     <div className="initiative-overlay" aria-live="polite">
