@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import DeckManager from './deck-manager';
 import Arena from './arena';
-import { ImperioTutorial, InterfaceTutorial, NewPlayerQuestion } from './tutorials';
+import { InterfaceTutorial, NewPlayerQuestion } from './tutorials';
 import { useTavernMusic } from './tavern-music';
 import {
   Shield,
@@ -55,6 +55,7 @@ export type Player = {
   temporaryGold?: number;
 };
 export type Room = {
+  tutorial?: { step: number; human: string; guide: string; complete: boolean; private: boolean };
   initiative?: {id:string;startedAt:number;endsAt:number;winner:string;rounds:{player:string;value:number}[][]};
   defeated?: { id: string; name: string }[];
   revealEvent?: {
@@ -192,8 +193,7 @@ export default function Home() {
     [notice, setNotice] = useState(''),
     [canResume, setCanResume] = useState(false),
     [newPlayerQuestion, setNewPlayerQuestion] = useState(false),
-    [interfaceTutorial, setInterfaceTutorial] = useState(false),
-    [imperioTutorial, setImperioTutorial] = useState(false);
+    [interfaceTutorial, setInterfaceTutorial] = useState(false);
   const actionBusy = useRef(false);
   const request = useCallback(
     async (url: string, body?: unknown, auth = '') => {
@@ -235,8 +235,7 @@ export default function Home() {
   useEffect(() => {
     queueMicrotask(() => {
       const q = new URLSearchParams(location.search);
-      if (q.get('tutorial') === 'imperio') setImperioTutorial(true);
-      if (!q.get('sala') && q.get('tutorial') !== 'imperio' && !localStorage.getItem('mesa-imperio-onboarding')) {
+      if (!q.get('sala') && !q.has('tutorial') && !localStorage.getItem('mesa-imperio-onboarding')) {
         setNewPlayerQuestion(true);
       }
       setCode(q.get('sala') || '');
@@ -392,13 +391,24 @@ export default function Home() {
     setCanResume(true);
     history.replaceState(null, '', location.pathname);
   }
-  function startImperioTutorial() {
-    setImperioTutorial(true);
-    history.replaceState(null, '', '?tutorial=imperio');
-  }
-  function leaveImperioTutorial() {
-    setImperioTutorial(false);
-    history.replaceState(null, '', location.pathname);
+  async function startImperioTutorial() {
+    if (!name.trim()) {
+      setError('Escribe tu nombre antes de entrar al tutorial.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      const result = await request('/api/tutorial', { name });
+      setRoom(result.room);
+      setToken(result.token);
+      sessionStorage.setItem('imperio-session', JSON.stringify({ code: result.room.code, token: result.token, role: 'player', tutorial: true }));
+      history.replaceState(null, '', '?tutorial=1');
+    } catch (error) {
+      setError((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
   }
   function answerNewPlayer(wantsGuide: boolean) {
     localStorage.setItem('mesa-imperio-onboarding', 'done');
@@ -414,7 +424,7 @@ export default function Home() {
       const r = await request(`/api/${saved.code}`, undefined, saved.token);
       setToken(saved.token);
       setRoom(r);
-      history.replaceState(null, '', `?sala=${saved.code}`);
+      history.replaceState(null, '', saved.tutorial || r.tutorial ? '?tutorial=1' : `?sala=${saved.code}`);
     } catch {
       setError('No se pudo recuperar la sala. Comprueba la conexión.');
     }
@@ -436,7 +446,7 @@ export default function Home() {
   return (
     <>
       <header className={`topbar ${room ? 'game-topbar' : ''}`}>
-        {!room && !imperioTutorial && (
+        {!room && (
           <button title={music.status} onClick={music.toggle}>
             {music.playing ? '♫ Pausar música' : '♫ Reproducir música'}
           </button>
@@ -448,7 +458,7 @@ export default function Home() {
           </span>
         </div>
         <span className="format">Mitos y Leyendas · Mesa asistida</span>
-        {!imperioTutorial && <button onClick={() => setDeck(true)}>Mis mazos</button>}
+        <button onClick={() => setDeck(true)}>Mis mazos</button>
         <button onClick={() => setRules(true)}>
           <BookOpen size={16} /> Reglas y ayuda
         </button>
@@ -490,7 +500,7 @@ export default function Home() {
           )}
         </section>
       )}
-      {imperioTutorial ? <ImperioTutorial onExit={leaveImperioTutorial} /> : !room ? (
+      {!room ? (
         <main className="lobby">
           {canResume && (
             <button className="primary" onClick={() => void resumeRoom()}>
@@ -589,7 +599,7 @@ export default function Home() {
               <div className="learn-imperio">
                 <BookOpen size={30} />
                 <div><b>¿Sabes jugar Imperio?</b><span>Aprende las zonas, fases, recursos y combate en una mesa guiada.</span></div>
-                <button className="primary" onClick={startImperioTutorial}>Entrar al tutorial</button>
+                <button className="primary" disabled={busy} onClick={() => void startImperioTutorial()}>Jugar partida tutorial</button>
                 <button onClick={() => setInterfaceTutorial(true)}>Tutorial de interfaz</button>
               </div>
             </section>
@@ -732,6 +742,7 @@ export default function Home() {
         importRoom={
           room &&
           room.role !== 'spectator' &&
+          !room.tutorial &&
           !room.players.find((p) => p.id === room.me)?.ready
             ? async (d) => !!(await act({ type: 'import', cards: d }))
             : undefined

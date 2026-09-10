@@ -12,6 +12,7 @@ import {
   migrate,
   addSpectator,
 } from '../../lib/game.mjs';
+import { createTutorialRoom, tutorialAction } from '../../lib/tutorial-room.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const normalize = (value) =>
@@ -135,6 +136,15 @@ export default async function handler(request) {
     }
 
     const rooms = getStore({ name: 'mesa-imperio-rooms', consistency: 'strong' });
+    if (pathname === '/api/tutorial' && request.method === 'POST') {
+      const room = createTutorialRoom(
+        body.name,
+        JSON.parse(fs.readFileSync(catalogPath('../decks/mazo-heroe-imperio-corregido.json'), 'utf8')).cards,
+        JSON.parse(fs.readFileSync(catalogPath('../decks/mazo-dragon-imperio-corregido.json'), 'utf8')).cards,
+      );
+      await rooms.setJSON(room.code, room, { onlyIfNew: true });
+      return json(200, { token: room.players[0].token, room: view(room, room.players[0].token) });
+    }
     if (pathname === '/api/create' && request.method === 'POST') {
       const room = createRoom(body.name, body.capacity);
       log(room, 'Sala creada. Mesa asistida: acuerden las excepciones antes de resolver.');
@@ -154,12 +164,14 @@ export default async function handler(request) {
     const repaired = hydrateRoomImages(room);
 
     if (parts[2] === 'spectate' && request.method === 'POST') {
+      if (room.tutorial?.private) throw new Error('Esta sala de aprendizaje es privada');
       const spectator = addSpectator(room, body.name);
       await rooms.setJSON(code, room);
       return json(200, { token: spectator.token, room: view(room, spectator.token) });
     }
 
     if (parts[2] === 'join' && request.method === 'POST') {
+      if (room.tutorial?.private) throw new Error('Esta sala de aprendizaje es privada');
       if (room.started || room.players.length >= room.capacity) {
         throw new Error('La sala ya comenzó o está llena');
       }
@@ -181,7 +193,9 @@ export default async function handler(request) {
     }
     if (request.method === 'POST' && parts[2] === 'action') {
       const draft = structuredClone(room);
-      const result = action(draft, token, body);
+      const result = draft.tutorial
+        ? tutorialAction(draft, token, body)
+        : action(draft, token, body);
       await rooms.setJSON(code, draft);
       return json(200, result);
     }

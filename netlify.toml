@@ -5,7 +5,7 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-  included_files = ["public/catalogs/**"]
+  included_files = ["public/catalogs/**", "public/decks/**"]
 
 [[redirects]]
   from = "/api/*"
@@ -17,4 +17,3 @@
   from = "/*"
   to = "/index.html"
   status = 200
-

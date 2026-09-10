@@ -12,6 +12,7 @@ import {
   migrate,
   addSpectator,
 } from './lib/game.mjs';
+import { createTutorialRoom, tutorialAction } from './lib/tutorial-room.mjs';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const data = process.env.DATA_DIR || path.join(root, 'data');
 fs.mkdirSync(data, { recursive: true });
@@ -55,6 +56,9 @@ function hydrateRoomImages(room) {
 function save() {
   fs.writeFileSync(file + '.tmp', JSON.stringify(rooms));
   fs.renameSync(file + '.tmp', file);
+}
+function tutorialDeck(name) {
+  return JSON.parse(fs.readFileSync(path.join(root, 'public/decks', name), 'utf8')).cards;
 }
 const buckets = new Map();
 const server = http.createServer(async (req, res) => {
@@ -178,6 +182,17 @@ const server = http.createServer(async (req, res) => {
       });
       return;
     }
+    if (url.pathname === '/api/tutorial' && req.method === 'POST') {
+      const room = createTutorialRoom(
+        body.name,
+        tutorialDeck('mazo-heroe-imperio-corregido.json'),
+        tutorialDeck('mazo-dragon-imperio-corregido.json'),
+      );
+      rooms[room.code] = room;
+      save();
+      send(200, { token: room.players[0].token, room: view(room, room.players[0].token) });
+      return;
+    }
     const code = url.pathname.split('/')[2]?.toUpperCase(),
       r = rooms[code];
     if (!r) {
@@ -188,12 +203,14 @@ const server = http.createServer(async (req, res) => {
     // time they are opened, so players do not need to rebuild their deck.
     hydrateRoomImages(r);
     if (url.pathname.endsWith('/spectate') && req.method === 'POST') {
+      if (r.tutorial?.private) throw Error('Esta sala de aprendizaje es privada');
       const spectator = addSpectator(r, body.name);
       save();
       send(200, { token: spectator.token, room: view(r, spectator.token) });
       return;
     }
     if (url.pathname.endsWith('/join') && req.method === 'POST') {
+      if (r.tutorial?.private) throw Error('Esta sala de aprendizaje es privada');
       if (r.started || r.players.length >= r.capacity)
         throw Error('La sala ya comenzó o está llena');
       const p = player(body.name);
@@ -214,7 +231,9 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'POST' && url.pathname.endsWith('/action')) {
       const draft = structuredClone(r);
-      const result = action(draft, token, body);
+      const result = draft.tutorial
+        ? tutorialAction(draft, token, body)
+        : action(draft, token, body);
       rooms[code] = draft;
       save();
       send(200, result);

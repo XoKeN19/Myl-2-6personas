@@ -463,6 +463,8 @@ export function createTable(
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'scene-zone-label';
+        button.dataset.zone = zone;
+        button.dataset.player = seat.player.id;
         button.setAttribute(
           'aria-label',
           names[zone] + ' de ' + seat.player.name,

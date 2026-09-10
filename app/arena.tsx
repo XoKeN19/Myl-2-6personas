@@ -37,6 +37,7 @@ import TableFeedback from './table-feedback';
 import InitiativeBanner from './initiative-banner';
 import CombatLines from './combat-lines';
 import type { Card, Player, Room } from './page';
+import { GameTutorialCoach } from './tutorials';
 
 const zones: Record<string, string> = {
   ataque: 'Ataque',
@@ -185,6 +186,11 @@ export default function Arena({
   useEffect(() => {
     timeOffset.current = room.serverTime - Date.now();
   }, [room.serverTime]);
+  useEffect(() => {
+    if (!room.tutorial || room.tutorial.complete) return;
+    if (room.tutorial.step <= 2) setHudPanel('setup');
+    else if (room.tutorial.step >= 4 && room.tutorial.step <= 10) setHudPanel(null);
+  }, [room.tutorial?.step, room.tutorial?.complete]);
   useEffect(() => {
     const tick = () => setNow(Date.now() + timeOffset.current);
     tick();
@@ -449,6 +455,11 @@ export default function Arena({
           }
           setSelected({ id: c.id, player: p.id });
           setPile(null);
+          if (
+            room.tutorial &&
+            ((room.tutorial.step === 3 && c.type === 'Oro' && c.zone === 'reserva') ||
+              (room.tutorial.step === 7 && c.name === 'Akari Musashi'))
+          ) void act({ type: 'tutorialInspect', cardId: c.id });
         }}
         onDoubleClick={() => {
           if (hidden || spectator || p.id !== room.me || c.zone !== 'mano') return;
@@ -564,22 +575,23 @@ export default function Arena({
     );
   }
   return (
-    <div ref={root} className={`arena fixed-table ${table3d ? 'babylon-arena immersive-table' : ''} ${hudPanel ? 'hud-' + hudPanel : ''} ${drag ? 'is-dragging' : ''}`}>
+    <div ref={root} data-tutorial-step={room.tutorial?.step} className={`arena fixed-table ${table3d ? 'babylon-arena immersive-table' : ''} ${room.tutorial ? 'tutorial-game' : ''} ${hudPanel ? 'hud-' + hudPanel : ''} ${drag ? 'is-dragging' : ''}`}>
+      <GameTutorialCoach room={room} act={act}/>
       {table3d && <>
         <TableFeedback room={room} play={play} reduced={reduced}/>
         <InitiativeBanner room={room}/>
-        {!room.started&&room.host===room.me&&room.players.length===room.capacity&&room.players.every(p=>p.ready||p.deckLoaded)&&<button className="start-d20" disabled={busy} onClick={()=>void act({type:'start'})}>Comenzar · Tirar d20</button>}
+        {!room.started&&room.host===room.me&&room.players.length===room.capacity&&room.players.every(p=>p.ready||p.deckLoaded)&&(!room.tutorial||room.tutorial.step>=2)&&<button className="start-d20" disabled={busy} onClick={()=>void act({type:'start'})}>Comenzar · Tirar d20</button>}
         <nav className="table-dock" aria-label="Controles de la partida">
           {[['menu','☰','Menú'],['setup','♧','Preparación'],['actions','⚔','Acciones'],['turn','◷','Turno y sonido']].map(([id,icon,label])=><button key={id} title={label} aria-label={label} aria-expanded={hudPanel===id} className={hudPanel===id?'active':''} onClick={()=>setHudPanel(hudPanel===id?null:id)}><span>{icon}</span><small>{label}</small></button>)}
           <button title="Ver mi mano" aria-label="Ver mi mano" disabled={!me} onClick={()=>me&&openPile(me,'mano')}><Eye size={21}/><small>Mi mano</small></button>
           {hudPanel && <button aria-label="Cerrar panel" onClick={()=>setHudPanel(null)}>×</button>}
         </nav>
-        <div className="table-room-badge">MESA IMPERIO <span>{room.code}</span></div>
+        <div className="table-room-badge">{room.tutorial ? 'MESA DE APRENDIZAJE' : <>MESA IMPERIO <span>{room.code}</span></>}</div>
         <div className="table-turn-hud"><button onClick={()=>setHudPanel(hudPanel==='turn'?null:'turn')}><small>{room.players.find(p=>p.id===room.active)?.name} · Turno {room.turn}</small><strong>{phaseLabel(room.phase)}</strong><span>{clock}</span></button><button disabled={busy||spectator||room.active!==room.me} onClick={()=>{if((me?.cards.filter(c=>c.zone==='mano').length||0)>8)setHandWarning(true);else void act({type:'next'});}}>Pasar turno ›</button></div>
       </>}
       <div className="arena-toolbar">
         <div className="arena-room">
-          <span>MESA LIBRE · {room.code}</span>
+          <span>{room.tutorial ? 'PARTIDA TUTORIAL · PRIVADA' : `MESA LIBRE · ${room.code}`}</span>
           <strong>
             {room.players.find((p) => p.id === room.active)?.name}
             <small> · Turno {room.turn}</small>
@@ -656,7 +668,7 @@ export default function Arena({
       {!room.started && (
         <div className="arena-setup">
           <span>Preparación de la partida</span>
-          <button disabled={spectator || me?.ready} onClick={onDeck}>
+          <button disabled={spectator || me?.ready || !!room.tutorial} onClick={onDeck}>
             Cargar mazo
           </button>
           <button onClick={() => setTimerOpen(true)}>
@@ -685,15 +697,16 @@ export default function Arena({
               disabled={
                 busy ||
                 room.players.length < room.capacity ||
-                room.players.some((p) => !p.ready && !p.deckLoaded)
+                room.players.some((p) => !p.ready && !p.deckLoaded) ||
+                (!!room.tutorial && room.tutorial.step < 2)
               }
               onClick={() => void act({ type: 'start' })}
             >
               Comenzar
             </button>
           )}
-          <button onClick={() => onInvite()}>Invitar</button>
-          <button onClick={() => onInvite(true)}>Espectador</button>
+          {!room.tutorial && <button onClick={() => onInvite()}>Invitar</button>}
+          {!room.tutorial && <button onClick={() => onInvite(true)}>Espectador</button>}
         </div>
       )}
       <div className="arena-viewbar">
@@ -732,6 +745,7 @@ export default function Arena({
             if(c.zone==='defensa' && p.id===room.me && blockSource){void act({type:'block',cardId:c.id,attacker:blockSource});setBlockSource(null);return;}
           }
           setSelected({id:c.id,player:p.id});setPile(null);
+          if (room.tutorial && ((room.tutorial.step===3&&c.type==='Oro'&&c.zone==='reserva')||(room.tutorial.step===7&&c.name==='Akari Musashi'))) void act({type:'tutorialInspect',cardId:c.id});
         },
         pile: openPile,
         move: (c,p,z,to) => move(c,p.id,z,to.id),
