@@ -69,7 +69,11 @@ export default function DeckManager({ open, onOpenChange, loadRoom, importRoom }
       const [catalogResponse, imagesResponse, torResponse] = await Promise.all([fetch('/catalogs/myths-imperio.json'), fetch('/catalogs/myths-image-index.json'), fetch('/catalogs/tor-imperio-image-index.json')]);
       if (!catalogResponse.ok || !imagesResponse.ok || !torResponse.ok) throw Error();
       const [catalogData, imagesData, torData] = await Promise.all([catalogResponse.json(), imagesResponse.json(), torResponse.json()]) as [{ cards?: CatalogCard[] }, { cards?: CatalogCard[] }, { cards?: CatalogCard[] }];
-      setCatalog(catalogData.cards || []); setImageIndex(imagesData.cards || []); setTorImageIndex(torData.cards || []);
+      // TOR is the complete Imperio source. Keep the Myths records as well:
+      // they supply a few alternate artworks and effect texts not present in TOR.
+      const torCards = torData.cards || [], mythsCards = catalogData.cards || [];
+      setCatalog([...torCards, ...mythsCards.filter((card) => !torCards.some((tor) => normalized(tor.name) === normalized(card.name) && tor.type === card.type))]);
+      setImageIndex(imagesData.cards || []); setTorImageIndex(torCards);
     } catch { setCatalogError('No se pudo abrir el catálogo. Recarga e inténtalo de nuevo.'); }
     try { const saved = (await deckStorage()) ?? JSON.parse(localStorage.getItem(key) || '[]'); setLibrary(Array.isArray(saved) ? saved : []); } catch { setMessage('No se pudo leer la biblioteca guardada de este navegador.'); }
   })(); }, [open]);

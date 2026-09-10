@@ -31,6 +31,7 @@ const cards = catalog.cards.map((card) => ({
   race: raceNames.get(String(card.race)) || '',
   cost: Number(card.cost) || 0,
   strength: Number(card.damage) || 0,
+  effect: card.ability || '',
   image: `https://api.myl.cl/static/cards/${encodeURIComponent(card.ed_edid)}/${encodeURIComponent(card.edid)}.png`,
 })).sort((a, b) => a.id.localeCompare(b.id));
 
