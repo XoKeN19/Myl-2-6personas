@@ -13,6 +13,7 @@ import {
   addSpectator,
 } from './lib/game.mjs';
 import { createTutorialRoom, tutorialAction } from './lib/tutorial-room.mjs';
+import { fetchOfficialCardImage } from './lib/card-image.mjs';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const data = process.env.DATA_DIR || path.join(root, 'data');
 fs.mkdirSync(data, { recursive: true });
@@ -151,6 +152,17 @@ const server = http.createServer(async (req, res) => {
     }
     if (++b.n > 1200) {
       send(429, { error: 'Demasiadas solicitudes' });
+      return;
+    }
+    if (url.pathname === '/api/card-image' && req.method === 'GET') {
+      const image = await fetchOfficialCardImage(url.searchParams.get('url'));
+      res.writeHead(200, {
+        'Content-Type': image.type,
+        'Content-Length': image.bytes.byteLength,
+        'Cache-Control': 'public, max-age=604800, immutable',
+        'X-Content-Type-Options': 'nosniff',
+      });
+      res.end(Buffer.from(image.bytes));
       return;
     }
     let body = {};

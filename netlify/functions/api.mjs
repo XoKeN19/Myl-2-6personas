@@ -13,6 +13,7 @@ import {
   addSpectator,
 } from '../../lib/game.mjs';
 import { createTutorialRoom, tutorialAction } from '../../lib/tutorial-room.mjs';
+import { fetchOfficialCardImage } from '../../lib/card-image.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const normalize = (value) =>
@@ -103,6 +104,19 @@ export default async function handler(request) {
     const pathname = apiPath(url);
 
     if (pathname === '/api/health') return json(200, { ok: true, hosting: 'netlify' });
+
+    if (pathname === '/api/card-image' && request.method === 'GET') {
+      const image = await fetchOfficialCardImage(url.searchParams.get('url'));
+      return new Response(image.bytes, {
+        status: 200,
+        headers: {
+          'content-type': image.type,
+          'content-length': String(image.bytes.byteLength),
+          'cache-control': 'public, max-age=604800, s-maxage=31536000, immutable',
+          'x-content-type-options': 'nosniff',
+        },
+      });
+    }
 
     if (pathname === '/api/catalog/meta') {
       const cards = getTorCatalog();

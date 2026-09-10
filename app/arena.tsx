@@ -27,6 +27,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+import { cardImageUrl } from './card-images';
 import Effects from './effects-panel';
 import { useTableMotion } from './table-motion';
 import { useTavernMusic } from './tavern-music';
@@ -481,7 +482,7 @@ export default function Arena({
             <i>MITOS · LEYENDAS</i>
           </>
         ) : c.image ? (
-          <><img className="card-scan" src={c.image} alt={c.name} draggable={false}/><span className="scan-stats">{c.cost} ◈ {c.type === 'Aliado' ? `· ${c.strength} ⚔` : ''}</span></>
+          <><img className="card-scan" src={cardImageUrl(c.image)} alt={c.name} draggable={false} loading="lazy" decoding="async"/><span className="scan-stats">{c.cost} ◈ {c.type === 'Aliado' ? `· ${c.strength} ⚔` : ''}</span></>
         ) : (
           <>
             <div className="tcg-heading">
@@ -848,7 +849,7 @@ export default function Arena({
             <DialogContent className="modal enlarged-card-modal">
               <DialogTitle>{card?.name}</DialogTitle>
               <DialogDescription>Imagen ampliada para leer las habilidades.</DialogDescription>
-              <img src={card?.image} alt={card?.name} />
+              <img src={cardImageUrl(card?.image)} alt={card?.name} decoding="async" />
               <button onClick={() => setEnlarged(false)}>Volver a la carta</button>
             </DialogContent>
           </Dialog>
@@ -860,7 +861,7 @@ export default function Arena({
             <>
               <div className="detail-body">
                 <div className="detail-face">
-                  {card.image ? <button className="detail-photo-button" aria-label="Ampliar imagen de la carta" onClick={() => setEnlarged(true)}><img src={card.image} alt={card.name}/><span>Pulsa para ampliar</span></button> : face(card, owner, false, false)}
+                  {card.image ? <button className="detail-photo-button" aria-label="Ampliar imagen de la carta" onClick={() => setEnlarged(true)}><img src={cardImageUrl(card.image)} alt={card.name} decoding="async"/><span>Pulsa para ampliar</span></button> : face(card, owner, false, false)}
                 </div>
                 <div>
                   <p className="full-effect">

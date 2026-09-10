@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Card, Player, Room } from './page';
 import type { TableRuntime, TableSnapshot } from './babylon/runtime';
+import { cardImageUrl } from './card-images';
 
 export type TableCallbacks = {
   select: (card: Card, player: Player) => void;
@@ -95,7 +96,7 @@ export default function BabylonTable({
         >
           <strong>{preview.name}</strong>
           {preview.image ? (
-            <img src={preview.image} alt={preview.name} />
+            <img src={cardImageUrl(preview.image)} alt={preview.name} decoding="async" />
           ) : (
             <div className="card-preview-text">
               <b>

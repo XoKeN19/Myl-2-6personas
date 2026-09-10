@@ -18,6 +18,7 @@ import type { Card, Player, Room } from '../page';
 import type { TableCallbacks } from '../babylon-table';
 import { playerColor } from '../player-colors';
 import { initiativeDice } from './initiative-dice';
+import { cardImageUrl } from '../card-images';
 
 export type TableSnapshot = { room: Room; focus: string; busy: boolean };
 export type TableRuntime = {
@@ -531,7 +532,7 @@ export function createTable(
     m.emissiveColor = Color3.White();
     if (card.image) {
       m.diffuseTexture = new Texture(
-        card.image,
+        cardImageUrl(card.image),
         scene,
         false,
         true,

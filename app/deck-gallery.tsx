@@ -8,6 +8,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import CardPhoto, { type CardPhotoHandle } from './card-photo';
+import { cardImageUrl } from './card-images';
 type Card = {
   name: string;
   type: string;
@@ -49,7 +50,7 @@ export default function DeckGallery({
             }}
           >
             {c.image ? (
-              <img src={c.image} alt={c.name} />
+              <img src={cardImageUrl(c.image)} alt={c.name} loading="lazy" decoding="async" />
             ) : (
               <>
                 <small>

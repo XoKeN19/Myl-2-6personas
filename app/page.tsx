@@ -17,6 +17,7 @@ import DeckManager from './deck-manager';
 import Arena from './arena';
 import { InterfaceTutorial, NewPlayerQuestion } from './tutorials';
 import { useTavernMusic } from './tavern-music';
+import { lightweightDeck, localImageKey } from './card-images';
 import {
   Shield,
   Swords,
@@ -195,6 +196,24 @@ export default function Home() {
     [newPlayerQuestion, setNewPlayerQuestion] = useState(false),
     [interfaceTutorial, setInterfaceTutorial] = useState(false);
   const actionBusy = useRef(false);
+  const localCardImages = useRef(new Map<string, string>());
+  const restoreLocalImages = useCallback((next: Room) => {
+    if (!next.me || !localCardImages.current.size) return next;
+    return {
+      ...next,
+      players: next.players.map((participant) =>
+        participant.id !== next.me
+          ? participant
+          : {
+              ...participant,
+              cards: participant.cards.map((card) => {
+                const image = localCardImages.current.get(localImageKey(card));
+                return image && !card.hidden ? { ...card, image } : card;
+              }),
+            },
+      ),
+    };
+  }, []);
   const request = useCallback(
     async (url: string, body?: unknown, auth = '') => {
       const res = await fetch(url, {
@@ -250,7 +269,7 @@ export default function Home() {
         ) {
           setToken(s.token);
           request(`/api/${s.code}`, undefined, s.token)
-            .then(setRoom)
+            .then((next) => setRoom(restoreLocalImages(next)))
             .catch(() =>
               setError(
                 'Tu sala anterior no está disponible. Puedes crear otra.',
@@ -259,7 +278,7 @@ export default function Home() {
         }
       } catch {}
     });
-  }, [request]);
+  }, [request, restoreLocalImages]);
   const roomCode = room?.code;
   useEffect(() => {
     if (!roomCode || !token) return;
@@ -274,7 +293,7 @@ export default function Home() {
                 previous.code === r.code &&
                 previous.revision > r.revision
                   ? previous
-                  : r,
+                  : restoreLocalImages(r),
               );
               setOnline(true);
             }
@@ -288,7 +307,7 @@ export default function Home() {
       live = false;
       clearInterval(timer);
     };
-  }, [roomCode, token, request]);
+  }, [roomCode, token, request, restoreLocalImages]);
   async function enter(join = false, watch = false) {
     if (!name.trim() && !watch) {
       setError('Escribe tu nombre para entrar.');
@@ -317,7 +336,7 @@ export default function Home() {
             : '/api/create',
         { name, capacity: Number(capacity) },
       );
-      setRoom(r.room);
+      setRoom(restoreLocalImages(r.room));
       setToken(r.token);
       sessionStorage.setItem(
         'imperio-session',
@@ -341,7 +360,7 @@ export default function Home() {
     setError('');
     try {
       const r = await request(`/api/${room.code}/action`, a, token);
-      setRoom(r);
+      setRoom(restoreLocalImages(r));
       return r;
     } catch (e) {
       setError((e as Error).message);
@@ -400,7 +419,7 @@ export default function Home() {
     setError('');
     try {
       const result = await request('/api/tutorial', { name });
-      setRoom(result.room);
+      setRoom(restoreLocalImages(result.room));
       setToken(result.token);
       sessionStorage.setItem('imperio-session', JSON.stringify({ code: result.room.code, token: result.token, role: 'player', tutorial: true }));
       history.replaceState(null, '', '?tutorial=1');
@@ -423,7 +442,7 @@ export default function Home() {
       if (!saved) return;
       const r = await request(`/api/${saved.code}`, undefined, saved.token);
       setToken(saved.token);
-      setRoom(r);
+      setRoom(restoreLocalImages(r));
       history.replaceState(null, '', saved.tutorial || r.tutorial ? '?tutorial=1' : `?sala=${saved.code}`);
     } catch {
       setError('No se pudo recuperar la sala. Comprueba la conexión.');
@@ -744,7 +763,17 @@ export default function Home() {
           room.role !== 'spectator' &&
           !room.tutorial &&
           !room.players.find((p) => p.id === room.me)?.ready
-            ? async (d) => !!(await act({ type: 'import', cards: d }))
+            ? async (d) => {
+                for (const card of d.cards) {
+                  if (card.image?.startsWith('data:image/')) {
+                    localCardImages.current.set(localImageKey(card), card.image);
+                  }
+                }
+                return !!(await act({
+                  type: 'import',
+                  cards: lightweightDeck(d),
+                }));
+              }
             : undefined
         }
       />
