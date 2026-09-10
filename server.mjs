@@ -20,11 +20,32 @@ let rooms = {};
 if (fs.existsSync(file)) rooms = JSON.parse(fs.readFileSync(file, 'utf8'));
 Object.values(rooms).forEach(migrate);
 let torCatalog;
+let cardImages;
 const catalogFile = path.join(root, 'dist/client/catalogs/tor-imperio-image-index.json');
 const catalogNormalize = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
 function getTorCatalog() {
   if (!torCatalog) torCatalog = JSON.parse(fs.readFileSync(catalogFile, 'utf8')).cards;
   return torCatalog;
+}
+function getCardImages() {
+  if (cardImages) return cardImages;
+  const sources = [
+    getTorCatalog(),
+    JSON.parse(fs.readFileSync(path.join(root, 'dist/client/catalogs/myths-imperio.json'), 'utf8')).cards,
+    JSON.parse(fs.readFileSync(path.join(root, 'dist/client/catalogs/myths-image-index.json'), 'utf8')).cards,
+  ];
+  cardImages = new Map();
+  for (const source of sources) for (const card of source) {
+    const key = catalogNormalize(card.name);
+    if (card.image && !cardImages.has(key)) cardImages.set(key, card.image);
+  }
+  return cardImages;
+}
+function hydrateRoomImages(room) {
+  const images = getCardImages();
+  for (const player of room.players) for (const card of player.cards) {
+    if (!card.image) card.image = images.get(catalogNormalize(card.name)) || '';
+  }
 }
 function save() {
   fs.writeFileSync(file + '.tmp', JSON.stringify(rooms));
@@ -158,6 +179,9 @@ const server = http.createServer(async (req, res) => {
       send(404, { error: 'Sala no encontrada' });
       return;
     }
+    // Existing rooms created before the image catalogue are repaired the next
+    // time they are opened, so players do not need to rebuild their deck.
+    hydrateRoomImages(r);
     if (url.pathname.endsWith('/spectate') && req.method === 'POST') {
       const spectator = addSpectator(r, body.name);
       save();
