@@ -19,6 +19,13 @@ const file = path.join(data, 'rooms.json');
 let rooms = {};
 if (fs.existsSync(file)) rooms = JSON.parse(fs.readFileSync(file, 'utf8'));
 Object.values(rooms).forEach(migrate);
+let torCatalog;
+const catalogFile = path.join(root, 'dist/client/catalogs/tor-imperio-image-index.json');
+const catalogNormalize = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+function getTorCatalog() {
+  if (!torCatalog) torCatalog = JSON.parse(fs.readFileSync(catalogFile, 'utf8')).cards;
+  return torCatalog;
+}
 function save() {
   fs.writeFileSync(file + '.tmp', JSON.stringify(rooms));
   fs.renameSync(file + '.tmp', file);
@@ -37,6 +44,30 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
     if (url.pathname === '/api/health') {
       send(200, { ok: true });
+      return;
+    }
+    if (url.pathname === '/api/catalog/meta') {
+      const cards = getTorCatalog();
+      send(200, {
+        editions: [...new Set(cards.map((card) => card.edition))].sort(),
+        races: [...new Set(cards.map((card) => card.race).filter(Boolean))].sort(),
+      });
+      return;
+    }
+    if (url.pathname === '/api/catalog/search') {
+      const query = catalogNormalize(url.searchParams.get('q'));
+      const edition = url.searchParams.get('edition') || 'Todas';
+      const type = url.searchParams.get('type') || 'Todas';
+      const race = url.searchParams.get('race') || 'Todas';
+      const cost = url.searchParams.get('cost') || 'Todos';
+      const cards = getTorCatalog().filter((card) =>
+        (!query || `${card.id} ${card.name} ${card.effect || ''}`.toLocaleLowerCase('es').includes(query)) &&
+        (edition === 'Todas' || card.edition === edition) &&
+        (type === 'Todas' || card.type === type) &&
+        (race === 'Todas' || card.race === race) &&
+        (cost === 'Todos' || card.cost === Number(cost)),
+      );
+      send(200, { total: cards.length, cards: cards.slice(0, 160) });
       return;
     }
     if (!url.pathname.startsWith('/api/')) {
