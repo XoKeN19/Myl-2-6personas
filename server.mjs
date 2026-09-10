@@ -43,8 +43,13 @@ function getCardImages() {
 }
 function hydrateRoomImages(room) {
   const images = getCardImages();
-  for (const player of room.players) for (const card of player.cards) {
-    if (!card.image) card.image = images.get(catalogNormalize(card.name)) || '';
+  for (const player of room.players) {
+    for (const card of player.cards) {
+      if (!card.image) card.image = images.get(catalogNormalize(card.name)) || '';
+    }
+    for (const card of player.deckList || []) {
+      if (!card.image) card.image = images.get(catalogNormalize(card.name)) || '';
+    }
   }
 }
 function save() {
