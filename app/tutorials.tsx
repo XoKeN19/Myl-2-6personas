@@ -61,7 +61,7 @@ const liveLessons = [
   ['Guerra de Talismanes', 'Respuestas y Talismanes', 'Antes de resolver un efecto, deja responder. Mueve Tempilcahue desde tu mano al Destierro para representar que se jugó y resolvió.'],
   ['Ataque', 'Mueve el atacante', 'Lleva Akari desde Defensa hasta Ataque. Furia permite atacar al entrar; un Aliado normal espera a un próximo turno.'],
   ['Ataque', 'Declara el ataque', 'Pulsa Atacar, marca Akari y elige al Maestro de la taberna.'],
-  ['Bloqueo', 'El rival bloqueó', 'El Maestro eligió un bloqueador. Retador, Imbloqueable, Indestructible e Indesterrable modifican esta resolución.'],
+  ['Ataque', 'El rival bloqueó', 'Ataque y bloqueo comparten esta fase. El Maestro eligió un bloqueador; Retador, Imbloqueable, Indestructible e Indesterrable modifican la resolución.'],
   ['Daño / Final', 'Resuelve y termina', 'El defensor asigna el daño que entra por cada atacante. Después hay una última respuesta, Fase Final y cambio de turno.'],
 ] as const;
 

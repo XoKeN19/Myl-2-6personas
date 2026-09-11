@@ -83,11 +83,11 @@ test('Robo libre funciona en cualquier fase sin consumir el robo normal', () => 
   assert.equal(p.cards.filter((c) => c.zone === 'mano').length, before + 2);
   assert.equal(r.drawn, false);
 });
-test('Las fases se pueden elegir libremente', () => {
+test('Las fases se pueden elegir libremente y Bloqueo comparte Ataque', () => {
   const [r, p, q] = setup();
   start(r);
   phase(r, p, 'Bloqueo');
-  assert.equal(r.phase, 'Bloqueo');
+  assert.equal(r.phase, 'Ataque');
   phase(r, q, 'Vigilia');
   assert.equal(r.phase, 'Vigilia');
 });

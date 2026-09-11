@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 export type Card = {
   image?: string;
+  catalogId?: string;
+  edition?: string;
   id: string;
   name: string;
   type: string;
@@ -792,8 +794,8 @@ export default function Home() {
             opciones; la recarga del mazo sigue bloqueada tras repartir.
           </p>
           <p>
-            Agrupación → Vigilia → Batalla Mitológica (Ataque, Bloqueo, Guerra
-            de Talismanes y daño) → Final. Estas fases sirven como referencia:
+            Agrupación → Vigilia → Ataque y bloqueo → Guerra de Talismanes →
+            Daño / Final. Estas fases sirven como referencia:
             cualquier jugador puede elegir otra fase y terminar el turno sin que
             la mesa compruebe las condiciones. Robar permite resolver libremente
             los efectos. La agrupación se resuelve manualmente. Jugar desde la

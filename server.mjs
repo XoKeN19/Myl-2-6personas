@@ -14,6 +14,7 @@ import {
 } from './lib/game.mjs';
 import { createTutorialRoom, tutorialAction } from './lib/tutorial-room.mjs';
 import { fetchOfficialCardImage } from './lib/card-image.mjs';
+import { buildCardImageIndex, catalogImageFor } from './lib/card-catalog-images.mjs';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const data = process.env.DATA_DIR || path.join(root, 'data');
 fs.mkdirSync(data, { recursive: true });
@@ -32,25 +33,27 @@ function getTorCatalog() {
 function getCardImages() {
   if (cardImages) return cardImages;
   const sources = [
-    getTorCatalog(),
     JSON.parse(fs.readFileSync(path.join(root, 'dist/client/catalogs/myths-imperio.json'), 'utf8')).cards,
+    getTorCatalog(),
     JSON.parse(fs.readFileSync(path.join(root, 'dist/client/catalogs/myths-image-index.json'), 'utf8')).cards,
   ];
-  cardImages = new Map();
-  for (const source of sources) for (const card of source) {
-    const key = catalogNormalize(card.name);
-    if (card.image && !cardImages.has(key)) cardImages.set(key, card.image);
-  }
+  cardImages = buildCardImageIndex(sources);
   return cardImages;
 }
 function hydrateRoomImages(room) {
   const images = getCardImages();
   for (const player of room.players) {
     for (const card of player.cards) {
-      if (!card.image) card.image = images.get(catalogNormalize(card.name)) || '';
+      const repairOldTorMatch = !card.catalogId && !card.edition && (card.image || '').startsWith('https://api.myl.cl/');
+      const image = catalogImageFor(card, images);
+      const repairIdentifiedCard = (card.catalogId || card.edition) && (card.image || '').startsWith('https://') && image !== card.image;
+      if ((!card.image || repairOldTorMatch || repairIdentifiedCard) && image) card.image = image;
     }
     for (const card of player.deckList || []) {
-      if (!card.image) card.image = images.get(catalogNormalize(card.name)) || '';
+      const repairOldTorMatch = !card.catalogId && !card.edition && (card.image || '').startsWith('https://api.myl.cl/');
+      const image = catalogImageFor(card, images);
+      const repairIdentifiedCard = (card.catalogId || card.edition) && (card.image || '').startsWith('https://') && image !== card.image;
+      if ((!card.image || repairOldTorMatch || repairIdentifiedCard) && image) card.image = image;
     }
   }
 }
@@ -243,12 +246,12 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'POST' && url.pathname.endsWith('/action')) {
       const draft = structuredClone(r);
-      const result = draft.tutorial
-        ? tutorialAction(draft, token, body)
-        : action(draft, token, body);
+      if (draft.tutorial) tutorialAction(draft, token, body);
+      else action(draft, token, body);
+      hydrateRoomImages(draft);
       rooms[code] = draft;
       save();
-      send(200, result);
+      send(200, view(draft, token));
       return;
     }
     send(404, { error: 'Ruta no encontrada' });

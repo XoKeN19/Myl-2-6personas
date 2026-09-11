@@ -6,7 +6,7 @@ import { deckStorage } from './deck-storage';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { cardImageUrl } from './card-images';
 
-type Entry = { id?: string; edition?: string; image?: string; name: string; type: string; effect: string; race: string; cost: number; strength: number };
+type Entry = { id?: string; catalogId?: string; edition?: string; image?: string; name: string; type: string; effect: string; race: string; cost: number; strength: number };
 type Deck = { version: 1; name: string; cards: Entry[] };
 type CatalogCard = Entry & { id: string; edition: string };
 const key = 'imperio-decks-v1';
@@ -54,8 +54,12 @@ function addCatalogPhotos(cards: Entry[], catalog: CatalogCard[]) {
   return cards.map((card) => {
     if (card.image) return card;
     const correctedName = imperioAliases[aliasKey(card.name)] || card.name;
-    const match = catalog.find((item) => normalized(item.name) === normalized(correctedName));
-    return match ? { ...card, name: match.name, id: card.id || match.id, edition: card.edition || match.edition, image: match.image } : card;
+    const wantedId = card.catalogId || card.id;
+    const nameMatches = catalog.filter((item) => normalized(item.name) === normalized(correctedName));
+    const match =
+      (wantedId && catalog.find((item) => item.id === wantedId)) ||
+      (card.edition && nameMatches.find((item) => normalized(item.edition) === normalized(card.edition)));
+    return match ? { ...card, name: match.name, id: card.id || match.id, catalogId: card.catalogId || match.id, edition: card.edition || match.edition, image: match.image } : card;
   });
 }
 

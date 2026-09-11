@@ -5,7 +5,6 @@ const phases = [
   'Agrupación',
   'Vigilia',
   'Ataque',
-  'Bloqueo',
   'Guerra de Talismanes',
   'Asignación de daño',
   'Final',

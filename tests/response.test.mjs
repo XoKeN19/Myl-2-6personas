@@ -14,6 +14,7 @@ test('Defensor ajusta daño y sólo él puede resolver; cancelar no bota', () =>
     type: 'strike',
     assignments: [{ cardId: c.id, target: q.id }],
   });
+  assert.equal(r.phase, 'Guerra de Talismanes');
   const battle = r.pendingBattles[0];
   assert.throws(() =>
     action(r, p.token, {
@@ -27,6 +28,7 @@ test('Defensor ajusta daño y sólo él puede resolver; cancelar no bota', () =>
     battleId: battle.id,
     rows: [{ cardId: c.id, blocker: d.id, damage: 2 }],
   });
+  assert.equal(r.phase, 'Asignación de daño');
   assert.equal(q.cards.filter((c) => c.zone === 'cementerio').length, 2);
   assert.equal(d.zone, 'defensa');
   assert.throws(() =>
