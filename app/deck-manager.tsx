@@ -58,7 +58,7 @@ function addCatalogPhotos(cards: Entry[], catalog: CatalogCard[]) {
     const nameMatches = catalog.filter((item) => normalized(item.name) === normalized(correctedName));
     const match =
       (wantedId && catalog.find((item) => item.id === wantedId)) ||
-      (card.edition && nameMatches.find((item) => normalized(item.edition) === normalized(card.edition)));
+      (card.edition && nameMatches.find((item) => normalized(item.edition) === normalized(card.edition || '')));
     return match ? { ...card, name: match.name, id: card.id || match.id, catalogId: card.catalogId || match.id, edition: card.edition || match.edition, image: match.image } : card;
   });
 }

@@ -210,7 +210,7 @@ export default function Home() {
               ...participant,
               cards: participant.cards.map((card) => {
                 const image = localCardImages.current.get(localImageKey(card));
-                return image && !card.hidden ? { ...card, image } : card;
+                return image && !card.hidden && !('transformation' in card && card.transformation) ? { ...card, image } : card;
               }),
             },
       ),

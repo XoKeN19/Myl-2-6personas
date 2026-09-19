@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { cardImageUrl } from './card-images';
 
 import {
   Dialog,
@@ -33,6 +34,7 @@ type C = {
   strength: number;
 
   effect: string;
+  image?: string;
 
   hidden?: boolean;
 };
@@ -115,6 +117,7 @@ const operations = {
   status: 'Aplicar / quitar estado',
 
   transform: 'Transformar carta',
+  copy: 'Copiar otra carta / habilidad',
 
   attach: 'Equipar por efecto / Exhumar',
 
@@ -223,6 +226,8 @@ export default function Effects({
     [ability, setAbility] = useState('principal'),
     [attackerId, setAttackerId] = useState(''),
     [durationPlayer, setDurationPlayer] = useState('');
+  const [sourceId, setSourceId] = useState('');
+  const [copyMode, setCopyMode] = useState('full');
 
   const current = playerId || room.me || '',
     p = room.players.find((p) => p.id === current),
@@ -238,6 +243,12 @@ export default function Effects({
   const selected = ids.filter((id) => available.some((c) => c.id === id));
 
   const owners = Object.fromEntries(room.players.map((p) => [p.id, p.name]));
+  const copySources = room.players.flatMap((owner) =>
+    owner.cards.filter((c) => !c.hidden && !selected.includes(c.id) &&
+      ['defensa', 'ataque', 'apoyo', 'reserva', 'pagado', 'cementerio', 'destierro'].includes(c.zone))
+      .map((c) => ({ ...c, playerName: owner.name })));
+  const copySource = copySources.find((c) => c.id === sourceId);
+  const copyRecipient = available.find((c) => c.id === selected[0]);
 
   const send = async (a: Record<string, unknown>) => {
     const r = await act(a);
@@ -267,6 +278,17 @@ export default function Effects({
     if (!selectedCard) return;
 
     setReason(selectedCard.name);
+    setSourceId('');
+
+    if (preset === 'copy') {
+      const controller = room.players.find((p) => p.cards.some((c) => c.id === selectedCard.id));
+      setPlayerId(controller?.id || room.me || '');
+      setZone(selectedCard.zone);
+      setIds([selectedCard.id]);
+      setOperation('copy');
+      setCopyMode('full');
+      setUntil('permanent');
+    }
 
     if (preset === 'castillo' && onCastle) {
       onCastle();
@@ -322,6 +344,9 @@ export default function Effects({
             <button onClick={() => openSelected()}>Resolver esta carta</button>
             <button onClick={() => openSelected('transform')}>
               Transformar esta carta
+            </button>
+            <button onClick={() => openSelected('copy')}>
+              Esta carta copia a otra
             </button>
             {selectedText.includes('roba') &&
               [1, 2, 3].map((amount) => (
@@ -438,7 +463,7 @@ export default function Effects({
           )}
 
           <Pick
-            label="Cartas de"
+            label={operation === 'copy' ? 'Jugador cuya carta cambiará' : 'Cartas de'}
 
             value={current}
 
@@ -617,7 +642,7 @@ export default function Effects({
                     onCheckedChange={(v) =>
                       setIds(
                         v
-                          ? [...selected, c.id]
+                          ? operation === 'copy' ? [c.id] : [...selected, c.id]
                           : selected.filter((id) => id !== c.id),
                       )
                     }
@@ -746,7 +771,25 @@ export default function Effects({
             </>
           )}
 
-          {['strength', 'status', 'transform'].includes(operation) && (
+          {operation === 'copy' && (
+            <section className="panel">
+              <p>Selecciona arriba una sola carta que cambiará. Abajo elige de cuál copiar.</p>
+              <Pick label="Copiar de (esta carta no cambia)" value={sourceId}
+                onChange={setSourceId}
+                items={Object.fromEntries(copySources.map((c) => [c.id, `${c.name} · ${c.playerName} · ${zones[c.zone as keyof typeof zones]}`]))} />
+              <Pick label="Qué copiar" value={copyMode} onChange={setCopyMode}
+                items={{ full: 'Carta completa: nombre, foto, tipo, coste, fuerza y habilidad', ability: 'Solo habilidad: conservar nombre, foto y atributos' }} />
+              {copyRecipient && copySource && (
+                <div role="status">
+                  <p><strong>{copyRecipient.name}</strong> copiará {copyMode === 'full' ? 'la carta' : 'la habilidad de'} <strong>{copySource.name}</strong>.</p>
+                  {copySource.image && <img src={cardImageUrl(copySource.image)} alt={copySource.name} style={{ width: 110, maxHeight: 160, objectFit: 'contain' }} />}
+                  <p>{copySource.effect}</p>
+                  <p>La carta de {copySource.playerName} permanece igual. Tu mazo guardado no cambia.</p>
+                </div>
+              )}
+            </section>
+          )}
+          {['strength', 'status', 'transform', 'copy'].includes(operation) && (
             <Pick
               label="Duración"
 
@@ -764,7 +807,7 @@ export default function Effects({
             />
           )}
 
-          {['strength', 'status', 'transform'].includes(operation) &&
+          {['strength', 'status', 'transform', 'copy'].includes(operation) &&
             until === 'nextTurn' && (
               <Pick
                 label="Hasta el próximo turno de"
@@ -908,7 +951,7 @@ export default function Effects({
           <button
             className="primary wide"
 
-            disabled={busy || !reason.trim() || !selected.length}
+            disabled={busy || !reason.trim() || !selected.length || (operation === 'copy' && (selected.length !== 1 || !copySource))}
 
             onClick={() =>
               send({
@@ -921,6 +964,8 @@ export default function Effects({
                 ids: selected,
 
                 operation,
+                sourceId,
+                copyMode,
 
                 zone: dest,
 
