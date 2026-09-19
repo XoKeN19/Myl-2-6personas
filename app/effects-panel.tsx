@@ -189,7 +189,7 @@ function Pick({
 export default function Effects({
   room,
 
-  act,
+  act: perform,
 
   busy,
   selectedCard,
@@ -205,7 +205,7 @@ export default function Effects({
   onCastle?: () => void;
 }) {
   const [open, setOpen] = useState(false),
-    [reason, setReason] = useState(''),
+    [effectCardId, setEffectCardId] = useState(''),
     [playerId, setPlayerId] = useState(''),
     [zone, setZone] = useState('cementerio'),
     [operation, setOperation] = useState('shuffle'),
@@ -228,6 +228,26 @@ export default function Effects({
     [durationPlayer, setDurationPlayer] = useState('');
   const [sourceId, setSourceId] = useState('');
   const [copyMode, setCopyMode] = useState('full');
+  const [originZone, setOriginZone] = useState('all');
+  const [originPlayer, setOriginPlayer] = useState('');
+  const [originSearch, setOriginSearch] = useState('');
+  const [choosingOrigin, setChoosingOrigin] = useState(true);
+  const originCards = room.players.flatMap((owner) => {
+    const visible = owner.cards.filter((c) => !c.hidden);
+    const inspected = room.inspection?.owner === owner.id ? room.privateCards : [];
+    return [...new Map([...visible, ...inspected].map((c) => [c.id, c])).values()]
+      .map((c) => ({ ...c, playerName: owner.name, playerId: owner.id }));
+  });
+  const origin = originCards.find((c) => c.id === effectCardId);
+  const reason = origin?.name || '';
+  const filteredOrigins = originCards.filter((c) =>
+    (!originPlayer || c.playerId === originPlayer) &&
+    (originZone === 'all' || (originZone === 'gold' ? c.type === 'Oro' : c.zone === originZone)) &&
+    c.name.toLocaleLowerCase('es').includes(originSearch.toLocaleLowerCase('es')));
+  const act = (a: Record<string, unknown>) => perform({
+    ...a,
+    ...(a.reason && origin && !a.effectCardId ? { effectCardId: origin.id } : {}),
+  });
 
   const current = playerId || room.me || '',
     p = room.players.find((p) => p.id === current),
@@ -277,7 +297,8 @@ export default function Effects({
   const openSelected = (preset?: string) => {
     if (!selectedCard) return;
 
-    setReason(selectedCard.name);
+    setEffectCardId(selectedCard.id);
+    setChoosingOrigin(false);
     setSourceId('');
 
     if (preset === 'copy') {
@@ -358,6 +379,7 @@ export default function Effects({
                       type: 'effectDraw',
                       count: amount,
                       reason: selectedCard.name,
+                      effectCardId: selectedCard.id,
                     })
                   }
                 >
@@ -404,18 +426,42 @@ export default function Effects({
             requieren aprobación.
           </DialogDescription>
 
-          <label>
-            Nombre de la carta y efecto que estás resolviendo
-            <input
-              maxLength={500}
-
-              value={reason}
-
-              onChange={(e) => setReason(e.target.value)}
-
-              placeholder="Ej.: Karna — buscar un Aliado"
-            />
-          </label>
+          <section className="panel">
+            <h3>Carta que origina el efecto</h3>
+            {origin && (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                {origin.image && <img src={cardImageUrl(origin.image)} alt={origin.name} style={{ width: 64, height: 92, objectFit: 'contain' }} />}
+                <div>
+                  <strong>{origin.name}</strong>
+                  <p>{origin.playerName} · {zones[origin.zone as keyof typeof zones]}</p>
+                  <p>{origin.effect}</p>
+                  <button onClick={() => setChoosingOrigin(!choosingOrigin)}>Cambiar carta del efecto</button>
+                </div>
+              </div>
+            )}
+            {(!origin || choosingOrigin) && (
+              <>
+                <div className="fields">
+                  <Pick label="Jugador" value={originPlayer || 'all'} onChange={(v) => setOriginPlayer(v === 'all' ? '' : v)} items={{ all: 'Todos', ...owners }} />
+                  <Pick label="Filtrar cartas por zona" value={originZone} onChange={setOriginZone}
+                    items={{ all: 'Todas las zonas visibles', gold: 'Todos los Oros', ...Object.fromEntries(Object.entries(zones).filter(([key]) => key !== 'consulta')) }} />
+                  <label>Buscar carta<input value={originSearch} onChange={(e) => setOriginSearch(e.target.value)} placeholder="Buscar entre las cartas visibles" /></label>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(145px, 1fr))', gap: 8, maxHeight: 260, overflowY: 'auto' }}>
+                  {filteredOrigins.map((c) => (
+                    <button key={c.id} aria-pressed={effectCardId === c.id}
+                      onClick={() => { setEffectCardId(c.id); setChoosingOrigin(false); }}>
+                      {c.image && <img loading="lazy" src={cardImageUrl(c.image)} alt="" style={{ width: 70, height: 100, objectFit: 'contain', margin: '0 auto' }} />}
+                      <strong style={{ display: 'block' }}>{c.name}</strong>
+                      <small>{c.playerName} · {zones[c.zone as keyof typeof zones]} · #{c.id.slice(-4)}</small>
+                    </button>
+                  ))}
+                </div>
+                {!filteredOrigins.length && <p>No hay cartas visibles con estos filtros. Para el Castillo o una mano rival, abre primero una consulta autorizada.</p>}
+              </>
+            )}
+            <p className="hint">Esta es la carta que activa la habilidad. Las cartas que recibirán el efecto se eligen más abajo.</p>
+          </section>
 
           {room.requests.length > 0 && (
             <section className="requests">
