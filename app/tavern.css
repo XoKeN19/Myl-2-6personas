@@ -455,3 +455,5 @@ body:has(.fixed-table){height:100dvh;overflow:hidden;}
 .combat-lines{position:fixed;inset:0;width:100vw;height:100vh;z-index:55;pointer-events:none;overflow:visible;}.combat-line-shadow{stroke:#190908;stroke-width:9;opacity:.7;}.combat-line{stroke:#e88447;stroke-width:3;stroke-linecap:round;stroke-dasharray:8 7;animation:combat-dash .7s linear infinite;filter:drop-shadow(0 0 4px #ffb057);}.combat-line::after{content:'';}@keyframes combat-dash{to{stroke-dashoffset:-15;}}
 @media(max-width:700px){.table-3d-stage{perspective:none;}.table-3d-stage.enabled .table-3d-surface{transform:none;filter:none;}.table-3d-atmosphere{opacity:.45;}}
 @media(prefers-reduced-motion:reduce){.table-3d-surface{transition:none;}.table-3d-stage.enabled .table-3d-surface{transform:none;filter:none;}.table-3d-atmosphere{display:none;}}
+
+.deck-catalog-panel{grid-template-rows:auto auto auto minmax(0,1fr)} .advanced-catalog-filters>button{font-size:13px;padding:5px 9px} .advanced-catalog-filters .fields{display:flex;flex-wrap:wrap;align-items:end;gap:8px;margin-top:7px} .advanced-catalog-filters label{flex:1;min-width:140px;margin:0} .advanced-catalog-filters select{width:100%}

@@ -23,12 +23,14 @@ const editionTitles = new Map(
 );
 const typeNames = new Map((catalog.types || []).map((item) => [String(item.id), item.name]));
 const raceNames = new Map((catalog.races || []).map((item) => [String(item.id), item.name]));
+const rarityNames = new Map((catalog.rarities || []).map((item) => [String(item.id), item.name]));
 const cards = catalog.cards.map((card) => ({
   id: `TOR-${card.id}`,
   name: card.name,
   edition: editionTitles.get(card.ed_slug) || card.ed_slug,
   type: typeNames.get(String(card.type)) || '',
   race: raceNames.get(String(card.race)) || '',
+  rarity: rarityNames.get(String(card.rarity)) || '',
   cost: Number(card.cost) || 0,
   strength: Number(card.damage) || 0,
   effect: card.ability || '',

@@ -5,6 +5,7 @@ import DeckGallery from './deck-gallery';
 import { deckStorage } from './deck-storage';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { cardImageUrl } from './card-images';
+import { ABILITIES } from '../lib/catalog-filters.mjs';
 
 type Entry = { id?: string; catalogId?: string; edition?: string; image?: string; name: string; type: string; effect: string; race: string; cost: number; strength: number };
 type Deck = { version: 1; name: string; cards: Entry[] };
@@ -68,13 +69,29 @@ export default function DeckManager({ open, onOpenChange, loadRoom, importRoom }
   const [name, setName] = useState('Mi mazo'), [cards, setCards] = useState<Entry[]>([]), [library, setLibrary] = useState<Deck[]>([]);
   const [query, setQuery] = useState(''), [edition, setEdition] = useState('Todas'), [type, setType] = useState('Todas'), [race, setRace] = useState('Todas'), [cost, setCost] = useState('Todos');
   const [selected, setSelected] = useState<CatalogCard | null>(null), [message, setMessage] = useState(''), [showTools, setShowTools] = useState(false);
+  const [ability, setAbility] = useState(''), [rarity, setRarity] = useState(''), [rarities, setRarities] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => { if (!open) return; void (async () => {
-    try { const response = await fetch('/api/catalog/meta'); if (!response.ok) throw Error(); const data = await response.json() as { editions?: string[]; races?: string[] }; setEditions(['Todas', ...(data.editions || [])]); setRaces(['Todas', ...(data.races || [])]); } catch { setCatalogError('No se pudo abrir el catálogo. Recarga e inténtalo de nuevo.'); }
+    try { const response = await fetch('/api/catalog/meta'); if (!response.ok) throw Error(); const data = await response.json() as { editions?: string[]; races?: string[]; rarities?: string[] }; setEditions(['Todas', ...(data.editions || [])]); setRaces(['Todas', ...(data.races || [])]); setRarities(data.rarities || []); } catch { setCatalogError('No se pudo abrir el catálogo. Recarga e inténtalo de nuevo.'); }
     try { const saved = (await deckStorage()) ?? JSON.parse(localStorage.getItem(key) || '[]'); setLibrary(Array.isArray(saved) ? saved : []); } catch { setMessage('No se pudo leer la biblioteca guardada de este navegador.'); }
   })(); }, [open]);
 
-  useEffect(() => { if (!open) return; const timer = window.setTimeout(() => { const params = new URLSearchParams({ q: query, edition, type, race, cost }); void fetch(`/api/catalog/search?${params}`).then(async (response) => { if (!response.ok) throw Error(); return response.json() as Promise<{ cards?: CatalogCard[]; total?: number }>; }).then((data) => { setCatalog(data.cards || []); setCatalogTotal(data.total || 0); }).catch(() => setCatalogError('No se pudo buscar en el catálogo.')); }, 160); return () => window.clearTimeout(timer); }, [open, query, edition, type, race, cost]);
+  useEffect(() => {
+    if (!open) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams({ q: query, edition, type, race, cost, ability, rarity });
+      void fetch(`/api/catalog/search?${params}`, { signal: controller.signal }).then(async (response) => {
+        if (!response.ok) throw Error();
+        return response.json() as Promise<{ cards?: CatalogCard[]; total?: number }>;
+      }).then((data) => {
+        if (controller.signal.aborted) return;
+        setCatalog(data.cards || []); setCatalogTotal(data.total || 0); setCatalogError('');
+      }).catch(() => { if (!controller.signal.aborted) setCatalogError('No se pudo buscar en el catálogo.'); });
+    }, 160);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [open, query, edition, type, race, cost, ability, rarity]);
   const cardKey = (card: Entry) => card.id || `${card.name}:${card.type}`;
   const copies = (card: Entry) => cards.filter((entry) => cardKey(entry) === cardKey(card)).length;
   const add = (card: CatalogCard) => { if (cards.length >= 50) return setMessage('El mazo ya tiene 50 cartas. Quita una antes de añadir otra.'); setCards((old) => [...old, { ...card }]); setMessage(`${card.name} añadida (${cards.length + 1}/50).`); };
@@ -114,7 +131,17 @@ export default function DeckManager({ open, onOpenChange, loadRoom, importRoom }
     <div className="deck-builder-title"><label>Nombre del mazo<input maxLength={80} value={name} onChange={(event) => setName(event.target.value)} /></label><strong className={cards.length === 50 ? 'deck-count ready' : 'deck-count'}>{cards.length} / 50</strong><button className="primary" onClick={() => void save()}>Guardar</button></div>
     <div className="deck-builder"><section className="deck-catalog-panel">
       <div className="deck-filters"><input aria-label="Buscar carta" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre, código o texto" /><select aria-label="Filtrar por edición" value={edition} onChange={(event) => setEdition(event.target.value)}>{editions.map((value) => <option key={value}>{value}</option>)}</select><select aria-label="Filtrar por tipo" value={type} onChange={(event) => setType(event.target.value)}>{types.map((value) => <option key={value}>{value}</option>)}</select><select aria-label="Filtrar por raza" value={race} onChange={(event) => setRace(event.target.value)}>{races.map((value) => <option key={value}>{value}</option>)}</select><select aria-label="Filtrar por coste" value={cost} onChange={(event) => setCost(event.target.value)}><option>Todos</option>{[0, 1, 2, 3, 4, 5, 6, 7, 8].map((value) => <option key={value} value={value}>Coste {value}</option>)}</select></div>
-      <p className="catalog-result">{catalogError || (catalog.length ? `${Math.min(catalog.length, catalogTotal)}${catalogTotal > catalog.length ? '+' : ''} de ${catalogTotal} cartas encontradas` : 'Cargando catálogo Imperio…')}</p>
+      <div className="advanced-catalog-filters">
+        <button aria-expanded={showFilters} aria-controls="advanced-card-filters" onClick={() => setShowFilters(!showFilters)}>
+          {showFilters ? 'Mostrar menos filtros' : 'Mostrar más filtros'}{(ability || rarity) ? ` · ${[ability, rarity].filter(Boolean).join(' · ')}` : ''}
+        </button>
+        {showFilters && <div id="advanced-card-filters" className="fields">
+          <label>Habilidad en el texto<select value={ability} onChange={(e) => setAbility(e.target.value)}><option value="">Todas las habilidades</option>{ABILITIES.map((value: string) => <option key={value}>{value}</option>)}</select></label>
+          <label>Rareza<select value={rarity} onChange={(e) => setRarity(e.target.value)}><option value="">Todas las rarezas</option>{rarities.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <button disabled={!ability && !rarity} onClick={() => { setAbility(''); setRarity(''); }}>Limpiar filtros adicionales</button>
+        </div>}
+      </div>
+      <p className="catalog-result">{catalogError || `${Math.min(catalog.length, catalogTotal)}${catalogTotal > catalog.length ? '+' : ''} de ${catalogTotal} cartas encontradas`}</p>
       <div className="builder-card-grid">{catalog.map((card) => <article key={card.id} className="builder-card"><button className="builder-card-image" onClick={() => setSelected(card)} aria-label={`Ver ${card.name}`}><img src={cardImageUrl(card.image)} alt={`Carta ${card.name}`} loading="lazy" decoding="async" /></button><div><strong>{card.name}</strong><small>{card.type} · {card.cost}{card.type === 'Aliado' ? ` · ${card.strength} fuerza` : ''}</small></div><button className="builder-add" onClick={() => add(card)} aria-label={`Añadir ${card.name}`}>＋ <span>{copies(card)}</span></button></article>)}</div>
     </section><aside className="deck-list-panel"><header><h3>Tu mazo</h3><button disabled={!cards.length} onClick={() => setCards([])}>Vaciar</button></header>{!cards.length ? <p className="deck-empty">Elige cartas del catálogo para empezar.</p> : <div className="deck-list">{Array.from(new Map(cards.map((card) => [cardKey(card), card])).values()).map((card) => <article key={cardKey(card)}>{card.image ? <img src={cardImageUrl(card.image)} alt="" loading="lazy" decoding="async" /> : <span className="card-fallback">{card.type}</span>}<div><strong>{card.name}</strong><small>{card.type} · coste {card.cost}</small></div><b>×{copies(card)}</b><button onClick={() => remove(card)} aria-label={`Quitar ${card.name}`}>−</button></article>)}</div>}{importRoom && <button className="primary wide" disabled={cards.length !== 50} onClick={async () => { if (await importRoom(draft())) { setMessage('Mazo cargado para jugar.'); onOpenChange(false); } }}>Usar este mazo en la sala</button>}</aside></div>
     {library.length > 0 && <section className="saved-decks"><h3>Mis mazos guardados</h3>{library.map((deck, index) => <button key={`${deck.name}-${index}`} onClick={() => fill(deck)}>{coverFor(deck) ? <img src={cardImageUrl(coverFor(deck))} alt="" loading="lazy" decoding="async" /> : <span>◈</span>}<b>{deck.name}</b><small>{deck.cards.length} cartas</small></button>)}</section>}

@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { matchesAdvancedFilters, catalogRarities } from './lib/catalog-filters.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -85,6 +86,7 @@ const server = http.createServer(async (req, res) => {
       send(200, {
         editions: [...new Set(cards.map((card) => card.edition))].sort((a, b) => a.localeCompare(b, 'es')),
         races: [...new Set(cards.map((card) => card.race).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')),
+        rarities: catalogRarities(cards),
       });
       return;
     }
@@ -99,7 +101,8 @@ const server = http.createServer(async (req, res) => {
         (edition === 'Todas' || card.edition === edition) &&
         (type === 'Todas' || card.type === type) &&
         (race === 'Todas' || card.race === race) &&
-        (cost === 'Todos' || card.cost === Number(cost)),
+        (cost === 'Todos' || card.cost === Number(cost)) &&
+        matchesAdvancedFilters(card, url.searchParams),
       );
       send(200, { total: cards.length, cards: cards.slice(0, 160) });
       return;
