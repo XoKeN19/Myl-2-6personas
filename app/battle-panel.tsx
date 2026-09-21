@@ -24,24 +24,22 @@ export function BattlePanel({
 }) {
   const [picked, setPicked] = useState<Record<string, string>>({});
   const me = room.players.find((p) => p.id === room.me),
-    rivals = room.players.filter((p) => p.id !== room.me);
+    rivals = room.players.filter((p) => p.id !== room.me && p.cards.some((c) => c.zone === 'castillo'));
   const cards =
     me?.cards.filter((c) => c.zone === 'ataque' && c.type === 'Aliado') || [];
   const selected = cards.filter(
-    (c) => picked[c.id] && !room.struck?.includes(c.id),
+    (c) => rivals.some((p) => p.id === picked[c.id]) && !room.struck?.includes(c.id),
   );
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal battle-panel">
         <DialogTitle>
-          {preferredTarget
-            ? 'Atacar a ' + rivals.find((p) => p.id === preferredTarget)?.name
-            : 'Atacar con aliados'}
+          Repartir atacantes entre oponentes
         </DialogTitle>
         <DialogDescription>
-          Elige quién ataca a cada rival. El defensor puede bloquear o cancelar
-          antes de confirmar. Fuerza seleccionada. Resuelvan bloqueos y
-          prevenciones antes de aplicar este daño directo.
+          Elige un rival para cada aliado. Puedes atacar a varios oponentes en
+          este mismo turno con cartas distintas, juntos o en declaraciones
+          separadas. Cada defensor resuelve su bloqueo y daño por separado.
         </DialogDescription>
         <div className="battle-choices">
           {cards.map((c) => (
@@ -55,7 +53,7 @@ export function BattlePanel({
                     setPicked({
                       ...picked,
                       [c.id]: e.target.checked
-                        ? preferredTarget || c.target || rivals[0]?.id || ''
+                        ? rivals.find((p) => p.id === preferredTarget)?.id || rivals.find((p) => p.id === c.target)?.id || rivals[0]?.id || ''
                         : '',
                     })
                   }
@@ -63,6 +61,7 @@ export function BattlePanel({
                 {c.name} · Fuerza {c.strength}
                 {room.struck?.includes(c.id) ? ' · Ya aplicado' : ''}
               </label>
+              <label>Atacar a
               <select
                 aria-label={`Objetivo de ${c.name}`}
                 disabled={!picked[c.id] || busy || room.struck?.includes(c.id)}
@@ -77,6 +76,7 @@ export function BattlePanel({
                   </option>
                 ))}
               </select>
+              </label>
             </div>
           ))}
         </div>
@@ -87,7 +87,7 @@ export function BattlePanel({
               .reduce((n, c) => n + c.strength, 0);
             return damage > 0 ? (
               <p key={p.id}>
-                {p.name}: botar {damage} cartas
+                {p.name}: {damage} de fuerza antes de bloqueos
               </p>
             ) : null;
           })}
