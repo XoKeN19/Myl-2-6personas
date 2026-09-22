@@ -141,6 +141,7 @@ export default function Arena({
     [timerOpen, setTimerOpen] = useState(false);
   const [amount, setAmount] = useState(1),
     [reason, setReason] = useState('Consulta por efecto');
+  const [revealType, setRevealType] = useState('Aliado');
   const [search, setSearch] = useState(''),
     [chosen, setChosen] = useState<string[]>([]);
   const [recipient, setRecipient] = useState(''),
@@ -1097,11 +1098,14 @@ export default function Arena({
                     <button disabled={busy} onClick={() => void look('all')}>
                       Buscar carta
                     </button>
-                    <button
-                      disabled={busy}
-                      onClick={() => void act({ type: 'revealUntil' })}
-                    >
-                      Mostrar hasta Aliado
+                    <label>
+                      Mostrar hasta
+                      <select value={revealType} onChange={(e) => setRevealType(e.target.value)}>
+                        {['Aliado', 'Tótem', 'Arma', 'Talismán', 'Oro'].map((type) => <option key={type}>{type}</option>)}
+                      </select>
+                    </label>
+                    <button disabled={busy} onClick={() => void act({ type: 'revealUntil', cardType: revealType })}>
+                      Mostrar hasta {revealType}
                     </button>
                     <button disabled={busy} onClick={() => void look('top')}>
                       Mirar primeras {amount}

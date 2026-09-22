@@ -60,3 +60,18 @@ test('Revelado hasta aliado no altera orden; agrupar oros no mueve aliados; cast
   action(r, p.token, { type: 'damage', count: 4 });
   assert.equal(r.defeated[0].id, p.id);
 });
+test('Mostrar hasta acepta el tipo elegido y conserva el Castillo sin moverlo', () => {
+  const r = createRoom('A', 2), p = r.players[0];
+  p.cards = [
+    card({ type: 'Oro', zone: 'castillo' }),
+    card({ type: 'Aliado', zone: 'castillo' }),
+    card({ type: 'Tótem', zone: 'castillo' }),
+    card({ type: 'Arma', zone: 'castillo' }),
+  ];
+  const before = p.cards.map((c) => c.id);
+  action(r, p.token, { type: 'revealUntil', cardType: 'Tótem' });
+  assert.equal(r.revealEvent.targetType, 'Tótem');
+  assert.equal(r.revealEvent.cards.length, 3);
+  assert.equal(r.revealEvent.cards.at(-1).type, 'Tótem');
+  assert.deepEqual(p.cards.map((c) => c.id), before);
+});

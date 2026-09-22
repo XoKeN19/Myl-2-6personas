@@ -195,7 +195,7 @@ export default function ResponseTools({ room, act, busy, play }: Props) {
         }}
       >
         <DialogContent className="modal">
-          <DialogTitle>{reveal?.name} te muestra estas cartas</DialogTitle>
+          <DialogTitle>{reveal?.name} te muestra cartas hasta {reveal?.targetType || 'Aliado'}</DialogTitle>
           <DialogDescription>
             {reveal?.found
               ? 'Se encontró un Aliado.'

@@ -67,6 +67,7 @@ export type Room = {
     name: string;
     cards: Card[];
     found: boolean;
+    targetType?: string;
   };
   pendingBattles?: {
     id: string;
