@@ -4,7 +4,7 @@
  * expuestas por el catálogo público de TOR. Guarda referencias remotas, sin
  * descargar los PNGs de las cartas al proyecto.
  */
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 const API = 'https://api.myl.cl/cards/edition/todas';
@@ -21,10 +21,38 @@ const editionTitles = new Map(
   [...(await editionsResponse.text()).matchAll(/<option value="([^"]+)">([^<]+)<\/option>/g)]
     .map(([, slug, title]) => [slug, title.replace(/^\d+\s*-\s*/, '').trim()]),
 );
+// The "todas" endpoint omits whole editions. Fetch their individual catalogues
+// before generating the search index instead of assuming "todas" is complete.
+const included = new Set(catalog.cards.map((card) => card.ed_slug));
+const missing = [...editionTitles.keys()].filter((slug) => slug !== 'todas' && !included.has(slug));
+const unavailableEditions = [];
+for (let offset = 0; offset < missing.length; offset += 3) {
+  const additions = await Promise.allSettled(missing.slice(offset, offset + 3).map(async (slug) => {
+    const response = await fetch('https://api.myl.cl/cards/edition/' + encodeURIComponent(slug), { signal: AbortSignal.timeout(30000) });
+    if (!response.ok) throw Error(`No se pudo consultar ${slug}: ${response.status}`);
+    const data = await response.json();
+    if (data.status !== 'OK' || !Array.isArray(data.cards)) throw Error(`Catálogo inválido: ${slug}`);
+    console.log(`${editionTitles.get(slug)}: ${data.cards.length} cartas`);
+    return data;
+  }));
+  for (const [index, result] of additions.entries()) {
+    if (result.status === 'rejected') {
+      unavailableEditions.push(missing[offset + index]);
+      console.warn(String(result.reason));
+      continue;
+    }
+    const data = result.value;
+    catalog.cards.push(...data.cards);
+    for (const key of ['types', 'races', 'rarities']) {
+      catalog[key] = [...new Map([...(catalog[key] || []), ...(data[key] || [])].map((item) => [String(item.id), item])).values()];
+    }
+  }
+}
+catalog.cards = [...new Map(catalog.cards.map((card) => [String(card.id), card])).values()];
 const typeNames = new Map((catalog.types || []).map((item) => [String(item.id), item.name]));
 const raceNames = new Map((catalog.races || []).map((item) => [String(item.id), item.name]));
 const rarityNames = new Map((catalog.rarities || []).map((item) => [String(item.id), item.name]));
-const cards = catalog.cards.map((card) => ({
+let cards = catalog.cards.map((card) => ({
   id: `TOR-${card.id}`,
   name: card.name,
   edition: editionTitles.get(card.ed_slug) || card.ed_slug,
@@ -36,13 +64,19 @@ const cards = catalog.cards.map((card) => ({
   effect: card.ability || '',
   image: `https://api.myl.cl/static/cards/${encodeURIComponent(card.ed_edid)}/${encodeURIComponent(card.edid)}.png`,
 })).sort((a, b) => a.id.localeCompare(b.id));
+// Keep prior records if an edition is temporarily unavailable.
+let previous = [];
+try { previous = JSON.parse(await readFile(OUTPUT, 'utf8')).cards || []; }
+catch (error) { if (error.code !== 'ENOENT') throw error; }
+cards = [...new Map([...previous, ...cards].map((card) => [card.id, card])).values()].sort((a, b) => a.id.localeCompare(b.id));
 
 await mkdir(dirname(OUTPUT), { recursive: true });
 await writeFile(OUTPUT, JSON.stringify({
   version: 1,
   source: 'TOR MyL',
-  scope: 'Todas las ediciones del formato Imperio',
+  scope: 'Catálogo general TOR y ediciones individuales omitidas por la consulta general',
   generatedAt: new Date().toISOString(),
+  unavailableEditions,
   cards,
 }, null, 2));
 console.log(`Índice TOR Imperio: ${cards.length} cartas en ${OUTPUT}`);
